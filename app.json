@@ -28,6 +28,7 @@
       "package": "com.bizreel.app",
       "googleServicesFile": "./google-services.json",
       "permissions": [
+        "INTERNET",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",

@@ -202,7 +202,7 @@ BEGIN
   VALUES (
     NEW.id,
     LOWER(SPLIT_PART(NEW.email, '@', 1)) || '_' || SUBSTR(CAST(gen_random_uuid() AS TEXT), 1, 4),
-    SPLIT_PART(NEW.email, '@', 1),
+    COALESCE(NEW.raw_user_meta_data->>'business_name', SPLIT_PART(NEW.email, '@', 1)),
     NEW.raw_user_meta_data->>'avatar_url'
   );
   RETURN NEW;

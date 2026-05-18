@@ -37,8 +37,8 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!session && !inAuthGroup) {
-      // Redirect to login if not logged in and not in auth group
-      router.replace('/(auth)/login');
+      // Redirect to welcome screen if not logged in and not in auth group
+      router.replace('/(auth)');
     } else if (session && inAuthGroup) {
       // Redirect to tabs if logged in and in auth group
       router.replace('/(tabs)');
