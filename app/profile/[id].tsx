@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, Modal, TextInput, Alert, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../Context/AuthContext';
+import { supabase } from '../../src/lib/supabase';
+import { useAuth } from '../../src/Context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { VibrantBackground } from '../../components/VibrantBackground';
+import { VibrantBackground } from '../../src/components/VibrantBackground';
 
 export default function PublicProfileScreen() {
   const params = useLocalSearchParams();

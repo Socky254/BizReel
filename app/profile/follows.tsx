@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../src/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../../Context/AuthContext';
+import { useAuth } from '../../src/Context/AuthContext';
 
 export default function FollowsScreen() {
   const { id, type } = useLocalSearchParams();
