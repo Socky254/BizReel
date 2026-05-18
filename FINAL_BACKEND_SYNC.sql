@@ -42,6 +42,8 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- B. GLOBAL SEARCH ENGINE
+DROP FUNCTION IF EXISTS public.global_search(TEXT);
+
 CREATE OR REPLACE FUNCTION public.global_search(search_term TEXT)
 RETURNS TABLE (
     id UUID,
