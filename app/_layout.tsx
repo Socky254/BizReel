@@ -12,25 +12,34 @@ import { Colors } from '../src/core/theme/colors';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { session, setSession, loading } = useAuthStore();
+  const { session, setSession } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     // 1. Initial Session Check
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsReady(true);
-      SplashScreen.hideAsync();
+      if (mounted) {
+        setSession(session);
+        setIsReady(true);
+        SplashScreen.hideAsync().catch(() => {});
+      }
     });
 
     // 2. Auth State Change Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      if (mounted) {
+        setSession(session);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -39,11 +48,16 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!session && !inAuthGroup) {
-      // Redirect to welcome screen if not logged in and not in auth group
-      router.replace('/(auth)');
+      // Use setImmediate or setTimeout to ensure navigation happens after layout
+      const timer = setTimeout(() => {
+        router.replace('/(auth)');
+      }, 1);
+      return () => clearTimeout(timer);
     } else if (session && inAuthGroup) {
-      // Redirect to tabs if logged in and in auth group
-      router.replace('/(tabs)');
+      const timer = setTimeout(() => {
+        router.replace('/(tabs)');
+      }, 1);
+      return () => clearTimeout(timer);
     }
   }, [session, segments, isReady]);
 

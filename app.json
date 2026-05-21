@@ -11,7 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "scheme": "bizreel",
     "ios": {
       "supportsTablet": true,
