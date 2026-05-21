@@ -193,22 +193,3 @@ const styles = StyleSheet.create({
   deleteBtn: { alignItems: 'center', marginTop: 15 },
   deleteText: { color: Colors.textTertiary, fontSize: 12, fontWeight: '700', textDecorationLine: 'underline' }
 });
-
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D0D12' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#1C1C24' },
-  backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  title: { color: '#fff', fontSize: 18, fontWeight: '900' },
-  content: { flex: 1 },
-  sectionTitle: { color: '#555', fontSize: 11, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.5, marginLeft: 20, marginTop: 30, marginBottom: 10 },
-  item: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: '#1C1C24' },
-  iconArea: { width: 40 },
-  textArea: { flex: 1 },
-  itemTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  itemSubtitle: { color: '#555', fontSize: 12, marginTop: 4, fontWeight: '600' },
-  signOutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 40, padding: 20, backgroundColor: 'rgba(255,59,48,0.1)', marginHorizontal: 20, borderRadius: 15 },
-  signOutText: { color: '#FF3B30', fontSize: 16, fontWeight: '800', marginLeft: 10 },
-  deleteBtn: { alignItems: 'center', marginTop: 10, marginBottom: 20 },
-  deleteText: { color: '#555', fontSize: 13, fontWeight: '700' }
-});
