@@ -18,6 +18,14 @@ export default function CatalogScreen() {
   const [newDescription, setNewDescription] = useState('');
   const [newImage, setNewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Syndicate State
+  const [showSyndicateModal, setShowSyndicateModal] = useState(false);
+  const [selectedProduct, setSelectedPost] = useState<any>(null);
+  const [targetQty, setTargetQty] = useState('');
+  const [discountPrice, setDiscountPrice] = useState('');
+  const [expiryDays, setExpiryDays] = useState('7');
+
   const router = useRouter();
 
   const isOwnProfile = session?.user?.id === id;
@@ -145,6 +153,38 @@ export default function CatalogScreen() {
     }
   };
 
+  const handleCreateSyndicate = async () => {
+    if (!targetQty || !discountPrice) {
+      Alert.alert("Error", "Target quantity and discount price are required.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + parseInt(expiryDays));
+
+      const { error } = await supabase.from('syndicates').insert({
+        creator_id: session?.user?.id,
+        product_id: selectedProduct.id,
+        target_quantity: parseInt(targetQty),
+        discount_price: parseFloat(discountPrice),
+        expires_at: expiresAt.toISOString(),
+      });
+
+      if (error) throw error;
+
+      Alert.alert("Syndicate Launched", "Group Buy deal is now active!");
+      setShowSyndicateModal(false);
+      setTargetQty('');
+      setDiscountPrice('');
+    } catch (e: any) {
+      Alert.alert("Launch Failed", e.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -190,6 +230,19 @@ export default function CatalogScreen() {
                 {!isOwnProfile && (
                   <TouchableOpacity style={styles.addToCartBtn} onPress={() => addToCart(item)}>
                     <Text style={styles.addToCartText}>Add to Cart</Text>
+                  </TouchableOpacity>
+                )}
+
+                {isOwnProfile && (
+                  <TouchableOpacity
+                    style={styles.syndicateBtn}
+                    onPress={() => {
+                      setSelectedPost(item);
+                      setShowSyndicateModal(true);
+                    }}
+                  >
+                    <Ionicons name="people" size={16} color={Colors.primary} />
+                    <Text style={styles.syndicateBtnText}>Create Group Buy</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -272,6 +325,68 @@ export default function CatalogScreen() {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+
+      {/* Syndicate Modal */}
+      <Modal visible={showSyndicateModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Launch Syndicate Deal</Text>
+              <TouchableOpacity onPress={() => setShowSyndicateModal(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+               <Text style={styles.modalSubtitle}>Create a group buy deal for {selectedProduct?.name}</Text>
+
+               <View style={styles.inputGroup}>
+                <Text style={styles.label}>TARGET QUANTITY (Units needed for discount)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. 50"
+                  placeholderTextColor="#444"
+                  keyboardType="numeric"
+                  value={targetQty}
+                  onChangeText={setTargetQty}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>DISCOUNT PRICE (Per unit when target met)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. 850.00"
+                  placeholderTextColor="#444"
+                  keyboardType="numeric"
+                  value={discountPrice}
+                  onChangeText={setDiscountPrice}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>EXPIRY (Days from now)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="7"
+                  placeholderTextColor="#444"
+                  keyboardType="numeric"
+                  value={expiryDays}
+                  onChangeText={setExpiryDays}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.submitBtn, { backgroundColor: Colors.primary }, isSubmitting && { opacity: 0.7 }]}
+                onPress={handleCreateSyndicate}
+                disabled={isSubmitting}
+              >
+                <Text style={styles.submitBtnText}>LAUNCH DEAL</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -289,6 +404,20 @@ const styles = StyleSheet.create({
   desc: { color: '#666', marginTop: 6, fontSize: 13, lineHeight: 18 },
   addToCartBtn: { backgroundColor: '#00C853', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, marginTop: 15, alignSelf: 'flex-start' },
   addToCartText: { color: '#000', fontSize: 13, fontWeight: '900' },
+  syndicateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 200, 83, 0.3)',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginTop: 15,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0, 200, 83, 0.05)'
+  },
+  syndicateBtnText: { color: '#00C853', fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
   empty: { color: '#333', textAlign: 'center', marginTop: 15, fontWeight: '700' },
 
@@ -296,6 +425,7 @@ const styles = StyleSheet.create({
   modalContent: { backgroundColor: '#16161E', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 25, height: '90%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
   modalTitle: { color: '#fff', fontSize: 20, fontWeight: '900' },
+  modalSubtitle: { color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 25, fontWeight: '600' },
   imagePicker: { width: '100%', height: 200, backgroundColor: '#0D0D12', borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginBottom: 25, borderStyle: 'dashed', borderWidth: 1, borderColor: '#333', overflow: 'hidden' },
   previewImg: { width: '100%', height: '100%' },
   pickerText: { color: '#555', marginTop: 10, fontWeight: '700', fontSize: 12, textTransform: 'uppercase' },

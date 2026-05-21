@@ -119,6 +119,32 @@ CREATE TABLE IF NOT EXISTS public.order_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- ==========================================
+-- METHOD #2: SYNDICATE ESCROW (GROUP BUY)
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS public.syndicates (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    creator_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    product_id UUID REFERENCES public.products(id) ON DELETE CASCADE NOT NULL,
+    target_quantity INTEGER NOT NULL,
+    current_quantity INTEGER DEFAULT 0,
+    discount_price NUMERIC NOT NULL,
+    status TEXT DEFAULT 'active', -- 'active', 'filled', 'processing', 'completed', 'cancelled'
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.syndicate_members (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    syndicate_id UUID REFERENCES public.syndicates(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    quantity INTEGER NOT NULL,
+    payment_status TEXT DEFAULT 'pending', -- 'pending', 'held_in_escrow', 'refunded'
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(syndicate_id, user_id)
+);
+
 -- 5. AI & INTELLIGENCE
 CREATE TABLE IF NOT EXISTS public.ai_sessions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
