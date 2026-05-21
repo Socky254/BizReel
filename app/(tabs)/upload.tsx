@@ -69,9 +69,13 @@ export default function UploadScreen() {
       const response = await fetch(video);
       const blob = await response.blob();
 
+      const arrayBuffer = await new Response(blob).arrayBuffer();
+
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('reels')
-        .upload(filename, blob);
+        .upload(filename, arrayBuffer, {
+           contentType: 'video/mp4'
+        });
 
       if (uploadError) throw uploadError;
 
@@ -250,7 +254,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, marginBottom: 20 },
   title: { color: Colors.textPrimary, fontSize: 20, fontWeight: '900' },
   postBtn: { color: Colors.primary, fontSize: 16, fontWeight: '900', letterSpacing: 1 },
-  videoPreviewContainer: { width: width - 40, aspectRatio: 9/16, backgroundColor: Colors.surface, marginHorizontal: 20, borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border },
+  videoPreviewContainer: { width: width * 0.4, aspectRatio: 9/16, backgroundColor: Colors.surface, marginHorizontal: 20, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border, alignSelf: 'center' },
   previewVideo: { flex: 1 },
   inputArea: { padding: 20 },
   label: { color: Colors.textTertiary, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 10, letterSpacing: 1 },

@@ -363,17 +363,23 @@ CREATE POLICY "Public view comments" ON public.comments FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Authenticated users can comment" ON public.comments;
 CREATE POLICY "Authenticated users can comment" ON public.comments FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
--- Diagnostic Policy (Used by app for pre-flight connectivity checks)
-CREATE POLICY "Diagnostic View" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users manage own posts" ON posts FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own comments" ON comments FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own messages" ON messages FOR ALL USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
+CREATE POLICY "Users manage own stories" ON stories FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own products" ON products FOR ALL USING (auth.uid() = business_id);
+CREATE POLICY "Users manage own cart" ON cart FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own orders" ON orders FOR ALL USING (auth.uid() = buyer_id OR auth.uid() = business_id);
+CREATE POLICY "Users manage own transactions" ON transactions FOR ALL USING (auth.uid() = user_id);
 
--- New Policies for Trends and Logs
-DROP POLICY IF EXISTS "Public view trends" ON public.profiles;
-CREATE POLICY "Public view trends" ON public.profiles FOR SELECT USING (true);
+-- Storage Buckets & Policies
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('reels', 'reels', true)
+ON CONFLICT (id) DO NOTHING;
 
-DROP POLICY IF EXISTS "Anyone can log searches" ON public.activity_logs;
-CREATE POLICY "Anyone can log searches" ON public.activity_logs FOR INSERT WITH CHECK (true);
-
-GRANT EXECUTE ON FUNCTION public.get_market_trends() TO authenticated, anon;
+CREATE POLICY "Reels are public" ON storage.objects FOR SELECT USING (bucket_id = 'reels');
+CREATE POLICY "Users can upload reels" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'reels' AND auth.uid()::text = (storage.foldername(name))[1]);
+CREATE POLICY "Users can delete own reels" ON storage.objects FOR DELETE WITH CHECK (bucket_id = 'reels' AND auth.uid()::text = (storage.foldername(name))[1]);
 GRANT EXECUTE ON FUNCTION public.global_search(TEXT) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.process_checkout(UUID, UUID, JSONB, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.start_live_session(TEXT, UUID) TO authenticated;
