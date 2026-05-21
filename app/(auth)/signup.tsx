@@ -55,7 +55,11 @@ export default function SignUpScreen() {
       if (error) {
         Alert.alert('Registration Failed', error.message);
       } else {
-        Alert.alert('Success', 'Verification email sent. Please check your inbox.');
+        Alert.alert(
+          'Success',
+          'Verification email sent. Please check your inbox.',
+          [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+        );
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An unknown error occurred';

@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Share, Vibration } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Post } from '../domain/models';
 import { SyncService } from '../services/SyncService';
 import { useAuthStore } from '../store/useAuthStore';
