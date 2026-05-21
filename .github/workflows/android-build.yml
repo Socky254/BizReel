@@ -27,7 +27,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install --legacy-peer-deps
+          npx expo install --check
 
       - name: Install SVG converter
         run: sudo apt-get update && sudo apt-get install -y librsvg2-bin
@@ -45,13 +47,14 @@ jobs:
           echo "EXPO_PUBLIC_AGORA_APP_ID=b7ba162dd6c7400ca34fdfcfb07ecb33" >> .env
 
       - name: Prebuild Native Folders
-        run: npx expo prebuild --platform android
+        run: npx expo prebuild --platform android --no-install
 
       - name: Build Android APK
         run: |
+          export NODE_OPTIONS="--max-old-space-size=4096"
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
