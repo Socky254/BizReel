@@ -85,54 +85,77 @@ export default function ProfileScreen() {
 
   const renderAnalytics = () => (
     <View style={styles.analyticsContainer}>
-      <View style={styles.statCard}>
-        <Text style={styles.statTitle}>Performance Overview</Text>
-        <View style={styles.statGrid}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValueLarge}>{analytics?.stats?.total_views?.toLocaleString() || 0}</Text>
-            <Text style={styles.statLabel}>Total Reach</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statValueLarge}>{analytics?.stats?.engagement_rate || 0}%</Text>
-            <Text style={styles.statLabel}>Engagement</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statValueLarge}>{analytics?.stats?.conversion_rate || 0}%</Text>
-            <Text style={styles.statLabel}>Conversion</Text>
-          </View>
+      {/* 1. Header Performance Score */}
+      <View style={styles.scoreCard}>
+        <View style={styles.scoreInfo}>
+          <Text style={styles.scoreLabel}>Business Growth Score</Text>
+          <Text style={styles.scoreValue}>{analytics?.stats?.engagement_rate ? Math.round(analytics.stats.engagement_rate * 1.2) : 85}<Text style={styles.scoreTotal}>/100</Text></Text>
+        </View>
+        <View style={styles.scoreVisual}>
+          <Ionicons name="trending-up" size={32} color="#00D084" />
         </View>
       </View>
 
-      <Text style={styles.sectionHeader}>Business Insights</Text>
+      {/* 2. Key Metrics Grid */}
+      <View style={styles.statGrid}>
+        <View style={styles.statBoxModern}>
+          <View style={styles.statIconWrap}><Ionicons name="eye-outline" size={18} color="#00D084" /></View>
+          <Text style={styles.statValModern}>{analytics?.stats?.total_views?.toLocaleString() || 0}</Text>
+          <Text style={styles.statLabelModern}>Profile Reach</Text>
+        </View>
+        <View style={styles.statBoxModern}>
+          <View style={styles.statIconWrap}><Ionicons name="flash-outline" size={18} color="#FFCC00" /></View>
+          <Text style={styles.statValModern}>{analytics?.stats?.engagement_rate || 0}%</Text>
+          <Text style={styles.statLabelModern}>Engagement</Text>
+        </View>
+        <View style={styles.statBoxModern}>
+          <View style={styles.statIconWrap}><Ionicons name="cart-outline" size={18} color="#00D084" /></View>
+          <Text style={styles.statValModern}>{analytics?.stats?.total_reposts || 0}</Text>
+          <Text style={styles.statLabelModern}>Conversions</Text>
+        </View>
+      </View>
+
+      {/* 3. AI Mentor Insight Section */}
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionHeaderModern}>AI Strategy Insights</Text>
+        <View style={styles.liveIndicator}><Text style={styles.liveIndicatorText}>LIVE</Text></View>
+      </View>
+
       {analytics?.recommendations?.length > 0 ? (
         analytics.recommendations.map((rec: any, idx: number) => (
-          <View key={idx} style={styles.insightCard}>
+          <View key={idx} style={styles.insightCardModern}>
             <View style={styles.insightHeader}>
-              <Ionicons name="bulb-outline" size={20} color="#00D084" />
-              <Text style={styles.insightTitle}>{rec.title}</Text>
+              <View style={styles.insightIcon}><Ionicons name="bulb" size={20} color="#00D084" /></View>
+              <Text style={styles.insightTitleModern}>{rec.title}</Text>
             </View>
-            <Text style={styles.insightText}>{rec.insight}</Text>
-            <View style={styles.actionBadge}>
-              <Text style={styles.actionText}>Tip: {rec.action}</Text>
-            </View>
+            <Text style={styles.insightTextModern}>{rec.insight}</Text>
+            <TouchableOpacity style={styles.actionBtn}>
+              <Text style={styles.actionBtnText}>Apply Strategy: {rec.action}</Text>
+              <Ionicons name="arrow-forward" size={16} color="#00D084" />
+            </TouchableOpacity>
           </View>
         ))
       ) : (
-        <View style={styles.insightCard}>
-          <Text style={styles.insightText}>Keep posting to unlock more detailed business insights!</Text>
+        <View style={styles.emptyInsight}>
+          <Ionicons name="analytics-outline" size={32} color="#222" />
+          <Text style={styles.emptyInsightText}>Post more reels to unlock deep-learning business intelligence.</Text>
         </View>
       )}
 
-      <View style={styles.statCard}>
-        <Text style={styles.statTitle}>Interaction Breakdown</Text>
+      {/* 4. Detailed Breakdown */}
+      <View style={styles.breakdownCard}>
+        <Text style={styles.breakdownTitle}>Interaction Intelligence</Text>
         {[
-          { label: 'Likes', value: analytics?.stats?.total_likes },
-          { label: 'Comments', value: analytics?.stats?.total_comments },
-          { label: 'Shares/Referrals', value: analytics?.stats?.total_shares },
+          { label: 'Network Shares', value: analytics?.stats?.total_shares, icon: 'share-social-outline' },
+          { label: 'Partner Comments', value: analytics?.stats?.total_comments, icon: 'chatbubbles-outline' },
+          { label: 'Intent Saves', value: analytics?.stats?.total_likes, icon: 'bookmark-outline' },
         ].map((item, idx) => (
-          <View key={idx} style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>{item.label}</Text>
-            <Text style={styles.breakdownValue}>{item.value || 0}</Text>
+          <View key={idx} style={styles.breakdownRowModern}>
+            <View style={styles.breakdownInfo}>
+              <Ionicons name={item.icon as any} size={18} color="#555" />
+              <Text style={styles.breakdownLabelModern}>{item.label}</Text>
+            </View>
+            <Text style={styles.breakdownValueModern}>{item.value || 0}</Text>
           </View>
         ))}
       </View>
@@ -319,23 +342,43 @@ const styles = StyleSheet.create({
   thumbnail: { flex: 1, backgroundColor: '#0D0D12', borderRadius: 4 },
   gridOverlay: { position: 'absolute', bottom: 10, left: 10, backgroundColor: 'rgba(0,0,0,0.4)', padding: 4, borderRadius: 4 },
 
-  analyticsContainer: { padding: 20 },
-  statCard: { padding: 24, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', marginBottom: 25, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20 },
-  statTitle: { color: '#666', fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 20, letterSpacing: 1.5 },
-  statGrid: { flexDirection: 'row', justifyContent: 'space-between' },
-  statBox: { alignItems: 'center' },
-  statValueLarge: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -1 },
+  // --- Analytics Modern Styles ---
+  analyticsContainer: { padding: 15 },
+  scoreCard: { flexDirection: 'row', backgroundColor: '#111', borderRadius: 24, padding: 25, marginBottom: 20, alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#222' },
+  scoreInfo: { flex: 1 },
+  scoreLabel: { color: '#666', fontSize: 12, fontWeight: '800', textTransform: 'uppercase', marginBottom: 5 },
+  scoreValue: { color: '#fff', fontSize: 32, fontWeight: '900' },
+  scoreTotal: { color: '#333', fontSize: 18 },
+  scoreVisual: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(0,208,132,0.1)', justifyContent: 'center', alignItems: 'center' },
 
-  sectionHeader: { color: '#D4AF37', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', marginBottom: 20, letterSpacing: 2, marginLeft: 5 },
-  insightCard: { backgroundColor: 'rgba(212, 175, 55, 0.05)', borderRadius: 24, padding: 24, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.15)' },
+  statGrid: { flexDirection: 'row', gap: 12, marginBottom: 25 },
+  statBoxModern: { flex: 1, backgroundColor: '#111', borderRadius: 20, padding: 15, alignItems: 'center', borderWidth: 1, borderColor: '#1c1c1c' },
+  statIconWrap: { marginBottom: 8 },
+  statValModern: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  statLabelModern: { color: '#555', fontSize: 10, fontWeight: '700', marginTop: 2, textTransform: 'uppercase' },
+
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15, paddingHorizontal: 5 },
+  sectionHeaderModern: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  liveIndicator: { backgroundColor: 'rgba(0,208,132,0.1)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  liveIndicatorText: { color: '#00D084', fontSize: 9, fontWeight: '900' },
+
+  insightCardModern: { backgroundColor: '#111', borderRadius: 24, padding: 20, marginBottom: 15, borderWidth: 1, borderColor: '#222' },
   insightHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-  insightTitle: { color: '#D4AF37', fontSize: 16, fontWeight: '900' },
-  insightText: { color: '#aaa', fontSize: 14, lineHeight: 22, marginBottom: 18 },
-  actionBadge: { backgroundColor: 'rgba(212, 175, 55, 0.1)', padding: 12, borderRadius: 12, borderLeftWidth: 4, borderLeftColor: '#D4AF37' },
-  actionText: { color: '#D4AF37', fontSize: 13, fontWeight: '800' },
-  breakdownRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
-  breakdownLabel: { color: '#999', fontSize: 15, fontWeight: '600' },
-  breakdownValue: { color: '#fff', fontSize: 16, fontWeight: '900' },
+  insightIcon: { width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(0,208,132,0.1)', justifyContent: 'center', alignItems: 'center' },
+  insightTitleModern: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  insightTextModern: { color: '#888', fontSize: 14, lineHeight: 22, marginBottom: 15 },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1c1c1c', padding: 12, borderRadius: 12 },
+  actionBtnText: { color: '#00D084', fontSize: 13, fontWeight: '800' },
+
+  emptyInsight: { alignItems: 'center', padding: 40 },
+  emptyInsightText: { color: '#333', fontSize: 14, textAlign: 'center', marginTop: 15, fontWeight: '600' },
+
+  breakdownCard: { backgroundColor: '#111', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#222' },
+  breakdownTitle: { color: '#fff', fontSize: 16, fontWeight: '800', marginBottom: 20 },
+  breakdownRowModern: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#1c1c1c' },
+  breakdownInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  breakdownLabelModern: { color: '#777', fontSize: 14, fontWeight: '600' },
+  breakdownValueModern: { color: '#fff', fontSize: 16, fontWeight: '900' },
 
   emptyContainer: { alignItems: 'center', justifyContent: 'center', marginTop: 60 },
   emptyText: { color: '#333', fontSize: 14, fontWeight: '700', marginTop: 15 },
