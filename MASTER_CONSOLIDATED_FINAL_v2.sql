@@ -223,6 +223,8 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- D. Global Search RPC
+DROP FUNCTION IF EXISTS public.global_search(TEXT);
+
 CREATE OR REPLACE FUNCTION public.global_search(search_term TEXT)
 RETURNS TABLE (id UUID, title TEXT, subtitle TEXT, image_url TEXT, entity_type TEXT) AS $$
 BEGIN
