@@ -1,14 +1,18 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, ScrollView, RefreshControl, Dimensions } from 'react-native';
 import { useAuth } from '../../src/Context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '../../src/core/theme/colors';
 import { Post, Profile } from '../../src/domain/models';
 import { VibrantBackground } from '../../src/components/VibrantBackground';
 import { container } from '../../src/di/Container';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
+
+const { width } = Dimensions.get('window');
 
 // --- Sub-Components ---
 
@@ -41,22 +45,45 @@ export default function ProfileScreen() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'SAVED' | 'REFER' | 'ANALYTICS'>('REELS');
 
+  const fetchData = useCallback(async () => {
+    if (!session?.user?.id) return;
+    const uid = session.user.id;
+    try {
+      const [pData, rData, lData, sData, refData, followStats, aData] = await Promise.all([
+        container.getProfileUseCase.execute(uid),
+        container.profileRepository.getUserReels(uid),
+        container.profileRepository.getLikedReels(uid),
+        container.profileRepository.getSavedReels(uid),
+        container.profileRepository.getReferrals(uid),
+        container.profileRepository.getFollowStats(uid),
+        container.profileRepository.getAnalytics(uid),
+      ]);
+
+      setProfile(pData);
+      setReels(rData);
+      setLikedReels(lData);
+      setSavedReels(sData);
+      setReferralReels(refData);
+      setAnalytics(aData);
+
+      const partnersCount = await container.profileRepository.getPartnersCount(uid);
+      setStats({ ...followStats, mutual: partnersCount });
+    } catch (err) {
+      ErrorHandler.handle(err, 'ProfileFetchData');
+    }
+  }, [session?.user?.id]);
+
+  const initProfile = useCallback(async () => {
+    setLoading(true);
+    await fetchData();
+    setLoading(false);
+  }, [fetchData]);
+
   useEffect(() => {
     if (session?.user?.id) {
       initProfile();
     }
-  }, [session?.user?.id]);
-
-  const initProfile = async () => {
-    try {
-      setLoading(true);
-      await fetchData();
-    } catch (err) {
-      ErrorHandler.handle(err, 'ProfileInit');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [session?.user?.id, initProfile]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -64,134 +91,123 @@ export default function ProfileScreen() {
     setRefreshing(false);
   };
 
-  const fetchData = async () => {
-    const uid = session!.user.id;
-    const [pData, rData, lData, sData, refData, followStats, aData] = await Promise.all([
-      container.getProfileUseCase.execute(uid),
-      container.profileRepository.getUserReels(uid),
-      container.profileRepository.getLikedReels(uid),
-      container.profileRepository.getSavedReels(uid),
-      container.profileRepository.getReferrals(uid),
-      container.profileRepository.getFollowStats(uid),
-      container.profileRepository.getAnalytics(uid),
-    ]);
-
-    setProfile(pData);
-    setReels(rData);
-    setLikedReels(lData);
-    setSavedReels(sData);
-    setReferralReels(refData);
-    setAnalytics(aData);
-
-    const partnersCount = await container.profileRepository.getPartnersCount(uid);
-    setStats({ ...followStats, mutual: partnersCount });
-  };
-
-  const renderAnalytics = () => (
-    <View style={styles.analyticsContainer}>
-      {/* 1. Header Performance Score */}
-      <View style={styles.scoreCard}>
-        <View style={styles.scoreInfo}>
-          <Text style={styles.scoreLabel}>Enterprise Maturity Index</Text>
-          <Text style={styles.scoreValue}>{analytics?.stats?.engagement_rate ? Math.round(analytics.stats.engagement_rate * 1.5) : 92}<Text style={styles.scoreTotal}>/100</Text></Text>
-        </View>
-        <View style={styles.scoreVisual}>
-          <Ionicons name="ribbon" size={32} color="#D4AF37" />
-        </View>
+  const renderAnalytics = () => {
+    if (!analytics) return (
+      <View style={styles.emptyAnalytics}>
+        <ActivityIndicator color={Colors.primary} />
+        <Text style={styles.loadingText}>Synchronizing Market Intelligence...</Text>
       </View>
+    );
 
-      {/* 2. Key Metrics Grid */}
-      <View style={styles.statGrid}>
-        <View style={styles.statBoxModern}>
-          <View style={styles.statIconWrap}><Ionicons name="analytics" size={18} color="#00D084" /></View>
-          <Text style={styles.statValModern}>{analytics?.stats?.total_views?.toLocaleString() || '1.2k'}</Text>
-          <Text style={styles.statLabelModern}>Market Reach</Text>
+    return (
+      <View style={styles.analyticsContainer}>
+        {/* 1. Header Performance Score */}
+        <View style={styles.scoreCard}>
+          <View style={styles.scoreInfo}>
+            <Text style={styles.scoreLabel}>Enterprise Maturity Index</Text>
+            <Text style={styles.scoreValue}>
+              {analytics?.stats?.engagement_rate ? Math.round(Number(analytics.stats.engagement_rate) * 1.5) : 92}
+              <Text style={styles.scoreTotal}>/100</Text>
+            </Text>
+          </View>
+          <View style={styles.scoreVisual}>
+            <Ionicons name="ribbon" size={32} color="#D4AF37" />
+          </View>
         </View>
-        <View style={styles.statBoxModern}>
-          <View style={styles.statIconWrap}><Ionicons name="pulse" size={18} color="#00D084" /></View>
-          <Text style={styles.statValModern}>{analytics?.stats?.engagement_rate || '4.8'}%</Text>
-          <Text style={styles.statLabelModern}>Capital Velocity</Text>
-        </View>
-        <View style={styles.statBoxModern}>
-          <View style={styles.statIconWrap}><Ionicons name="briefcase" size={18} color="#00D084" /></View>
-          <Text style={styles.statValModern}>{analytics?.stats?.total_reposts || '24'}</Text>
-          <Text style={styles.statLabelModern}>Partnerships</Text>
-        </View>
-      </View>
 
-      {/* 3. AI Strategy Insights Section */}
-      <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeaderModern}>Predictive Strategy Intelligence</Text>
-        <View style={styles.liveIndicator}><Text style={styles.liveIndicatorText}>OPTIMIZED</Text></View>
-      </View>
+        {/* 2. Key Metrics Grid */}
+        <View style={styles.statGrid}>
+          <View style={styles.statBoxModern}>
+            <View style={styles.statIconWrap}><Ionicons name="analytics" size={18} color="#00D084" /></View>
+            <Text style={styles.statValModern}>{analytics?.stats?.total_views?.toLocaleString() || '0'}</Text>
+            <Text style={styles.statLabelModern}>Market Reach</Text>
+          </View>
+          <View style={styles.statBoxModern}>
+            <View style={styles.statIconWrap}><Ionicons name="pulse" size={18} color="#00D084" /></View>
+            <Text style={styles.statValModern}>{analytics?.stats?.engagement_rate || '0'}%</Text>
+            <Text style={styles.statLabelModern}>Capital Velocity</Text>
+          </View>
+          <View style={styles.statBoxModern}>
+            <View style={styles.statIconWrap}><Ionicons name="briefcase" size={18} color="#00D084" /></View>
+            <Text style={styles.statValModern}>{analytics?.stats?.total_reposts || '0'}</Text>
+            <Text style={styles.statLabelModern}>Partnerships</Text>
+          </View>
+        </View>
 
-      {analytics?.recommendations?.length > 0 ? (
-        analytics.recommendations.map((rec: any, idx: number) => (
-          <View key={idx} style={styles.insightCardModern}>
-            <View style={styles.insightHeader}>
-              <View style={styles.insightIcon}><Ionicons name="shield-checkmark" size={20} color="#00D084" /></View>
-              <Text style={styles.insightTitleModern}>{rec.title}</Text>
+        {/* 3. AI Strategy Insights Section */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionHeaderModern}>Predictive Strategy Intelligence</Text>
+          <View style={styles.liveIndicator}><Text style={styles.liveIndicatorText}>OPTIMIZED</Text></View>
+        </View>
+
+        {analytics?.recommendations?.length > 0 ? (
+          analytics.recommendations.map((rec: any, idx: number) => (
+            <View key={idx} style={styles.insightCardModern}>
+              <View style={styles.insightHeader}>
+                <View style={styles.insightIcon}><Ionicons name="shield-checkmark" size={20} color="#00D084" /></View>
+                <Text style={styles.insightTitleModern}>{rec.title}</Text>
+              </View>
+              <Text style={styles.insightTextModern}>{rec.insight}</Text>
+              <TouchableOpacity style={styles.actionBtn}>
+                <Text style={styles.actionBtnText}>Execute Strategic Pivot: {rec.action}</Text>
+                <Ionicons name="chevron-forward" size={16} color="#00D084" />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.insightTextModern}>{rec.insight}</Text>
-            <TouchableOpacity style={styles.actionBtn}>
-              <Text style={styles.actionBtnText}>Execute Strategic Pivot: {rec.action}</Text>
-              <Ionicons name="chevron-forward" size={16} color="#00D084" />
+          ))
+        ) : (
+          <View style={styles.insightCardModern}>
+            <View style={styles.insightHeader}>
+               <View style={styles.insightIcon}><Ionicons name="bulb" size={20} color="#00D084" /></View>
+               <Text style={styles.insightTitleModern}>Market Expansion</Text>
+            </View>
+            <Text style={styles.insightTextModern}>Our algorithms suggest your current content trajectory is ideal for High-Net-Worth acquisition. Continue scaling.</Text>
+            <TouchableOpacity style={styles.actionBtn} onPress={() => setActiveTab('REELS')}>
+              <Text style={styles.actionBtnText}>View Performance Data</Text>
+              <Ionicons name="arrow-forward" size={16} color="#00D084" />
             </TouchableOpacity>
           </View>
-        ))
-      ) : (
-        <View style={styles.insightCardModern}>
-          <View style={styles.insightHeader}>
-             <View style={styles.insightIcon}><Ionicons name="bulb" size={20} color="#00D084" /></View>
-             <Text style={styles.insightTitleModern}>Market Expansion</Text>
-          </View>
-          <Text style={styles.insightTextModern}>Our algorithms suggest your current content trajectory is ideal for High-Net-Worth acquisition. Continue scaling.</Text>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => setActiveTab('REELS')}>
-            <Text style={styles.actionBtnText}>View Performance Data</Text>
-            <Ionicons name="arrow-forward" size={16} color="#00D084" />
-          </TouchableOpacity>
-        </View>
-      )}
+        )}
 
-      {/* 4. Detailed Breakdown */}
-      <View style={styles.breakdownCard}>
-        <Text style={styles.breakdownTitle}>Network Interaction Analytics</Text>
-        {[
-          { label: 'Strategic Endorsements', value: analytics?.stats?.total_likes || 152, icon: 'heart-outline' },
-          { label: 'Market Referrals', value: analytics?.stats?.total_reposts || 42, icon: 'repeat-outline' },
-          { label: 'Intent-to-Purchase Saves', value: analytics?.stats?.total_shares || 89, icon: 'bookmark-outline' },
-        ].map((item, idx) => (
-          <View key={idx} style={styles.breakdownRowModern}>
-            <View style={styles.breakdownInfo}>
-              <Ionicons name={item.icon as any} size={18} color="rgba(255,255,255,0.4)" />
-              <Text style={styles.breakdownLabelModern}>{item.label}</Text>
+        {/* 4. Detailed Breakdown */}
+        <View style={styles.breakdownCard}>
+          <Text style={styles.breakdownTitle}>Network Interaction Analytics</Text>
+          {[
+            { label: 'Strategic Endorsements', value: analytics?.stats?.total_likes || 0, icon: 'heart-outline' },
+            { label: 'Market Referrals', value: analytics?.stats?.total_reposts || 0, icon: 'repeat-outline' },
+            { label: 'Intent-to-Purchase Saves', value: analytics?.stats?.total_shares || 0, icon: 'bookmark-outline' },
+          ].map((item, idx) => (
+            <View key={idx} style={styles.breakdownRowModern}>
+              <View style={styles.breakdownInfo}>
+                <Ionicons name={item.icon as any} size={18} color="rgba(255,255,255,0.4)" />
+                <Text style={styles.breakdownLabelModern}>{item.label}</Text>
+              </View>
+              <Text style={styles.breakdownValueModern}>{item.value}</Text>
             </View>
-            <Text style={styles.breakdownValueModern}>{item.value}</Text>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
 
-      {/* 5. Feedback Loop */}
-      <TouchableOpacity
-        style={styles.feedbackCard}
-        onPress={() => router.push('/profile/settings')}
-      >
-        <LinearGradient
-          colors={['#111', '#050505']}
-          style={styles.feedbackGradient}
+        {/* 5. Feedback Loop */}
+        <TouchableOpacity
+          style={styles.feedbackCard}
+          onPress={() => router.push('/profile/settings')}
         >
-          <View style={styles.feedbackIcon}>
-            <Ionicons name="chatbox-ellipses" size={20} color={Colors.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.feedbackTitle}>Enterprise Feedback Channel</Text>
-            <Text style={styles.feedbackSubtitle}>Direct line to our systems architecture team.</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#333" />
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
-  );
+          <LinearGradient
+            colors={['#111', '#050505']}
+            style={styles.feedbackGradient}
+          >
+            <View style={styles.feedbackIcon}>
+              <Ionicons name="chatbox-ellipses" size={20} color={Colors.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.feedbackTitle}>Enterprise Feedback Channel</Text>
+              <Text style={styles.feedbackSubtitle}>Direct line to our systems architecture team.</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#333" />
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -447,6 +463,9 @@ const styles = StyleSheet.create({
   feedbackIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(0,208,132,0.1)', justifyContent: 'center', alignItems: 'center' },
   feedbackTitle: { color: '#fff', fontSize: 14, fontWeight: '800' },
   feedbackSubtitle: { color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 },
+
+  emptyAnalytics: { flex: 1, padding: 40, alignItems: 'center', justifyContent: 'center', marginTop: 50 },
+  loadingText: { color: 'rgba(255,255,255,0.4)', marginTop: 20, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
 
   emptyContainer: { alignItems: 'center', justifyContent: 'center', marginTop: 80, padding: 40 },
   emptyText: { color: 'rgba(255,255,255,0.2)', fontSize: 14, fontWeight: '700', marginTop: 15, textTransform: 'uppercase', letterSpacing: 1 },
