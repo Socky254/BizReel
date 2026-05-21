@@ -265,7 +265,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- F. Business Analytics RPC
+-- F. Live Streaming Orchestration
+CREATE OR REPLACE FUNCTION public.start_live_session(p_title TEXT, p_user_id UUID)
+RETURNS UUID AS $$
+DECLARE
+    v_session_id UUID;
+BEGIN
+    -- Deactivate any existing sessions for this user
+    UPDATE public.live_sessions
+    SET is_active = false, ended_at = NOW()
+    WHERE user_id = p_user_id AND is_active = true;
+
+    INSERT INTO public.live_sessions (user_id, title, is_active, created_at)
+    VALUES (p_user_id, p_title, true, NOW())
+    RETURNING id INTO v_session_id;
+
+    RETURN v_session_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- G. Business Analytics RPC
 CREATE OR REPLACE FUNCTION get_business_analytics(target_user_id UUID)
 RETURNS JSONB AS $$
 DECLARE
@@ -343,6 +362,58 @@ CREATE POLICY "Diagnostic View" ON public.profiles FOR SELECT USING (true);
 GRANT EXECUTE ON FUNCTION public.get_market_trends() TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.global_search(TEXT) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.process_checkout(UUID, UUID, JSONB, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.start_live_session(TEXT, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_business_analytics(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_mutual_connections_count(UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_partners_count(UUID) TO authenticated;
+
+-- H. Conversation List RPC
+CREATE OR REPLACE FUNCTION get_conversation_list(u_id UUID)
+RETURNS TABLE (
+    other_user_id UUID,
+    other_username TEXT,
+    other_business_name TEXT,
+    other_avatar_url TEXT,
+    last_message_text TEXT,
+    last_message_at TIMESTAMP WITH TIME ZONE,
+    unread_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    WITH last_messages AS (
+        SELECT
+            CASE
+                WHEN sender_id = u_id THEN receiver_id
+                ELSE sender_id
+            END as peer_id,
+            text,
+            created_at,
+            is_read,
+            receiver_id,
+            ROW_NUMBER() OVER(PARTITION BY (CASE WHEN sender_id = u_id THEN receiver_id ELSE sender_id END) ORDER BY created_at DESC) as rn
+        FROM public.messages
+        WHERE sender_id = u_id OR receiver_id = u_id
+    ),
+    unread_counts AS (
+        SELECT sender_id as peer_id, COUNT(*) as count
+        FROM public.messages
+        WHERE receiver_id = u_id AND is_read = false
+        GROUP BY sender_id
+    )
+    SELECT
+        p.id,
+        p.username,
+        p.business_name,
+        p.avatar_url,
+        lm.text,
+        lm.created_at,
+        COALESCE(uc.count, 0)::BIGINT
+    FROM last_messages lm
+    JOIN public.profiles p ON lm.peer_id = p.id
+    LEFT JOIN unread_counts uc ON lm.peer_id = uc.peer_id
+    WHERE lm.rn = 1
+    ORDER BY lm.created_at DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.get_conversation_list(UUID) TO authenticated;

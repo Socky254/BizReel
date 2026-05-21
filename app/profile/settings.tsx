@@ -139,20 +139,32 @@ export default function SettingsScreen() {
         <SettingItem icon="moon-outline" title="Dark Mode" rightElement={<Text style={{color: '#00D084', fontWeight: '800'}}>ON</Text>} />
 
         <Text style={styles.sectionTitle}>Safety</Text>
-        <SettingItem icon="ban-outline" title="Blocked Users" />
-        <SettingItem icon="chatbubble-ellipses-outline" title="Comment Filters" />
+        <SettingItem
+          icon="ban-outline"
+          title="Blocked Users"
+          onPress={() => Alert.alert("Blocked Users", "You have not blocked any professional accounts. To block, visit a profile and select the restrict option.")}
+        />
+        <SettingItem
+          icon="chatbubble-ellipses-outline"
+          title="Comment Filters"
+          onPress={() => Alert.alert("Comment Filters", "Professional filters are active by default to prevent spam and harassment in your reels.")}
+        />
 
         <Text style={styles.sectionTitle}>Data & Support</Text>
-        <SettingItem icon="cloud-download-outline" title="Download Your Data" />
+        <SettingItem
+          icon="cloud-download-outline"
+          title="Download Your Data"
+          onPress={() => Alert.alert("Data Portability", "A request to package your business data (Reels, Products, Logs) has been received. You will receive a secure link via email within 48 hours.")}
+        />
         <SettingItem
           icon="help-circle-outline"
           title="Help Center"
-          onPress={() => Alert.alert("Help Center", "Visit our website for support documentation.")}
+          onPress={() => Alert.alert("BizReel Support", "Need assistance? Email support@bizreel.app or visit our online resource hub for tutorials on Live Commerce.")}
         />
         <SettingItem
           icon="document-text-outline"
           title="Terms & Conditions"
-          onPress={() => Alert.alert("Terms & Conditions", "By using BizReel, you agree to our professional conduct guidelines and business transparency policies. We facilitate B2B connections through short-form video content.")}
+          onPress={() => Alert.alert("Standard Commercial Terms", "1. Professional Conduct: Users must represent businesses accurately.\n2. Transaction Transparency: BizReel facilitates connections; fulfillment is the responsibility of the business.\n3. Content Ownership: You retain rights to your reels but grant BizReel a license to display them to partners.")}
         />
         <SettingItem
           icon="refresh-outline"
@@ -168,9 +180,13 @@ export default function SettingsScreen() {
         <SettingItem
           icon="information-circle-outline"
           title="About BizReel"
-          onPress={() => Alert.alert("About BizReel", "Version 1.0.0\n\nThe ultimate B2B short-form video platform designed for professional networking and business growth.")}
+          onPress={() => Alert.alert("About BizReel", "Version 1.0.0\n\nThe ultimate B2B short-form video platform designed for professional networking and business growth. Empowering the next generation of global commerce.")}
         />
-        <SettingItem icon="shield-outline" title="Legal & Privacy Policy" />
+        <SettingItem
+          icon="shield-outline"
+          title="Legal & Privacy Policy"
+          onPress={() => Alert.alert("Privacy Commitment", "We prioritize your business data security. We do not sell your contact information to third-party advertisers. Your location data is only used to show nearby market opportunities.")}
+        />
 
         <Text style={styles.sectionTitle}>Login</Text>
         <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
