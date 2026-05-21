@@ -49,16 +49,14 @@ export default function TabLayout() {
           title: '',
           tabBarIcon: ({ color }) => (
             <View style={styles.uploadBtn}>
-               <LinearGradient
-                 colors={['#00E676', '#00C853']}
-                 style={styles.uploadGradient}
-               >
+               <View style={[styles.uploadGradient, { backgroundColor: '#00C853' }]}>
                  <Ionicons name="add" size={28} color="#000" />
-               </LinearGradient>
+               </View>
             </View>
           ),
         }}
       />
+
       <Tabs.Screen
         name="inbox"
         options={{

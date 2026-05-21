@@ -146,18 +146,22 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
 
                     {user?.id !== item.user_id && (
                         <Animated.View style={pulseStyle}>
-                            <TouchableOpacity style={styles.connectBtn} onPress={handleConnect}>
-                                <LinearGradient
-                                    colors={isFollowing ? ['#333', '#222'] : Colors.gradients.brand as any}
-                                    style={styles.connectGradient}
-                                >
+                            <TouchableOpacity
+                                style={[
+                                    styles.connectBtn,
+                                    { backgroundColor: isFollowing ? '#333' : '#00C853' }
+                                ]}
+                                onPress={handleConnect}
+                            >
+                                <View style={styles.connectGradient}>
                                     <Text style={[styles.connectBtnText, isFollowing && { color: 'rgba(255,255,255,0.6)' }]}>
                                         {isFollowing ? 'Networked' : 'Partner'}
                                     </Text>
-                                </LinearGradient>
+                                </View>
                             </TouchableOpacity>
                         </Animated.View>
                     )}
+
                 </Animated.View>
 
                 <Text style={styles.caption} numberOfLines={3}>{item.caption}</Text>
