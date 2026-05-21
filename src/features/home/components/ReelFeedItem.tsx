@@ -18,17 +18,33 @@ interface Props {
 
 export const ReelFeedItem: React.FC<Props> = ({ item, isVisible, onOpenComments }) => {
     const router = useRouter();
+    const [isPaused, setIsPaused] = React.useState(false);
+
+    React.useEffect(() => {
+        if (!isVisible) setIsPaused(false);
+    }, [isVisible]);
 
     return (
         <View style={styles.postContainer}>
-            <Video
-                source={{ uri: item.video_url }}
-                style={styles.video}
-                resizeMode={ResizeMode.COVER}
-                shouldPlay={isVisible}
-                isLooping
-                isMuted={false}
-            />
+            <TouchableOpacity
+                activeOpacity={1}
+                style={styles.videoTouchable}
+                onPress={() => setIsPaused(!isPaused)}
+            >
+                <Video
+                    source={{ uri: item.video_url }}
+                    style={styles.video}
+                    resizeMode={ResizeMode.COVER}
+                    shouldPlay={isVisible && !isPaused}
+                    isLooping
+                    isMuted={false}
+                />
+                {isPaused && (
+                    <View style={styles.pauseOverlay}>
+                        <Ionicons name="play" size={60} color="rgba(255,255,255,0.4)" />
+                    </View>
+                )}
+            </TouchableOpacity>
 
             {/* GRADIENT OVERLAYS */}
             <LinearGradient
@@ -76,7 +92,9 @@ export const ReelFeedItem: React.FC<Props> = ({ item, isVisible, onOpenComments 
 
 const styles = StyleSheet.create({
     postContainer: { width: '100%', height: height },
+    videoTouchable: { flex: 1 },
     video: { width: '100%', height: '100%' },
+    pauseOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.1)' },
     bottomGradient: {
         position: 'absolute',
         bottom: 0,

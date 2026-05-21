@@ -356,8 +356,22 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public View Profiles" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Users Manage Own Profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
+-- Interaction Policies
+DROP POLICY IF EXISTS "Public view comments" ON public.comments;
+CREATE POLICY "Public view comments" ON public.comments FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can comment" ON public.comments;
+CREATE POLICY "Authenticated users can comment" ON public.comments FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
 -- Diagnostic Policy (Used by app for pre-flight connectivity checks)
 CREATE POLICY "Diagnostic View" ON public.profiles FOR SELECT USING (true);
+
+-- New Policies for Trends and Logs
+DROP POLICY IF EXISTS "Public view trends" ON public.profiles;
+CREATE POLICY "Public view trends" ON public.profiles FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can log searches" ON public.activity_logs;
+CREATE POLICY "Anyone can log searches" ON public.activity_logs FOR INSERT WITH CHECK (true);
 
 GRANT EXECUTE ON FUNCTION public.get_market_trends() TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.global_search(TEXT) TO authenticated, anon;
