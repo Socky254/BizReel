@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, 
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { container } from '../../src/di/Container';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore } from '../../src/store/useAuthStore';
 import { Wallet, Transaction } from '../../src/domain/models/Finance';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
 import { LinearGradient } from 'expo-linear-gradient';

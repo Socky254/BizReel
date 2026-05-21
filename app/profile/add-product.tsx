@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { container } from '../../src/di/Container';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore } from '../../src/store/useAuthStore';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
 
 export default function AddProductScreen() {

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityInd
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../src/core/network/supabase';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore } from '../../src/store/useAuthStore';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
 
 export default function PayoutSetupScreen() {

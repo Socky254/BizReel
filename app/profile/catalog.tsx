@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, Image, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore } from '../../src/store/useAuthStore';
 import { container } from '../../src/di/Container';
 import { Product } from '../../src/domain/models';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';

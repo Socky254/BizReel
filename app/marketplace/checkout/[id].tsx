@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { container } from '../../../src/di/Container';
-import { useAuthStore } from '../../../store/useAuthStore';
+import { useAuthStore } from '../../../src/store/useAuthStore';
 import { Product } from '../../../src/domain/models';
 import { ErrorHandler } from '../../../src/core/error_handler/ErrorHandler';
 import { LinearGradient } from 'expo-linear-gradient';
