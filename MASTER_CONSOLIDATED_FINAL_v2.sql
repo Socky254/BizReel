@@ -272,11 +272,11 @@ CREATE TRIGGER tr_notify_like AFTER INSERT ON public.likes FOR EACH ROW EXECUTE 
 
 -- 9. RLS & PERMISSIONS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY \"Public View Profiles\" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY \"Users Manage Own Profile\" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Public View Profiles" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users Manage Own Profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Diagnostic Policy (Used by app for pre-flight connectivity checks)
-CREATE POLICY \"Diagnostic View\" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Diagnostic View" ON public.profiles FOR SELECT USING (true);
 
 GRANT EXECUTE ON FUNCTION public.get_market_trends() TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.global_search(TEXT) TO authenticated, anon;
