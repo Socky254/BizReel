@@ -20,6 +20,27 @@ export const supabase = createClient(finalUrl, finalKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
+    detectSessionInUrl: false, // Mobile doesn't use URL-based sessions the same way as web
   },
 });
+
+// Diagnostic helper to verify connectivity
+export const checkSupabaseConnection = async () => {
+  try {
+    const start = Date.now();
+    const { data, error } = await supabase.from('profiles').select('count', { count: 'exact', head: true }).limit(0);
+    const duration = Date.now() - start;
+
+    if (error) {
+      console.error('[Supabase Diagnostic] Connection failed:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    console.log(`[Supabase Diagnostic] Connected successfully in ${duration}ms`);
+    return { success: true, duration };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[Supabase Diagnostic] Critical error:', msg);
+    return { success: false, error: msg };
+  }
+};

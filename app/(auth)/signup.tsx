@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar } from 'react-native';
-import { supabase } from '../../src/lib/supabase';
+import { supabase, checkSupabaseConnection } from '../../src/core/network/supabase';
 import { useRouter, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,21 +16,39 @@ export default function SignUpScreen() {
     if (!email || !password || !businessName) return Alert.alert('Error', 'Please fill in all fields');
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          business_name: businessName,
-        }
-      }
-    });
 
-    if (error) {
-      Alert.alert('Registration Failed', error.message);
+    try {
+      // Diagnostic check before signup
+      const connection = await checkSupabaseConnection();
+      if (!connection.success) {
+        Alert.alert(
+          'Network Error',
+          `Cannot reach servers: ${connection.error}\n\nPlease check your internet connection and ensure your Supabase project is active.`
+        );
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            business_name: businessName,
+          }
+        }
+      });
+
+      if (error) {
+        Alert.alert('Registration Failed', error.message);
+      } else {
+        Alert.alert('Success', 'Verification email sent. Please check your inbox.');
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'An unknown error occurred';
+      Alert.alert('System Error', msg);
+    } finally {
       setLoading(false);
-    } else {
-      Alert.alert('Success', 'Verification email sent. Please check your inbox.');
     }
   };
 

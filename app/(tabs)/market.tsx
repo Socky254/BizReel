@@ -3,8 +3,12 @@ import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Activity
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../src/core/theme/colors';
+import { useAuth } from '../../src/Context/AuthContext';
+import { container } from '../../src/di/Container';
+import { SearchResult, MarketTrend } from '../../src/domain/repositories/ISearchRepository';
+import { supabase } from '../../src/core/network/supabase';
+import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
 
 export default function MarketScreen() {
   const { session } = useAuth();
@@ -64,7 +68,7 @@ export default function MarketScreen() {
         key={item.label}
         style={styles.trendItem}
         onPress={() => {
-            if (item.trend_type === 'reel') router.push({ pathname: '/(tabs)', params: { initialPost: item.metadata.id } });
+            if (item.trend_type === 'reel') router.push({ pathname: '/(tabs)', params: { initialPost: item.metadata?.id } });
             else setQuery(item.label);
         }}
       >
@@ -111,7 +115,7 @@ export default function MarketScreen() {
           {item.subtitle}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color="#222" />
+      <Ionicons name="chevron-forward" size={18} color="#aaa" />
     </TouchableOpacity>
   );
 
@@ -138,18 +142,18 @@ export default function MarketScreen() {
         <ScrollView style={styles.trendsContainer}>
           <View style={styles.trendsHeader}>
             <Text style={styles.trendsTitle}>Trends for you</Text>
-            <Ionicons name="settings-outline" size={20} color="#00D084" />
+            <Ionicons name="settings-outline" size={20} color={Colors.primary} />
           </View>
 
           <View style={styles.trendsList}>
             {trends.length > 0 ? trends.map(renderTrendItem) : (
-                <ActivityIndicator color="#00D084" style={{ marginTop: 20 }} />
+                <ActivityIndicator color={Colors.primary} style={{ marginTop: 20 }} />
             )}
           </View>
         </ScrollView>
       ) : (
         loading ? (
-          <View style={styles.center}><ActivityIndicator color="#00D084" /></View>
+          <View style={styles.center}><ActivityIndicator color={Colors.primary} /></View>
         ) : (
           <FlatList
             data={results}
