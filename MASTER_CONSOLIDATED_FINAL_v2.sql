@@ -263,6 +263,66 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- F. Business Analytics RPC
+CREATE OR REPLACE FUNCTION get_business_analytics(target_user_id UUID)
+RETURNS JSONB AS $$
+DECLARE
+    result JSONB;
+BEGIN
+    SELECT jsonb_build_object(
+        'total_views', COALESCE(SUM(views), 0),
+        'total_shares', COALESCE(SUM(shares), 0),
+        'total_likes', (SELECT COUNT(*) FROM public.likes WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
+        'total_comments', (SELECT COUNT(*) FROM public.comments WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
+        'total_reposts', (SELECT COUNT(*) FROM public.reposts WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
+        'total_clients', (SELECT COUNT(*) FROM public.follows WHERE following_id = target_user_id),
+        'total_connections', (SELECT COUNT(*) FROM public.follows WHERE follower_id = target_user_id),
+        'engagement_rate', CASE
+            WHEN SUM(views) > 0 THEN
+                ROUND(((SELECT COUNT(*) FROM public.likes WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)) +
+                (SELECT COUNT(*) FROM public.comments WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)))::NUMERIC / SUM(views) * 100, 2)
+            ELSE 0
+        END
+    ) INTO result
+    FROM public.posts
+    WHERE user_id = target_user_id;
+
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- G. Networking Metrics RPC
+CREATE OR REPLACE FUNCTION get_mutual_connections_count(user_id_a UUID, user_id_b UUID)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)::INTEGER
+        FROM public.follows f1
+        JOIN public.follows f2 ON f1.following_id = f2.following_id
+        WHERE f1.follower_id = user_id_a
+        AND f2.follower_id = user_id_b
+        AND f1.following_id != user_id_a
+        AND f1.following_id != user_id_b
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION get_partners_count(u_id UUID)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)::INTEGER
+        FROM public.follows f1
+        WHERE f1.follower_id = u_id
+        AND EXISTS (
+            SELECT 1 FROM public.follows f2
+            WHERE f2.follower_id = f1.following_id
+            AND f2.following_id = u_id
+        )
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- 8. TRIGGERS
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
@@ -281,3 +341,6 @@ CREATE POLICY "Diagnostic View" ON public.profiles FOR SELECT USING (true);
 GRANT EXECUTE ON FUNCTION public.get_market_trends() TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.global_search(TEXT) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.process_checkout(UUID, UUID, JSONB, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_business_analytics(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_mutual_connections_count(UUID, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_partners_count(UUID) TO authenticated;
