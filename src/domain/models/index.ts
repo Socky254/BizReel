@@ -19,6 +19,8 @@ export interface Profile {
   dm_setting?: string;
   updated_at?: string;
   created_at?: string;
+  tier?: 'BASIC' | 'PRO' | 'ENTERPRISE';
+  lead_credits?: number;
 }
 
 export interface Post {

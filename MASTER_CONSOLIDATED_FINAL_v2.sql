@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   working_hours TEXT,
   avatar_url TEXT,
   push_token TEXT,
+  tier TEXT DEFAULT 'BASIC',
+  lead_credits INTEGER DEFAULT 5,
   is_verified BOOLEAN DEFAULT false,
   is_live BOOLEAN DEFAULT false,
   is_private BOOLEAN DEFAULT false,
@@ -208,6 +210,18 @@ CREATE TABLE IF NOT EXISTS public.system_config (
 INSERT INTO public.system_config (key, value)
 VALUES ('app_parameters', '{"features": {"live_stream": true, "marketplace": true, "ai_mentor": true}, "limits": {"upload_max_mb": 50}, "rules": {"feed_ranking": "latest"}}')
 ON CONFLICT (key) DO NOTHING;
+
+-- Lead Credit Deduction
+CREATE OR REPLACE FUNCTION public.deduct_lead_credit(u_id UUID)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE public.profiles
+    SET lead_credits = lead_credits - 1
+    WHERE id = u_id AND tier = 'BASIC' AND lead_credits > 0;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.deduct_lead_credit(UUID) TO authenticated;
 
 -- 7. CORE SYSTEM FUNCTIONS (The "Engine")
 

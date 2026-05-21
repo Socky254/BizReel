@@ -36,6 +36,7 @@ const InteractionButton = ({ icon, label, count, active, activeColor, onPress, a
 };
 
 export const ReelInteraction = ({ post, onOpenComments }: Props) => {
+  const router = useRouter();
   const { user } = useAuthStore();
   const [isLiked, setIsLiked] = useState(post.likes?.some(l => l.user_id === user?.id) || false);
   const [isSaved, setIsSaved] = useState(post.isSaved || false);
@@ -45,6 +46,7 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
   const likeScale = useSharedValue(1);
   const saveScale = useSharedValue(1);
   const promoteScale = useSharedValue(1);
+  const dealScale = useSharedValue(1);
 
   const triggerFeedback = useCallback((scaleValue: any) => {
     Vibration.vibrate(10);
@@ -96,8 +98,26 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
     }
   };
 
+  const handleDeal = () => {
+    if (!user) return;
+    triggerFeedback(dealScale);
+    // Navigate to a "Partnership/Syndicate" proposal screen
+    router.push({ pathname: '/chat/[id]', params: { id: post.user_id, mode: 'DEAL', postId: post.id } });
+  };
+
   return (
     <View style={styles.container}>
+      {/* SYNDICATE DEAL (MONETIZATION TRIGGER) */}
+      <TouchableOpacity style={styles.actionBtn} onPress={handleDeal}>
+        <LinearGradient
+          colors={['#00E676', '#00C853']}
+          style={styles.dealBadge}
+        >
+          <Ionicons name="briefcase" size={24} color="#000" />
+        </LinearGradient>
+        <Text style={[styles.actionText, { color: Colors.primary, fontWeight: '900' }]}>Partner</Text>
+      </TouchableOpacity>
+
       {/* ENDORSE (LIKE) */}
       <InteractionButton
         icon="heart"
@@ -178,6 +198,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  dealBadge: {
+    width: 50,
+    height: 50,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#00C853',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.1)',
   }
 });
 

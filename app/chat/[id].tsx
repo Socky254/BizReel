@@ -6,15 +6,18 @@ import { useAuth } from '../../src/Context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { VibrantBackground } from '../../src/components/VibrantBackground';
-import { Alert } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '../../src/core/theme/colors';
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, mode, postId } = useLocalSearchParams();
   const { session } = useAuth();
   const router = useRouter();
 
   const [messages, setMessages] = useState<any[]>([]);
   const [partner, setPartner] = useState<any>(null);
+  const [post, setPost] = useState<any>(null);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -25,6 +28,7 @@ export default function ChatScreen() {
     if (id && session?.user?.id) {
       fetchPartner();
       fetchMessages();
+      if (postId) fetchPost();
 
       const subscription = supabase
         .channel(`chat:${id}`)
@@ -47,6 +51,11 @@ export default function ChatScreen() {
   const fetchPartner = async () => {
     const { data } = await supabase.from('profiles').select('*').eq('id', id).single();
     if (data) setPartner(data);
+  };
+
+  const fetchPost = async () => {
+    const { data } = await supabase.from('posts').select('*').eq('id', postId).single();
+    if (data) setPost(data);
   };
 
   const fetchMessages = async () => {
@@ -78,6 +87,20 @@ export default function ChatScreen() {
 
   const handleSend = async () => {
     if (!text.trim() || sending) return;
+
+    // LEADS MONETIZATION LOGIC: If first message and it's a DEAL mode, deduct credit
+    if (messages.length === 0 && mode === 'DEAL') {
+      const { data: profile } = await supabase.from('profiles').select('lead_credits, tier').eq('id', session?.user?.id).single();
+      if (profile && profile.lead_credits <= 0 && profile.tier === 'BASIC') {
+        Alert.alert("Lead Credits Empty", "You have used your 5 free business leads. Upgrade to PRO to unlock unlimited market connections.", [
+          { text: "Upgrade to PRO", onPress: () => router.push('/profile/settings') },
+          { text: "Cancel", style: 'cancel' }
+        ]);
+        return;
+      }
+      // Deduct credit
+      await supabase.rpc('deduct_lead_credit', { u_id: session?.user?.id });
+    }
 
     const messageText = text.trim();
     setText('');
@@ -131,6 +154,19 @@ export default function ChatScreen() {
             <Ionicons name="ellipsis-vertical" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
+
+        {mode === 'DEAL' && post && (
+          <View style={styles.dealContext}>
+            <Image source={{ uri: post.video_url }} style={styles.dealThumbnail} />
+            <View style={styles.dealInfo}>
+              <Text style={styles.dealBadgeText}>SYNDICATE PROPOSAL</Text>
+              <Text style={styles.dealTitle} numberOfLines={1}>{post.caption || 'Business Opportunity'}</Text>
+            </View>
+            <View style={styles.dealAction}>
+               <Ionicons name="shield-checkmark" size={20} color={Colors.primary} />
+            </View>
+          </View>
+        )}
 
         {loading ? (
           <View style={styles.center}><ActivityIndicator color="#00D084" /></View>
@@ -212,4 +248,40 @@ const styles = StyleSheet.create({
   input: { color: '#fff', fontSize: 15, maxHeight: 100 },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#00D084', justifyContent: 'center', alignItems: 'center', shadowColor: '#00D084', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   sendBtnDisabled: { backgroundColor: '#1C1C24', shadowOpacity: 0 },
+  dealContext: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 208, 132, 0.1)',
+    padding: 12,
+    marginHorizontal: 20,
+    marginTop: 15,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 208, 132, 0.2)'
+  },
+  dealThumbnail: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#000'
+  },
+  dealInfo: {
+    flex: 1,
+    marginLeft: 12
+  },
+  dealBadgeText: {
+    color: '#00D084',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  dealTitle: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 2
+  },
+  dealAction: {
+    paddingLeft: 10
+  }
 });
