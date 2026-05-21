@@ -367,7 +367,18 @@ GRANT EXECUTE ON FUNCTION public.get_business_analytics(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_mutual_connections_count(UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_partners_count(UUID) TO authenticated;
 
--- H. Conversation List RPC
+-- H. Storage Bucket for Products
+-- Run this if the bucket doesn't exist
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('products', 'products', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage Policies for Products
+CREATE POLICY "Product images are public" ON storage.objects FOR SELECT USING (bucket_id = 'products');
+CREATE POLICY "Users can upload product images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'products' AND auth.uid()::text = (storage.foldername(name))[1]);
+CREATE POLICY "Users can update own product images" ON storage.objects FOR UPDATE WITH CHECK (bucket_id = 'products' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- I. Conversation List RPC
 CREATE OR REPLACE FUNCTION get_conversation_list(u_id UUID)
 RETURNS TABLE (
     other_user_id UUID,
