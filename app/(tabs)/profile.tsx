@@ -32,12 +32,13 @@ export default function ProfileScreen() {
   const [reels, setReels] = useState<Post[]>([]);
   const [likedReels, setLikedReels] = useState<Post[]>([]);
   const [savedReels, setSavedReels] = useState<Post[]>([]);
+  const [referralReels, setReferralReels] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState({ followers: 0, following: 0, mutual: 0 });
   const [analytics, setAnalytics] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'SAVED' | 'ANALYTICS'>('REELS');
+  const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'SAVED' | 'REFER' | 'ANALYTICS'>('REELS');
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -64,11 +65,12 @@ export default function ProfileScreen() {
 
   const fetchData = async () => {
     const uid = session!.user.id;
-    const [pData, rData, lData, sData, followStats, aData] = await Promise.all([
+    const [pData, rData, lData, sData, refData, followStats, aData] = await Promise.all([
       container.getProfileUseCase.execute(uid),
       container.profileRepository.getUserReels(uid),
       container.profileRepository.getLikedReels(uid),
       container.profileRepository.getSavedReels(uid),
+      container.profileRepository.getReferrals(uid),
       container.profileRepository.getFollowStats(uid),
       container.profileRepository.getAnalytics(uid),
     ]);
@@ -77,6 +79,7 @@ export default function ProfileScreen() {
     setReels(rData);
     setLikedReels(lData);
     setSavedReels(sData);
+    setReferralReels(refData);
     setAnalytics(aData);
 
     const partnersCount = await container.profileRepository.getPartnersCount(uid);
@@ -238,6 +241,7 @@ export default function ProfileScreen() {
       {/* Tabs */}
       <View style={styles.tabBar}>
         <TabButton name="REELS" active={activeTab === 'REELS'} onPress={() => setActiveTab('REELS')} icon="grid-outline" />
+        <TabButton name="REFER" active={activeTab === 'REFER'} onPress={() => setActiveTab('REFER')} icon="repeat-outline" />
         <TabButton name="LIKED" active={activeTab === 'LIKED'} onPress={() => setActiveTab('LIKED')} icon="heart-outline" />
         <TabButton name="SAVED" active={activeTab === 'SAVED'} onPress={() => setActiveTab('SAVED')} icon="bookmark-outline" />
         <TabButton name="ANALYTICS" active={activeTab === 'ANALYTICS'} onPress={() => setActiveTab('ANALYTICS')} icon="bar-chart-outline" />
@@ -249,8 +253,9 @@ export default function ProfileScreen() {
     if (activeTab === 'REELS') return reels;
     if (activeTab === 'LIKED') return likedReels;
     if (activeTab === 'SAVED') return savedReels;
+    if (activeTab === 'REFER') return referralReels;
     return [];
-  }, [activeTab, reels, likedReels, savedReels]);
+  }, [activeTab, reels, likedReels, savedReels, referralReels]);
 
   return (
     <VibrantBackground>

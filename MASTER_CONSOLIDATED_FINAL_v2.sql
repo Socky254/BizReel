@@ -284,26 +284,35 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- G. Business Analytics RPC
-CREATE OR REPLACE FUNCTION get_business_analytics(target_user_id UUID)
+-- F. Business Analytics RPC (Enhanced)
+CREATE OR REPLACE FUNCTION get_advanced_business_analytics(target_user_id UUID)
 RETURNS JSONB AS $$
 DECLARE
     result JSONB;
 BEGIN
     SELECT jsonb_build_object(
-        'total_views', COALESCE(SUM(views), 0),
-        'total_shares', COALESCE(SUM(shares), 0),
-        'total_likes', (SELECT COUNT(*) FROM public.likes WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
-        'total_comments', (SELECT COUNT(*) FROM public.comments WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
-        'total_reposts', (SELECT COUNT(*) FROM public.reposts WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
-        'total_clients', (SELECT COUNT(*) FROM public.follows WHERE following_id = target_user_id),
-        'total_connections', (SELECT COUNT(*) FROM public.follows WHERE follower_id = target_user_id),
-        'engagement_rate', CASE
-            WHEN SUM(views) > 0 THEN
-                ROUND(((SELECT COUNT(*) FROM public.likes WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)) +
-                (SELECT COUNT(*) FROM public.comments WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)))::NUMERIC / SUM(views) * 100, 2)
-            ELSE 0
-        END
+        'stats', jsonb_build_object(
+            'total_views', COALESCE(SUM(views), 0),
+            'total_shares', COALESCE(SUM(shares), 0),
+            'total_likes', (SELECT COUNT(*) FROM public.likes WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
+            'total_comments', (SELECT COUNT(*) FROM public.comments WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
+            'total_reposts', (SELECT COUNT(*) FROM public.reposts WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)),
+            'engagement_rate', CASE
+                WHEN SUM(views) > 0 THEN
+                    ROUND(((SELECT COUNT(*) FROM public.likes WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)) +
+                    (SELECT COUNT(*) FROM public.comments WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)))::NUMERIC / SUM(views) * 100, 1)
+                ELSE 0
+            END,
+            'conversion_rate', CASE
+                WHEN SUM(views) > 0 THEN
+                    ROUND(((SELECT COUNT(*) FROM public.reposts WHERE post_id IN (SELECT id FROM public.posts WHERE user_id = target_user_id)))::NUMERIC / SUM(views) * 100, 1)
+                ELSE 0
+            END
+        ),
+        'recommendations', jsonb_build_array(
+            jsonb_build_object('title', 'Market Expansion', 'insight', 'Your reels are gaining traction in neighboring sectors.', 'action', 'Post more content with location tags.'),
+            jsonb_build_object('title', 'Engagement Boost', 'insight', 'Partners respond 40% more to video captions with questions.', 'action', 'Add a Call-to-Action to your next reel.')
+        )
     ) INTO result
     FROM public.posts
     WHERE user_id = target_user_id;
@@ -311,6 +320,8 @@ BEGIN
     RETURN result;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.get_advanced_business_analytics(UUID) TO authenticated;
 
 -- G. Networking Metrics RPC
 CREATE OR REPLACE FUNCTION get_mutual_connections_count(user_id_a UUID, user_id_b UUID)
@@ -374,12 +385,16 @@ CREATE POLICY "Users manage own transactions" ON transactions FOR ALL USING (aut
 
 -- Storage Buckets & Policies
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('reels', 'reels', true)
+VALUES ('reels', 'reels', true), ('avatars', 'avatars', true)
 ON CONFLICT (id) DO NOTHING;
 
 CREATE POLICY "Reels are public" ON storage.objects FOR SELECT USING (bucket_id = 'reels');
 CREATE POLICY "Users can upload reels" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'reels' AND auth.uid()::text = (storage.foldername(name))[1]);
 CREATE POLICY "Users can delete own reels" ON storage.objects FOR DELETE WITH CHECK (bucket_id = 'reels' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Avatars are public" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+CREATE POLICY "Users can upload avatars" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+CREATE POLICY "Users can update own avatars" ON storage.objects FOR UPDATE WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
 GRANT EXECUTE ON FUNCTION public.global_search(TEXT) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.process_checkout(UUID, UUID, JSONB, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.start_live_session(TEXT, UUID) TO authenticated;

@@ -14,6 +14,8 @@ export default function PublicProfileScreen() {
   const id = params.id as string;
   const { session } = useAuth();
   const [reels, setReels] = useState<any[]>([]);
+  const [likedReels, setLikedReels] = useState<any[]>([]);
+  const [referralReels, setReferralReels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -26,7 +28,7 @@ export default function PublicProfileScreen() {
   const [userComment, setUserComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'REELS' | 'SAVED'>('REELS');
+  const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'REFER' | 'SAVED'>('REELS');
   const [savedReels, setSavedReels] = useState<any[]>([]);
 
   const router = useRouter();
@@ -36,7 +38,7 @@ export default function PublicProfileScreen() {
     if (id) {
       initPublicProfile();
     }
-  }, [id, activeTab]);
+  }, [id]);
 
   const initPublicProfile = async () => {
     try {
@@ -44,6 +46,8 @@ export default function PublicProfileScreen() {
       await Promise.all([
         fetchProfileAndReels(),
         fetchRatings(),
+        fetchLikedReels(),
+        fetchReferralReels(),
         isOwnProfile ? fetchSavedReels() : Promise.resolve()
       ]);
     } catch (err) {
@@ -89,6 +93,20 @@ export default function PublicProfileScreen() {
     try {
       const { data } = await supabase.from('saved_posts').select('post_id, posts(*, profiles(*))').eq('user_id', session.user.id).order('created_at', { ascending: false });
       if (data) setSavedReels(data.map((item: any) => item.posts).filter((p: any) => p !== null));
+    } catch (e) {}
+  };
+
+  const fetchLikedReels = async () => {
+    try {
+      const { data } = await supabase.from('likes').select('post_id, posts(*, profiles(*))').eq('user_id', id).order('created_at', { ascending: false });
+      if (data) setLikedReels(data.map((item: any) => item.posts).filter((p: any) => p !== null));
+    } catch (e) {}
+  };
+
+  const fetchReferralReels = async () => {
+    try {
+      const { data } = await supabase.from('reposts').select('post_id, posts(*, profiles(*))').eq('user_id', id).order('created_at', { ascending: false });
+      if (data) setReferralReels(data.map((item: any) => item.posts).filter((p: any) => p !== null));
     } catch (e) {}
   };
 
@@ -181,23 +199,37 @@ export default function PublicProfileScreen() {
 
       <View style={styles.tabBar}>
           <TouchableOpacity style={[styles.tab, activeTab === 'REELS' && styles.activeTab]} onPress={() => setActiveTab('REELS')}>
-            <Ionicons name="grid-outline" size={22} color={activeTab === 'REELS' ? '#fff' : '#555'} />
+            <Ionicons name="grid-outline" size={22} color={activeTab === 'REELS' ? '#00D084' : '#555'} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.tab, activeTab === 'REFER' && styles.activeTab]} onPress={() => setActiveTab('REFER')}>
+            <Ionicons name="repeat-outline" size={22} color={activeTab === 'REFER' ? '#00D084' : '#555'} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.tab, activeTab === 'LIKED' && styles.activeTab]} onPress={() => setActiveTab('LIKED')}>
+            <Ionicons name="heart-outline" size={22} color={activeTab === 'LIKED' ? '#00D084' : '#555'} />
           </TouchableOpacity>
           {isOwnProfile && (
             <TouchableOpacity style={[styles.tab, activeTab === 'SAVED' && styles.activeTab]} onPress={() => setActiveTab('SAVED')}>
-              <Ionicons name="bookmark-outline" size={22} color={activeTab === 'SAVED' ? '#fff' : '#555'} />
+              <Ionicons name="bookmark-outline" size={22} color={activeTab === 'SAVED' ? '#00D084' : '#555'} />
             </TouchableOpacity>
           )}
       </View>
     </View>
   );
 
+  const activeData = useMemo(() => {
+    if (activeTab === 'REELS') return reels;
+    if (activeTab === 'LIKED') return likedReels;
+    if (activeTab === 'REFER') return referralReels;
+    if (activeTab === 'SAVED') return savedReels;
+    return [];
+  }, [activeTab, reels, likedReels, referralReels, savedReels]);
+
   return (
     <VibrantBackground>
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         <FlatList
-          data={activeTab === 'REELS' ? reels : savedReels}
+          data={activeData}
           numColumns={3}
           ListHeaderComponent={renderHeader}
           keyExtractor={(item) => item.id}
@@ -208,6 +240,7 @@ export default function PublicProfileScreen() {
             </TouchableOpacity>
           )}
           contentContainerStyle={{ paddingBottom: 100 }}
+          ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>No {activeTab.toLowerCase()} yet.</Text></View>}
         />
         {loading && <View style={styles.loading}><ActivityIndicator color="#00D084" size="large" /></View>}
 

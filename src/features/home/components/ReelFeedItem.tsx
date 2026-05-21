@@ -18,11 +18,37 @@ interface Props {
 
 export const ReelFeedItem: React.FC<Props> = ({ item, isVisible, onOpenComments }) => {
     const router = useRouter();
+    const { user } = useAuthStore();
     const [isPaused, setIsPaused] = React.useState(false);
+    const [isFollowing, setIsFollowing] = React.useState(false);
 
     React.useEffect(() => {
         if (!isVisible) setIsPaused(false);
+        checkFollowStatus();
     }, [isVisible]);
+
+    const checkFollowStatus = async () => {
+        if (!user || !item.user_id) return;
+        const { data } = await supabase
+            .from('follows')
+            .select('*')
+            .eq('follower_id', user.id)
+            .eq('following_id', item.user_id)
+            .maybeSingle();
+        setIsFollowing(!!data);
+    };
+
+    const handleConnect = async () => {
+        if (!user || item.user_id === user.id) return;
+        const newState = !isFollowing;
+        setIsFollowing(newState);
+
+        if (newState) {
+            await supabase.from('follows').insert({ follower_id: user.id, following_id: item.user_id });
+        } else {
+            await supabase.from('follows').delete().match({ follower_id: user.id, following_id: item.user_id });
+        }
+    };
 
     return (
         <View style={styles.postContainer}>
@@ -58,14 +84,18 @@ export const ReelFeedItem: React.FC<Props> = ({ item, isVisible, onOpenComments 
                     <TouchableOpacity onPress={() => router.push({ pathname: '/profile/[id]', params: { id: item.user_id } })}>
                         <Text style={styles.businessName}>@{item.profiles?.business_name || 'business'}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.connectBtn}>
-                        <LinearGradient
-                            colors={Colors.gradients.brand as any}
-                            style={styles.connectGradient}
-                        >
-                            <Text style={styles.connectBtnText}>Connect</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
+                    {user?.id !== item.user_id && (
+                        <TouchableOpacity style={styles.connectBtn} onPress={handleConnect}>
+                            <LinearGradient
+                                colors={isFollowing ? ['#1a1a1a', '#111'] : Colors.gradients.brand as any}
+                                style={styles.connectGradient}
+                            >
+                                <Text style={[styles.connectBtnText, isFollowing && { color: '#fff' }]}>
+                                    {isFollowing ? 'Connected' : 'Connect'}
+                                </Text>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    )}
                 </View>
                 <Text style={styles.caption} numberOfLines={2}>{item.caption}</Text>
 
