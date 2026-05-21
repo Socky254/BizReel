@@ -350,8 +350,22 @@ const styles = StyleSheet.create({
   avatarText: { color: '#fff', fontSize: 32, fontWeight: '900' },
   verifiedBadge: { position: 'absolute', top: -5, right: -5, backgroundColor: '#000', borderRadius: 12, padding: 2 },
 
-  statsContainer: { flex: 1, flexDirection: 'row', justifyContent: 'space-around', marginLeft: 20 },
-  statItem: { alignItems: 'center' },
+  statsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 10,
+    marginLeft: 20
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)'
+  },
   statValue: { color: '#fff', fontSize: 18, fontWeight: '900' },
   statLabel: { color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '800', marginTop: 4, textTransform: 'uppercase', letterSpacing: 1 },
 
@@ -368,7 +382,19 @@ const styles = StyleSheet.create({
   metaText: { color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
 
   actionRow: { flexDirection: 'row', gap: 10, marginBottom: 15 },
-  primaryBtn: { flex: 3, backgroundColor: '#fff', height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  primaryBtn: {
+    flex: 3,
+    backgroundColor: '#00D084',
+    height: 50,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#00D084',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5
+  },
   primaryBtnText: { color: '#000', fontSize: 13, fontWeight: '900', letterSpacing: 1 },
   secondaryBtn: { flex: 2, backgroundColor: 'rgba(255,255,255,0.05)', flexDirection: 'row', gap: 8, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   secondaryBtnText: { color: '#fff', fontSize: 13, fontWeight: '800' },

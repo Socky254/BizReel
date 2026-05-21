@@ -71,16 +71,18 @@ export const FeedFeatureScreen = () => {
         }
     };
 
+    const handleOpenComments = useCallback((id: string) => {
+        setSelectedPostId(id);
+        setCommentModalVisible(true);
+    }, []);
+
     const renderItem = useCallback(({ item }: { item: Post }) => (
         <ReelFeedItem
             item={item}
             isVisible={item.id === activeId}
-            onOpenComments={(id) => {
-                setSelectedPostId(id);
-                setCommentModalVisible(true);
-            }}
+            onOpenComments={handleOpenComments}
         />
-    ), [activeId]);
+    ), [activeId, handleOpenComments]);
 
     if (loading) return (
         <View style={styles.center}>

@@ -44,7 +44,11 @@ export default function WelcomeScreen() {
               style={styles.logoContainer}
             >
               <View style={styles.logoIcon}>
-                <Ionicons name="business" size={40} color="#00D084" />
+                <Image
+                  source={require('../../assets/bizreel-logo.svg')}
+                  style={{ width: 45, height: 45 }}
+                  contentFit="contain"
+                />
               </View>
               <Text style={styles.brandName}>BIZREEL</Text>
             </Animated.View>

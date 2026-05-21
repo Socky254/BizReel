@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { View, StyleSheet, Dimensions, Text, TouchableOpacity, Pressable } from 'react-native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,7 +26,7 @@ interface Props {
     onOpenComments: (postId: string) => void;
 }
 
-export const ReelFeedItem: React.FC<Props> = ({ item, isVisible, onOpenComments }) => {
+export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Props) => {
     const router = useRouter();
     const { user } = useAuthStore();
     const [isPaused, setIsPaused] = useState(false);
@@ -35,6 +35,7 @@ export const ReelFeedItem: React.FC<Props> = ({ item, isVisible, onOpenComments 
     const videoRef = useRef<Video>(null);
 
     const pulse = useSharedValue(1);
+    const videoSource = useMemo(() => ({ uri: item.video_url }), [item.video_url]);
 
     useEffect(() => {
         if (!isVisible) {
@@ -100,7 +101,7 @@ export const ReelFeedItem: React.FC<Props> = ({ item, isVisible, onOpenComments 
             >
                 <Video
                     ref={videoRef}
-                    source={{ uri: item.video_url }}
+                    source={videoSource}
                     style={styles.video}
                     resizeMode={ResizeMode.COVER}
                     shouldPlay={isVisible && !isPaused}
@@ -187,7 +188,7 @@ export const ReelFeedItem: React.FC<Props> = ({ item, isVisible, onOpenComments 
             />
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     postContainer: { width: width, height: height, backgroundColor: '#000' },
@@ -325,4 +326,3 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
     }
 });
-

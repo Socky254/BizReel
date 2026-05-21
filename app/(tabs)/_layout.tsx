@@ -23,6 +23,7 @@ export default function TabLayout() {
       tabBarActiveTintColor: '#00C853',
       tabBarInactiveTintColor: 'rgba(255,255,255,0.3)',
       tabBarLabelStyle: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 },
+      sceneContainerStyle: { backgroundColor: '#000' },
     }}>
       <Tabs.Screen
         name="index"

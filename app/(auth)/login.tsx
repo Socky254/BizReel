@@ -26,6 +26,10 @@ export default function LoginScreen() {
     if (error) {
       Alert.alert('Access Denied', error.message);
       setLoading(false);
+    } else {
+      // successful login - the _layout.tsx will handle redirection
+      // we can keep loading true or set it to false.
+      // Setting to false might briefly show the login form again before redirect.
     }
   };
 
@@ -60,6 +64,11 @@ export default function LoginScreen() {
 
             <View style={styles.inner}>
               <Animated.View entering={FadeInDown.delay(200).duration(800)} style={styles.titleSection}>
+                <Image
+                  source={require('../../assets/bizreel-logo.svg')}
+                  style={{ width: 60, height: 60, marginBottom: 20 }}
+                  contentFit="contain"
+                />
                 <Text style={styles.title}>Welcome Back</Text>
                 <Text style={styles.subtitle}>Sign in to your corporate dashboard</Text>
               </Animated.View>
