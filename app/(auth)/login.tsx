@@ -5,12 +5,15 @@ import { useRouter, Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -31,101 +34,119 @@ export default function LoginScreen() {
       <StatusBar barStyle="light-content" />
 
       {/* Premium Background Image */}
-      <Image
-        source="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
-        style={styles.backgroundImage}
-        contentFit="cover"
-        transition={1000}
-      />
+      <Animated.View entering={FadeIn.duration(1000)} style={StyleSheet.absoluteFill}>
+        <Image
+          source="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
+          style={styles.backgroundImage}
+          contentFit="cover"
+          transition={1000}
+        />
+      </Animated.View>
 
       <LinearGradient
         colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)', '#000']}
         style={styles.gradient}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardView}
-        >
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name="chevron-back" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.inner}>
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>Welcome Back</Text>
-              <Text style={styles.subtitle}>Sign in to your corporate dashboard</Text>
+        <SafeAreaView style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardView}
+          >
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <Ionicons name="chevron-back" size={24} color="#fff" />
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>CORPORATE EMAIL</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="mail-outline" size={20} color="#00D084" style={styles.inputIcon} />
-                  <TextInput
-                    placeholder="admin@enterprise.com"
-                    placeholderTextColor="#444"
-                    value={email}
-                    onChangeText={setEmail}
-                    style={styles.input}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                  />
+            <View style={styles.inner}>
+              <Animated.View entering={FadeInDown.delay(200).duration(800)} style={styles.titleSection}>
+                <Text style={styles.title}>Welcome Back</Text>
+                <Text style={styles.subtitle}>Sign in to your corporate dashboard</Text>
+              </Animated.View>
+
+              <Animated.View entering={FadeInDown.delay(400).duration(800)} style={styles.form}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>CORPORATE EMAIL</Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons name="mail-outline" size={20} color="#00D084" style={styles.inputIcon} />
+                    <TextInput
+                      placeholder="admin@enterprise.com"
+                      placeholderTextColor="#444"
+                      value={email}
+                      onChangeText={setEmail}
+                      style={styles.input}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                    />
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>ACCESS KEY</Text>
-                <View style={styles.inputWrapper}>
-                  <Ionicons name="lock-closed-outline" size={20} color="#00D084" style={styles.inputIcon} />
-                  <TextInput
-                    placeholder="••••••••"
-                    placeholderTextColor="#444"
-                    secureTextEntry
-                    value={password}
-                    onChangeText={setPassword}
-                    style={styles.input}
-                  />
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>ACCESS KEY</Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons name="lock-closed-outline" size={20} color="#00D084" style={styles.inputIcon} />
+                    <TextInput
+                      placeholder="••••••••"
+                      placeholderTextColor="#444"
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                      style={styles.input}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPassword(!showPassword)}
+                      style={styles.eyeIcon}
+                    >
+                      <Ionicons
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color="rgba(255,255,255,0.4)"
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
 
-              <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotText}>Request Access Recovery</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleSignIn}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#000" />
-                ) : (
-                  <>
-                    <Text style={styles.buttonText}>Authorize Session</Text>
-                    <Ionicons name="shield-checkmark" size={20} color="#000" />
-                  </>
-                )}
-              </TouchableOpacity>
-
-              <View style={styles.footer}>
-                <Text style={styles.linkText}>New Enterprise? </Text>
-                <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-                  <Text style={styles.linkHighlight}>Establish Account</Text>
+                <TouchableOpacity
+                  style={styles.forgotPassword}
+                  onPress={() => router.push('/(auth)/recovery')}
+                >
+                  <Text style={styles.forgotText}>Request Access Recovery</Text>
                 </TouchableOpacity>
-              </View>
-            </View>
-          </View>
 
-          <View style={styles.enterpriseBadge}>
-            <Ionicons name="ribbon-outline" size={14} color="rgba(255,255,255,0.4)" />
-            <Text style={styles.enterpriseText}>SECURED BY BIZREEL ENTERPRISE MESH</Text>
-          </View>
-        </KeyboardAvoidingView>
+                <TouchableOpacity
+                  style={[styles.button, loading && styles.buttonDisabled]}
+                  onPress={handleSignIn}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#000" />
+                  ) : (
+                    <>
+                      <Text style={styles.buttonText}>Authorize Session</Text>
+                      <Ionicons name="shield-checkmark" size={20} color="#000" />
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                <View style={styles.footer}>
+                  <Text style={styles.linkText}>New Enterprise? </Text>
+                  <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
+                    <Text style={styles.linkHighlight}>Establish Account</Text>
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
+            </View>
+
+            <Animated.View entering={FadeInDown.delay(600).duration(800)} style={styles.enterpriseBadge}>
+              <Ionicons name="ribbon-outline" size={14} color="rgba(255,255,255,0.4)" />
+              <Text style={styles.enterpriseText}>SECURED BY BIZREEL ENTERPRISE MESH</Text>
+            </Animated.View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </LinearGradient>
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
@@ -167,6 +188,7 @@ const styles = StyleSheet.create({
   },
   inputIcon: { marginLeft: 20 },
   input: { flex: 1, paddingHorizontal: 15, color: '#fff', fontSize: 16, fontWeight: '500' },
+  eyeIcon: { paddingRight: 20 },
   forgotPassword: { alignSelf: 'flex-end', marginBottom: 25 },
   forgotText: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 14, fontWeight: '600' },
   button: {

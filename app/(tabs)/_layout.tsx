@@ -8,11 +8,12 @@ export default function TabLayout() {
     <Tabs screenOptions={{
       headerShown: false,
       tabBarStyle: {
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        borderTopWidth: 0,
-        height: 85,
-        paddingBottom: 30,
-        paddingTop: 10,
+        backgroundColor: '#000',
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255,255,255,0.05)',
+        height: 90,
+        paddingBottom: 35,
+        paddingTop: 12,
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -20,24 +21,24 @@ export default function TabLayout() {
         elevation: 0,
       },
       tabBarActiveTintColor: '#00C853',
-      tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
-      tabBarLabelStyle: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+      tabBarInactiveTintColor: 'rgba(255,255,255,0.3)',
+      tabBarLabelStyle: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 },
     }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Discover',
+          title: 'Insights',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "compass" : "compass-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "stats-chart" : "stats-chart-outline"} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="market"
         options={{
-          title: 'Market',
+          title: 'Exchange',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "briefcase" : "briefcase-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "swap-horizontal" : "swap-horizontal-outline"} size={24} color={color} />
           ),
         }}
       />
@@ -51,7 +52,7 @@ export default function TabLayout() {
                  colors={['#00E676', '#00C853']}
                  style={styles.uploadGradient}
                >
-                 <Ionicons name="add" size={30} color="#000" />
+                 <Ionicons name="add" size={28} color="#000" />
                </LinearGradient>
             </View>
           ),
@@ -60,32 +61,37 @@ export default function TabLayout() {
       <Tabs.Screen
         name="inbox"
         options={{
-          title: 'Inbox',
+          title: 'Signals',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "mail" : "mail-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "chatbubbles" : "chatbubbles-outline"} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Network',
+          title: 'HQ',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "person" : "person-outline"} size={24} color={color} />
+            <Ionicons name={focused ? "business" : "business-outline"} size={22} color={color} />
           ),
         }}
       />
     </Tabs>
+
   );
 }
 
 const styles = StyleSheet.create({
   uploadBtn: {
-    width: 48,
+    width: 44,
     height: 32,
-    borderRadius: 8,
+    borderRadius: 10,
     overflow: 'hidden',
-    marginTop: 10
+    marginTop: 8,
+    shadowColor: '#00C853',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   uploadGradient: {
     flex: 1,
@@ -93,3 +99,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   }
 });
+

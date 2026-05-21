@@ -1,27 +1,65 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Share } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Share, Vibration } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Post } from '../domain/models';
 import { SyncService } from '../services/SyncService';
 import { useAuthStore } from '../store/useAuthStore';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withSequence,
+  withTiming
+} from 'react-native-reanimated';
+import { Colors } from '../core/theme/colors';
 
 interface Props {
   post: Post;
   onOpenComments: () => void;
 }
 
+const InteractionButton = ({ icon, label, count, active, activeColor, onPress, animatedScale }: any) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: animatedScale.value }],
+  }));
+
+  return (
+    <TouchableOpacity style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
+      <Animated.View style={animatedStyle}>
+        <Ionicons name={active ? icon : `${icon}-outline`} size={30} color={active ? activeColor : "#fff"} />
+      </Animated.View>
+      <Text style={[styles.actionText, active && { color: activeColor }]}>
+        {count !== undefined ? count : label}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
 export const ReelInteraction = ({ post, onOpenComments }: Props) => {
   const { user } = useAuthStore();
   const [isLiked, setIsLiked] = useState(post.likes?.some(l => l.user_id === user?.id) || false);
   const [isSaved, setIsSaved] = useState(post.isSaved || false);
-  const [isReposted, setIsReposted] = useState(false); // We'd ideally fetch this or include in model
+  const [isReposted, setIsReposted] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
+
+  const likeScale = useSharedValue(1);
+  const saveScale = useSharedValue(1);
+  const promoteScale = useSharedValue(1);
+
+  const triggerFeedback = useCallback((scaleValue: any) => {
+    Vibration.vibrate(10);
+    scaleValue.value = withSequence(
+      withSpring(1.4, { damping: 2, stiffness: 300 }),
+      withSpring(1)
+    );
+  }, []);
 
   const handleLike = async () => {
     if (!user) return;
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
     setLikeCount(prev => newLikedState ? prev + 1 : prev - 1);
+    triggerFeedback(likeScale);
 
     await SyncService.enqueue('like', { post_id: post.id, user_id: user.id }, newLikedState ? 'add' : 'remove');
   };
@@ -30,6 +68,7 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
     if (!user) return;
     const newSavedState = !isSaved;
     setIsSaved(newSavedState);
+    triggerFeedback(saveScale);
 
     await SyncService.enqueue('save', { post_id: post.id, user_id: user.id }, newSavedState ? 'add' : 'remove');
   };
@@ -38,6 +77,7 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
     if (!user) return;
     const newRepostedState = !isReposted;
     setIsReposted(newRepostedState);
+    triggerFeedback(promoteScale);
 
     await SyncService.enqueue('repost', { post_id: post.id, user_id: user.id }, newRepostedState ? 'add' : 'remove');
   };
@@ -45,7 +85,8 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
   const handleShare = async () => {
     try {
       const result = await Share.share({
-        message: `Check out this business reel on BizReel! ${post.video_url}`,
+        title: 'BizReel Enterprise Insight',
+        message: `Strategic business reel shared from BizReel: ${post.video_url}`,
       });
       if (result.action === Share.sharedAction) {
         await SyncService.enqueue('share', { post_id: post.id, user_id: user?.id });
@@ -57,33 +98,47 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
 
   return (
     <View style={styles.container}>
-      {/* LIKE */}
-      <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
-        <Ionicons name={isLiked ? "heart" : "heart-outline"} size={32} color={isLiked ? "#FF3B30" : "#fff"} />
-        <Text style={styles.actionText}>{likeCount}</Text>
-      </TouchableOpacity>
+      {/* ENDORSE (LIKE) */}
+      <InteractionButton
+        icon="heart"
+        count={likeCount}
+        active={isLiked}
+        activeColor="#FF3B30"
+        onPress={handleLike}
+        animatedScale={likeScale}
+      />
 
-      {/* COMMENT */}
+      {/* DISCUSS (COMMENT) */}
       <TouchableOpacity style={styles.actionBtn} onPress={onOpenComments}>
-        <Ionicons name="chatbubble-outline" size={30} color="#fff" />
+        <Ionicons name="chatbubble-ellipses-outline" size={30} color="#fff" />
         <Text style={styles.actionText}>{post.comments?.length || 0}</Text>
       </TouchableOpacity>
 
-      {/* REFER / REPOST */}
-      <TouchableOpacity style={styles.actionBtn} onPress={handleRefer}>
-        <Ionicons name="repeat-outline" size={32} color={isReposted ? "#00D084" : "#fff"} />
-        <Text style={[styles.actionText, isReposted && {color: '#00D084'}]}>Refer</Text>
-      </TouchableOpacity>
+      {/* PROMOTE (REPOST) */}
+      <InteractionButton
+        icon="repeat"
+        label="Promote"
+        active={isReposted}
+        activeColor={Colors.primary}
+        onPress={handleRefer}
+        animatedScale={promoteScale}
+      />
 
-      {/* SAVE */}
-      <TouchableOpacity style={styles.actionBtn} onPress={handleSave}>
-        <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={28} color={isSaved ? "#00C853" : "#fff"} />
-        <Text style={[styles.actionText, isSaved && {color: '#00C853'}]}>{isSaved ? "Saved" : "Save"}</Text>
-      </TouchableOpacity>
+      {/* CURATE (SAVE) */}
+      <InteractionButton
+        icon="bookmark"
+        label="Curate"
+        active={isSaved}
+        activeColor="#FFCC00"
+        onPress={handleSave}
+        animatedScale={saveScale}
+      />
 
-      {/* SHARE */}
+      {/* STRATEGIC SHARE */}
       <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
-        <Ionicons name="paper-plane-outline" size={28} color="#fff" />
+        <View style={styles.shareCircle}>
+          <Ionicons name="paper-plane" size={22} color="#fff" />
+        </View>
         <Text style={styles.actionText}>Share</Text>
       </TouchableOpacity>
     </View>
@@ -93,21 +148,36 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    right: 15,
-    bottom: 120,
+    right: 12,
+    bottom: 110,
     alignItems: 'center',
-    gap: 20,
+    gap: 22,
+    zIndex: 10,
   },
   actionBtn: {
     alignItems: 'center',
+    width: 60,
   },
   actionText: {
     color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-    marginTop: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: {width: -1, height: 1},
-    textShadowRadius: 10
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  shareCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   }
 });
+

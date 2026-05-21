@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  FadeInDown,
+  FadeIn
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -15,49 +24,77 @@ export default function WelcomeScreen() {
       <StatusBar barStyle="light-content" />
 
       {/* Background Image with Overlay */}
-      <Image
-        source="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
-        style={styles.backgroundImage}
-        contentFit="cover"
-        transition={1000}
-      />
+      <Animated.View entering={FadeIn.duration(1500)} style={StyleSheet.absoluteFill}>
+        <Image
+          source="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
+          style={styles.backgroundImage}
+          contentFit="cover"
+          transition={1000}
+        />
+      </Animated.View>
 
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.8)', '#000']}
         style={styles.gradient}
       >
-        <View style={styles.content}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logoIcon}>
-              <Ionicons name="business" size={40} color="#00D084" />
-            </View>
-            <Text style={styles.brandName}>BIZREEL</Text>
-          </View>
-
-          <Text style={styles.title}>Elevate Your Business Presence</Text>
-          <Text style={styles.subtitle}>
-            The premium platform for modern entrepreneurs to showcase, connect, and grow through short-form video commerce.
-          </Text>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => router.push('/(auth)/signup')}
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.content}>
+            <Animated.View
+              entering={FadeInDown.delay(300).duration(800)}
+              style={styles.logoContainer}
             >
-              <Text style={styles.primaryButtonText}>Get Started</Text>
-              <Ionicons name="arrow-forward" size={20} color="#000" />
-            </TouchableOpacity>
+              <View style={styles.logoIcon}>
+                <Ionicons name="business" size={40} color="#00D084" />
+              </View>
+              <Text style={styles.brandName}>BIZREEL</Text>
+            </Animated.View>
 
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => router.push('/(auth)/login')}
+            <Animated.Text
+              entering={FadeInDown.delay(500).duration(800)}
+              style={styles.title}
             >
-              <Text style={styles.secondaryButtonText}>Already have a business account? <Text style={styles.loginText}>Sign In</Text></Text>
-            </TouchableOpacity>
-          </View>
+              Elevate Your Business Presence
+            </Animated.Text>
 
-          <Text style={styles.footerText}>Designed for Enterprise Excellence</Text>
-        </View>
+            <Animated.Text
+              entering={FadeInDown.delay(700).duration(800)}
+              style={styles.subtitle}
+            >
+              The premium platform for modern entrepreneurs to showcase, connect, and grow through short-form video commerce.
+            </Animated.Text>
+
+            <Animated.View
+              entering={FadeInDown.delay(900).duration(800)}
+              style={styles.buttonContainer}
+            >
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={() => router.push('/(auth)/signup')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.primaryButtonText}>Get Started</Text>
+                <Ionicons name="arrow-forward" size={20} color="#000" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => router.push('/(auth)/login')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.secondaryButtonText}>
+                  Already have a business account? <Text style={styles.loginText}>Sign In</Text>
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+
+            <Animated.Text
+              entering={FadeInDown.delay(1100).duration(800)}
+              style={styles.footerText}
+            >
+              Designed for Enterprise Excellence
+            </Animated.Text>
+          </View>
+        </SafeAreaView>
       </LinearGradient>
     </View>
   );
@@ -68,6 +105,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
+  safeArea: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   backgroundImage: {
     position: 'absolute',
     width: width,
@@ -76,11 +117,10 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    justifyContent: 'flex-end',
   },
   content: {
     padding: 30,
-    paddingBottom: 50,
+    paddingBottom: 20,
   },
   logoContainer: {
     flexDirection: 'row',
@@ -160,3 +200,4 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
 });
+

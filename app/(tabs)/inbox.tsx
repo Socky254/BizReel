@@ -197,13 +197,13 @@ export default function InboxScreen() {
               style={[styles.tab, activeTab === 'NOTIFICATIONS' && styles.activeTab]}
               onPress={() => setActiveTab('NOTIFICATIONS')}
             >
-              <Text style={[styles.tabText, activeTab === 'NOTIFICATIONS' && styles.activeTabText]}>Activities</Text>
+              <Text style={[styles.tabText, activeTab === 'NOTIFICATIONS' && styles.activeTabText]}>Market Signals</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'MESSAGES' && styles.activeTab]}
               onPress={() => setActiveTab('MESSAGES')}
             >
-              <Text style={[styles.tabText, activeTab === 'MESSAGES' && styles.activeTabText]}>Messages</Text>
+              <Text style={[styles.tabText, activeTab === 'MESSAGES' && styles.activeTabText]}>Executive Comms</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -232,29 +232,70 @@ export default function InboxScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingTop: 60, paddingHorizontal: 20, backgroundColor: 'transparent', paddingBottom: 15 },
-  title: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -1, marginBottom: 25 },
-  tabContainer: { flexDirection: 'row', gap: 25, marginBottom: 5 },
-  tab: { paddingBottom: 12 },
-  activeTab: { borderBottomWidth: 3, borderBottomColor: '#00D084' },
-  tabText: { color: '#444', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
+  header: { paddingTop: 60, paddingHorizontal: 25, backgroundColor: 'transparent', paddingBottom: 20 },
+  title: { color: '#fff', fontSize: 32, fontWeight: '900', letterSpacing: -1.5, marginBottom: 25 },
+  tabContainer: { flexDirection: 'row', gap: 30 },
+  tab: { paddingBottom: 15 },
+  activeTab: { borderBottomWidth: 2, borderBottomColor: '#00D084' },
+  tabText: { color: 'rgba(255,255,255,0.2)', fontSize: 13, fontWeight: '900', letterSpacing: 1.5, textTransform: 'uppercase' },
   activeTabText: { color: '#fff' },
-  unreadItem: { backgroundColor: 'rgba(0,208,132,0.06)', borderColor: 'rgba(0,208,132,0.15)' },
-  unreadDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#00D084', marginLeft: 12 },
-  item: { flexDirection: 'row', alignItems: 'center', padding: 18, marginHorizontal: 15, marginVertical: 4, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.02)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  unreadItem: { backgroundColor: 'rgba(0,208,132,0.03)', borderColor: 'rgba(0,208,132,0.1)' },
+  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#00D084' },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    marginHorizontal: 15,
+    marginVertical: 5,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)'
+  },
   avatarContainer: { position: 'relative' },
-  avatar: { width: 56, height: 56, borderRadius: 28, borderWidth: 1, borderColor: '#1C1C24' },
-  placeholderAvatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#1C1C24', justifyContent: 'center', alignItems: 'center' },
-  avatarText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  typeIcon: { position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#050508' },
-  unreadBadge: { position: 'absolute', top: 0, right: 0, width: 14, height: 14, borderRadius: 7, backgroundColor: '#00D084', borderWidth: 2, borderColor: '#050508' },
-  itemInfo: { flex: 1, marginLeft: 18 },
-  itemTitle: { color: '#ccc', fontSize: 14, lineHeight: 22 },
-  itemSubtitle: { color: '#666', fontSize: 14, marginTop: 4, fontWeight: '500' },
+  avatar: { width: 52, height: 52, borderRadius: 18, borderWidth: 1, borderColor: '#111' },
+  placeholderAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: '#080808',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)'
+  },
+  avatarText: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  typeIcon: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 7,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000'
+  },
+  unreadBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#00D084',
+    borderWidth: 2,
+    borderColor: '#000'
+  },
+  itemInfo: { flex: 1, marginLeft: 15 },
+  itemTitle: { color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 22 },
+  itemSubtitle: { color: 'rgba(255,255,255,0.3)', fontSize: 13, marginTop: 4, fontWeight: '500' },
   unreadText: { color: '#fff', fontWeight: '800' },
   bold: { fontWeight: '900', color: '#fff' },
-  itemTime: { color: '#333', fontSize: 12, fontWeight: '700', marginTop: 6 },
+  itemTime: { color: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: '800', textTransform: 'uppercase', marginTop: 8 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  emptyContainer: { alignItems: 'center', marginTop: 120 },
-  emptyText: { color: '#222', fontSize: 18, fontWeight: '800', marginTop: 25 }
+  emptyContainer: { alignItems: 'center', marginTop: 120, padding: 40 },
+  emptyText: { color: 'rgba(255,255,255,0.1)', fontSize: 14, fontWeight: '900', marginTop: 20, textTransform: 'uppercase', letterSpacing: 2 }
 });
+

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, ViewToken, Text, StatusBar, TouchableOpacity } from 'react-native';
+import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, ViewToken, Text, StatusBar, TouchableOpacity, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { container } from '../../../di/Container';
@@ -8,8 +8,23 @@ import { CommentsModal } from '../../../components/CommentsModal';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { ReelFeedItem } from '../components/ReelFeedItem';
 import { Colors } from '../../../core/theme/colors';
+import Animated, { FadeIn, FadeInDown, useSharedValue, withRepeat, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
+
+const PulseIndicator = () => {
+    const opacity = useSharedValue(0.4);
+    useEffect(() => {
+        opacity.value = withRepeat(withTiming(1, { duration: 1000 }), -1, true);
+    }, []);
+    const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+    return (
+        <View style={styles.pulseContainer}>
+            <Animated.View style={[styles.pulseDot, style]} />
+            <Text style={styles.pulseText}>LIVE MARKET PULSE</Text>
+        </View>
+    );
+};
 
 export const FeedFeatureScreen = () => {
     const [posts, setPosts] = useState<Post[]>([]);
@@ -43,13 +58,13 @@ export const FeedFeatureScreen = () => {
             setError(null);
             const data = await container.getFeedUseCase.execute(session?.user?.id);
             if (data.length === 0) {
-                setError("No business reels available.");
+                setError("Your market is quiet. Be the first to disrupt the industry.");
             }
             setPosts(initialPost
                 ? [...data].sort((a, b) => a.id === initialPost ? -1 : 1)
                 : data);
         } catch (err) {
-            setError("Synchronization failed.");
+            setError("Global network synchronization interrupted.");
             console.error(err);
         } finally {
             setLoading(false);
@@ -69,18 +84,22 @@ export const FeedFeatureScreen = () => {
 
     if (loading) return (
         <View style={styles.center}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <Text style={styles.loadingText}>Syncing Market Data...</Text>
+            <ActivityIndicator size="small" color={Colors.primary} />
+            <Animated.Text entering={FadeIn.delay(300)} style={styles.loadingText}>
+                Accessing Enterprise Ledger...
+            </Animated.Text>
         </View>
     );
 
     if (error) return (
         <View style={styles.center}>
-            <Ionicons name="cloud-offline-outline" size={48} color={Colors.textTertiary} />
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={loadFeed} style={styles.retryBtn}>
-                <Text style={styles.retryBtnText}>Retry Connection</Text>
-            </TouchableOpacity>
+            <Animated.View entering={FadeInDown.duration(800)}>
+                <Ionicons name="shield-outline" size={60} color="rgba(255,255,255,0.1)" style={{ alignSelf: 'center' }} />
+                <Text style={styles.errorText}>{error}</Text>
+                <TouchableOpacity onPress={loadFeed} style={styles.retryBtn}>
+                    <Text style={styles.retryBtnText}>Reconnect to Network</Text>
+                </TouchableOpacity>
+            </Animated.View>
         </View>
     );
 
@@ -88,19 +107,27 @@ export const FeedFeatureScreen = () => {
         <View style={styles.container}>
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-            {/* ENTERPRISE HEADER */}
-            <View style={styles.header}>
+            {/* PREMIUM ENTERPRISE HEADER */}
+            <Animated.View entering={FadeIn.duration(1000)} style={styles.header}>
                 <View>
-                    <Text style={styles.headerTitle}>BizReel</Text>
-                    <Text style={styles.headerSubtitle}>Professional Marketplace</Text>
+                    <Text style={styles.headerTitle}>BIZREEL</Text>
+                    <PulseIndicator />
                 </View>
-                <TouchableOpacity
-                    style={styles.searchIconButton}
-                    onPress={() => router.push('/(tabs)/market')}
-                >
-                    <Ionicons name="search" size={22} color="#fff" />
-                </TouchableOpacity>
-            </View>
+                <View style={styles.headerActions}>
+                    <TouchableOpacity
+                        style={styles.headerIconButton}
+                        onPress={() => router.push('/(tabs)/market')}
+                    >
+                        <Ionicons name="search-outline" size={22} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.headerIconButton}
+                        onPress={() => router.push('/profile')}
+                    >
+                        <Ionicons name="notifications-outline" size={22} color="#fff" />
+                    </TouchableOpacity>
+                </View>
+            </Animated.View>
 
             <FlatList
                 data={posts}
@@ -113,6 +140,10 @@ export const FeedFeatureScreen = () => {
                 removeClippedSubviews={true}
                 maxToRenderPerBatch={3}
                 windowSize={5}
+                showsVerticalScrollIndicator={false}
+                snapToInterval={height}
+                snapToAlignment="start"
+                decelerationRate="fast"
                 getItemLayout={(_, index) => ({
                     length: height,
                     offset: height * index,
@@ -131,10 +162,10 @@ export const FeedFeatureScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: '#000' },
     header: {
         position: 'absolute',
-        top: 55,
+        top: Platform.OS === 'ios' ? 60 : 45,
         left: 0,
         right: 0,
         zIndex: 10,
@@ -144,38 +175,76 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     headerTitle: {
-        color: Colors.textPrimary,
-        fontSize: 24,
+        color: '#fff',
+        fontSize: 22,
         fontWeight: '900',
-        letterSpacing: -0.5,
+        letterSpacing: 2,
     },
-    headerSubtitle: {
-        color: Colors.primary,
-        fontSize: 10,
-        fontWeight: '700',
-        textTransform: 'uppercase',
-        letterSpacing: 1.5,
-        marginTop: -2,
+    headerActions: {
+        flexDirection: 'row',
+        gap: 12,
     },
-    searchIconButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: 'rgba(255,255,255,0.12)',
+    headerIconButton: {
+        width: 42,
+        height: 42,
+        borderRadius: 14,
+        backgroundColor: 'rgba(255,255,255,0.08)',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
     },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background, padding: 20 },
-    loadingText: { color: Colors.textSecondary, marginTop: 15, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
-    errorText: { color: Colors.textSecondary, fontSize: 16, textAlign: 'center', marginTop: 20, marginBottom: 30 },
+    pulseContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+    },
+    pulseDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: Colors.primary,
+        marginRight: 6,
+    },
+    pulseText: {
+        color: Colors.primary,
+        fontSize: 9,
+        fontWeight: '800',
+        letterSpacing: 1,
+    },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', padding: 40 },
+    loadingText: {
+        color: 'rgba(255,255,255,0.4)',
+        marginTop: 20,
+        fontSize: 11,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 2
+    },
+    errorText: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 16,
+        textAlign: 'center',
+        marginTop: 20,
+        marginBottom: 30,
+        fontWeight: '500',
+        lineHeight: 24
+    },
     retryBtn: {
         paddingHorizontal: 25,
-        paddingVertical: 12,
-        borderRadius: 30,
+        paddingVertical: 14,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderWidth: 1,
-        borderColor: Colors.primary
+        borderColor: 'rgba(255,255,255,0.1)',
+        alignSelf: 'center'
     },
-    retryBtnText: { color: Colors.primary, fontWeight: '900', textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 },
+    retryBtnText: {
+        color: '#fff',
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        fontSize: 11,
+        letterSpacing: 1
+    },
 });
+
