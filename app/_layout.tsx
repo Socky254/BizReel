@@ -1,14 +1,28 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { supabase } from '../src/lib/supabase';
 import { useAuthStore } from '../src/store/useAuthStore';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../src/lib/queryClient';
 import * as SplashScreen from 'expo-splash-screen';
+import ErrorBoundary from 'react-native-error-boundary';
 
 // Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+const CustomFallback = (props: { error: Error, resetError: () => void }) => (
+  <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+    <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>Oops! Something went wrong.</Text>
+    <Text style={{ color: '#aaa', textAlign: 'center', marginBottom: 20 }}>{props.error.toString()}</Text>
+    <TouchableOpacity
+      onPress={props.resetError}
+      style={{ backgroundColor: '#00D084', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 }}
+    >
+      <Text style={{ color: '#000', fontWeight: 'bold' }}>Try Again</Text>
+    </TouchableOpacity>
+  </View>
+);
 
 export default function RootLayout() {
   const { session, setSession } = useAuthStore();
@@ -72,19 +86,21 @@ export default function RootLayout() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
-      <QueryClientProvider client={queryClient}>
-        <Stack screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#000' },
-          animation: 'fade'
-        }}>
-          <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
-          <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-          <Stack.Screen name="profile/follows" options={{ presentation: 'modal' }} />
-        </Stack>
-      </QueryClientProvider>
-    </View>
+    <ErrorBoundary FallbackComponent={CustomFallback}>
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
+        <QueryClientProvider client={queryClient}>
+          <Stack screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#000' },
+            animation: 'fade'
+          }}>
+            <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
+            <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+            <Stack.Screen name="profile/follows" options={{ presentation: 'modal' }} />
+          </Stack>
+        </QueryClientProvider>
+      </View>
+    </ErrorBoundary>
   );
 }
 
