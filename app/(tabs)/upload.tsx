@@ -4,16 +4,16 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Video, ResizeMode } from 'expo-av';
-import { supabase } from '../../src/lib/supabase';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { Colors } from '../../src/core/theme/colors';
+import { UploadService } from '../../src/features/upload/services/UploadService';
 
 const { width } = Dimensions.get('window');
 
 type UploadMode = 'SELECT' | 'POST_REEL' | 'START_LIVE';
 
 export default function UploadScreen() {
-  const { session, user } = useAuthStore();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [mode, setMode] = useState<UploadMode>('SELECT');
   const [video, setVideo] = useState<string | null>(null);
@@ -60,42 +60,16 @@ export default function UploadScreen() {
 
     try {
       setUploading(true);
-      const userId = user?.id;
-      if (!userId) throw new Error("Not authenticated");
+      if (!user?.id) throw new Error("Not authenticated");
 
-      // Use the modular architecture service style (ideally would be a UseCase)
-      const filename = `${userId}/${Date.now()}.mp4`;
-
-      const response = await fetch(video);
-      const blob = await response.blob();
-
-      const arrayBuffer = await new Response(blob).arrayBuffer();
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('reels')
-        .upload(filename, arrayBuffer, {
-           contentType: 'video/mp4'
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('reels')
-        .getPublicUrl(filename);
-
-      const { error: dbError } = await supabase.from('posts').insert({
-        user_id: userId,
-        video_url: publicUrl,
-        caption: caption,
-        category: category || 'General'
-      });
-
-      if (dbError) throw dbError;
+      await UploadService.uploadReel(user.id, video, caption, category);
 
       Alert.alert("Success", "Professional Reel Posted!", [
         { text: "OK", onPress: () => {
           setVideo(null);
           setMode('SELECT');
+          setCaption('');
+          setCategory('');
           router.replace('/(tabs)');
         }}
       ]);
@@ -114,12 +88,9 @@ export default function UploadScreen() {
 
     try {
       setUploading(true);
-      const { data: sessionId, error } = await supabase.rpc('start_live_session', {
-        p_user_id: user?.id,
-        p_title: liveTitle.trim()
-      });
+      if (!user?.id) throw new Error("Not authenticated");
 
-      if (error) throw error;
+      const sessionId = await UploadService.startLiveSession(user.id, liveTitle);
 
       router.push(`/live/${sessionId}`);
     } catch (e: any) {
@@ -128,6 +99,7 @@ export default function UploadScreen() {
       setUploading(false);
     }
   };
+
 
   if (mode === 'SELECT') {
     return (

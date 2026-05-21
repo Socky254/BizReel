@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { supabase } from '../../src/lib/supabase';
+import { Colors } from '../../src/core/theme/colors';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -72,13 +73,13 @@ export default function SettingsScreen() {
   const SettingItem = ({ icon, title, subtitle, onPress, rightElement }: any) => (
     <TouchableOpacity style={styles.item} onPress={onPress} disabled={!onPress}>
       <View style={styles.iconArea}>
-        <Ionicons name={icon} size={22} color="#888" />
+        <Ionicons name={icon} size={22} color={Colors.textTertiary} />
       </View>
       <View style={styles.textArea}>
         <Text style={styles.itemTitle}>{title}</Text>
         {subtitle && <Text style={styles.itemSubtitle}>{subtitle}</Text>}
       </View>
-      {rightElement ? rightElement : <Ionicons name="chevron-forward" size={18} color="#333" />}
+      {rightElement ? rightElement : <Ionicons name="chevron-forward" size={18} color={Colors.border} />}
     </TouchableOpacity>
   );
 
@@ -86,14 +87,26 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>Settings & Privacy</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>Account</Text>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>Business Account</Text>
+        <SettingItem
+          icon="stats-chart-outline"
+          title="Executive Dashboard"
+          subtitle="Real-time performance & market intelligence"
+          onPress={() => router.push('/profile/dashboard')}
+        />
+        <SettingItem
+          icon="wallet-outline"
+          title="BizReel Wallet"
+          subtitle="View balance, pending funds, and history"
+          onPress={() => router.push('/profile/wallet')}
+        />
         <SettingItem
           icon="person-outline"
           title="Edit Profile"
@@ -101,16 +114,10 @@ export default function SettingsScreen() {
           onPress={() => router.push('/profile/edit')}
         />
         <SettingItem
-          icon="key-outline"
-          title="Password & Security"
-          subtitle="Change password and manage 2FA"
-          onPress={() => Alert.alert("Security Settings", "Password change and 2FA management is available in the web dashboard.")}
-        />
-        <SettingItem
           icon="shield-checkmark-outline"
           title="Verification"
           subtitle="Apply for business verification badge"
-          onPress={() => Alert.alert("Coming Soon", "Business verification is being refined.")}
+          onPress={() => router.push('/profile/verify')}
         />
 
         <Text style={styles.sectionTitle}>Privacy</Text>
@@ -118,91 +125,75 @@ export default function SettingsScreen() {
           icon="lock-closed-outline"
           title="Private Account"
           subtitle="Only connections can see your reels"
-          rightElement={<Switch value={isPrivate} onValueChange={togglePrivacy} trackColor={{ false: '#333', true: '#00D084' }} />}
+          rightElement={<Switch value={isPrivate} onValueChange={togglePrivacy} trackColor={{ false: Colors.surfaceElevated, true: Colors.primary }} />}
         />
         <SettingItem
           icon="download-outline"
           title="Allow Downloads"
           subtitle="Let others save your reels to their device"
-          rightElement={<Switch value={allowDownloads} onValueChange={toggleDownloads} trackColor={{ false: '#333', true: '#00D084' }} />}
-        />
-        <SettingItem
-          icon="eye-off-outline"
-          title="Active Status"
-          subtitle="Show when you are online"
-          rightElement={<Switch value={true} onValueChange={() => {}} trackColor={{ false: '#333', true: '#00D084' }} />}
+          rightElement={<Switch value={allowDownloads} onValueChange={toggleDownloads} trackColor={{ false: Colors.surfaceElevated, true: Colors.primary }} />}
         />
 
         <Text style={styles.sectionTitle}>Content & Display</Text>
-        <SettingItem icon="notifications-outline" title="Notifications" subtitle="Push, Email, and SMS alerts" />
-        <SettingItem icon="language-outline" title="Language" subtitle="English (US)" />
-        <SettingItem icon="moon-outline" title="Dark Mode" rightElement={<Text style={{color: '#00D084', fontWeight: '800'}}>ON</Text>} />
-
-        <Text style={styles.sectionTitle}>Safety</Text>
-        <SettingItem
-          icon="ban-outline"
-          title="Blocked Users"
-          onPress={() => Alert.alert("Blocked Users", "You have not blocked any professional accounts. To block, visit a profile and select the restrict option.")}
-        />
-        <SettingItem
-          icon="chatbubble-ellipses-outline"
-          title="Comment Filters"
-          onPress={() => Alert.alert("Comment Filters", "Professional filters are active by default to prevent spam and harassment in your reels.")}
-        />
+        <SettingItem icon="notifications-outline" title="Notifications" subtitle="Push, Email, and SMS signals" />
+        <SettingItem icon="moon-outline" title="Dark Mode" rightElement={<Text style={{color: Colors.primary, fontWeight: '900', fontSize: 10}}>ACTIVE</Text>} />
 
         <Text style={styles.sectionTitle}>Data & Support</Text>
         <SettingItem
-          icon="cloud-download-outline"
-          title="Download Your Data"
-          onPress={() => Alert.alert("Data Portability", "A request to package your business data (Reels, Products, Logs) has been received. You will receive a secure link via email within 48 hours.")}
-        />
-        <SettingItem
           icon="help-circle-outline"
-          title="Help Center"
-          onPress={() => Alert.alert("BizReel Support", "Need assistance? Email support@bizreel.app or visit our online resource hub for tutorials on Live Commerce.")}
+          title="Trust & Security Guide"
+          subtitle="How BizReel protects your trades"
+          onPress={() => router.push('/help/trust-guide')}
         />
         <SettingItem
           icon="document-text-outline"
-          title="Terms & Conditions"
+          title="Terms of Commerce"
           onPress={() => Alert.alert("Standard Commercial Terms", "1. Professional Conduct: Users must represent businesses accurately.\n2. Transaction Transparency: BizReel facilitates connections; fulfillment is the responsibility of the business.\n3. Content Ownership: You retain rights to your reels but grant BizReel a license to display them to partners.")}
-        />
-        <SettingItem
-          icon="refresh-outline"
-          title="Check for Updates"
-          subtitle="Current Version: 1.0.0"
-          onPress={() => {
-            Alert.alert("Update Service", "Checking for professional version updates...", [
-              { text: "Cancel", style: "cancel" },
-              { text: "Update", onPress: () => Alert.alert("System Sync", "You are already using the most optimized version of BizReel.") }
-            ]);
-          }}
         />
         <SettingItem
           icon="information-circle-outline"
           title="About BizReel"
-          onPress={() => Alert.alert("About BizReel", "Version 1.0.0\n\nThe ultimate B2B short-form video platform designed for professional networking and business growth. Empowering the next generation of global commerce.")}
-        />
-        <SettingItem
-          icon="shield-outline"
-          title="Legal & Privacy Policy"
-          onPress={() => Alert.alert("Privacy Commitment", "We prioritize your business data security. We do not sell your contact information to third-party advertisers. Your location data is only used to show nearby market opportunities.")}
+          onPress={() => Alert.alert("About BizReel", "Version 1.0.0\n\nThe ultimate B2B short-form video platform designed for professional networking and business growth.")}
         />
 
-        <Text style={styles.sectionTitle}>Login</Text>
-        <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
-          <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
+        <View style={styles.footer}>
+           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+             <Ionicons name="log-out-outline" size={20} color={Colors.error} />
+             <Text style={styles.signOutText}>Sign Out Executive</Text>
+           </TouchableOpacity>
 
-        <TouchableOpacity style={styles.deleteBtn} onPress={() => Alert.alert("Delete Account", "Are you sure? This action is permanent.")}>
-          <Text style={styles.deleteText}>Delete Account</Text>
-        </TouchableOpacity>
+           <Text style={styles.versionText}>BizReel Enterprise v1.0.0 (Production Build)</Text>
+           <TouchableOpacity style={styles.deleteBtn} onPress={() => Alert.alert("Delete Account", "Are you sure? This action is permanent.")}>
+             <Text style={styles.deleteText}>Delete Professional Account</Text>
+           </TouchableOpacity>
+        </View>
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: 60 }} />
       </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  title: { color: Colors.textPrimary, fontSize: 18, fontWeight: '900', letterSpacing: -0.5 },
+  content: { flex: 1 },
+  sectionTitle: { color: Colors.textTertiary, fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.5, marginLeft: 20, marginTop: 35, marginBottom: 12 },
+  item: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: Colors.border },
+  iconArea: { width: 40 },
+  textArea: { flex: 1 },
+  itemTitle: { color: Colors.textPrimary, fontSize: 15, fontWeight: '700' },
+  itemSubtitle: { color: Colors.textSecondary, fontSize: 12, marginTop: 4, fontWeight: '600' },
+  footer: { marginTop: 40, paddingHorizontal: 20 },
+  signOutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, backgroundColor: 'rgba(255,82,82,0.05)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,82,82,0.1)' },
+  signOutText: { color: Colors.error, fontSize: 14, fontWeight: '900', marginLeft: 10, textTransform: 'uppercase', letterSpacing: 1 },
+  versionText: { color: Colors.textTertiary, fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 25, letterSpacing: 0.5 },
+  deleteBtn: { alignItems: 'center', marginTop: 15 },
+  deleteText: { color: Colors.textTertiary, fontSize: 12, fontWeight: '700', textDecorationLine: 'underline' }
+});
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0D12' },

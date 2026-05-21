@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../../core/theme/colors';
 import { AiGateway } from '../../../core/ai/AiGateway';
@@ -20,10 +20,30 @@ export const AiMentorScreen = () => {
         initializeSession();
     }, []);
 
-    const initializeSession = async () => {
+    const initializeSession = async (forceNew: boolean = false) => {
         if (!user) return;
 
-        // Find existing active session or create new one
+        if (forceNew) {
+            // Archive current session
+            if (sessionId) {
+                await supabase
+                    .from('ai_mentor_sessions')
+                    .update({ status: 'archived' })
+                    .eq('id', sessionId);
+            }
+            const { data: newSession } = await supabase
+                .from('ai_mentor_sessions')
+                .insert({ user_id: user.id, topic: 'New Business Strategy' })
+                .select()
+                .single();
+            if (newSession) {
+                setSessionId(newSession.id);
+                setMessages([]);
+            }
+            return;
+        }
+
+        // Find existing active session
         const { data: session } = await supabase
             .from('ai_mentor_sessions')
             .select('id')
@@ -31,7 +51,7 @@ export const AiMentorScreen = () => {
             .eq('status', 'active')
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
         if (session) {
             setSessionId(session.id);
@@ -46,7 +66,19 @@ export const AiMentorScreen = () => {
         }
     };
 
+    const handleNewChat = () => {
+        Alert.alert(
+            "New Strategy Session",
+            "This will archive your current chat and start a fresh session. Continue?",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Start Fresh", onPress: () => initializeSession(true) }
+            ]
+        );
+    };
+
     const fetchMessages = async (sid: string) => {
+// ... existing code
         const { data } = await supabase
             .from('ai_mentor_messages')
             .select('*')
@@ -122,7 +154,12 @@ export const AiMentorScreen = () => {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>AI Strategy Mentor</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={styles.headerTitle}>AI Strategy Mentor</Text>
+                    <TouchableOpacity onPress={handleNewChat}>
+                        <Ionicons name="add-circle-outline" size={28} color={Colors.primary} />
+                    </TouchableOpacity>
+                </View>
                 <View style={styles.onlineStatus}>
                     <View style={styles.statusDot} />
                     <Text style={styles.statusText}>Analyzing Marketplace</Text>

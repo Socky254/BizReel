@@ -154,6 +154,23 @@ CREATE TABLE IF NOT EXISTS public.ai_sessions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- AI Mentor Specific Tables
+CREATE TABLE IF NOT EXISTS public.ai_mentor_sessions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    topic TEXT DEFAULT 'General Business Consultation',
+    status TEXT DEFAULT 'active', -- 'active', 'archived'
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.ai_mentor_messages (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    session_id UUID REFERENCES public.ai_mentor_sessions(id) ON DELETE CASCADE,
+    role TEXT CHECK (role IN ('user', 'assistant')),
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS public.ai_memories (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -302,6 +319,36 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- NEW: Notification trigger for Orders and Live Sessions
+CREATE OR REPLACE FUNCTION public.handle_special_notifications()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- 1. Order Paid Notification
+    IF TG_TABLE_NAME = 'orders' AND NEW.status = 'paid' AND OLD.status != 'paid' THEN
+        INSERT INTO public.notifications (receiver_id, sender_id, type)
+        VALUES (NEW.business_id, NEW.buyer_id, 'order_paid');
+    END IF;
+
+    -- 2. Live Session Started Notification (To all followers)
+    IF TG_TABLE_NAME = 'live_sessions' AND NEW.is_active = true AND (OLD.is_active = false OR OLD.is_active IS NULL) THEN
+        INSERT INTO public.notifications (receiver_id, sender_id, type)
+        SELECT follower_id, NEW.user_id, 'live_started'
+        FROM public.follows
+        WHERE following_id = NEW.user_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS tr_notify_order_paid ON public.orders;
+CREATE TRIGGER tr_notify_order_paid AFTER UPDATE ON public.orders
+FOR EACH ROW EXECUTE FUNCTION public.handle_special_notifications();
+
+DROP TRIGGER IF EXISTS tr_notify_live_started ON public.live_sessions;
+CREATE TRIGGER tr_notify_live_started AFTER INSERT OR UPDATE ON public.live_sessions
+FOR EACH ROW EXECUTE FUNCTION public.handle_special_notifications();
 
 -- C. Search Trends RPC
 CREATE OR REPLACE FUNCTION public.get_market_trends()
@@ -477,6 +524,13 @@ CREATE POLICY "Users manage own products" ON products FOR ALL USING (auth.uid() 
 CREATE POLICY "Users manage own cart" ON cart FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "Users manage own orders" ON orders FOR ALL USING (auth.uid() = buyer_id OR auth.uid() = business_id);
 CREATE POLICY "Users manage own transactions" ON transactions FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users manage own ai_mentor_sessions" ON ai_mentor_sessions FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users view own ai_mentor_messages" ON ai_mentor_messages FOR SELECT USING (
+    EXISTS (SELECT 1 FROM ai_mentor_sessions WHERE id = session_id AND user_id = auth.uid())
+);
+CREATE POLICY "Users insert own ai_mentor_messages" ON ai_mentor_messages FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM ai_mentor_sessions WHERE id = session_id AND user_id = auth.uid())
+);
 
 -- Storage Buckets & Policies
 INSERT INTO storage.buckets (id, name, public)
@@ -558,3 +612,91 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.get_conversation_list(UUID) TO authenticated;
+
+-- =============================================================
+-- INTASEND & WALLET SYSTEM INTEGRATION
+-- =============================================================
+
+-- 1. Create Wallets table for users/merchants
+CREATE TABLE IF NOT EXISTS public.wallets (
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE PRIMARY KEY,
+    balance NUMERIC DEFAULT 0,
+    pending_balance NUMERIC DEFAULT 0,
+    currency TEXT DEFAULT 'KES',
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 2. Enhanced Transactions for IntaSend Tracking
+-- Note: We drop and recreate if needed or simply ensure columns exist
+ALTER TABLE IF EXISTS public.transactions ADD COLUMN IF NOT EXISTS provider_id TEXT UNIQUE;
+ALTER TABLE IF EXISTS public.transactions ADD COLUMN IF NOT EXISTS fee_amount NUMERIC DEFAULT 0;
+ALTER TABLE IF EXISTS public.transactions ADD COLUMN IF NOT EXISTS type TEXT;
+ALTER TABLE IF EXISTS public.transactions ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}';
+
+-- 3. Automatic Wallet Initialization on Profile Creation
+CREATE OR REPLACE FUNCTION public.initialize_wallet()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.wallets (user_id, balance, currency)
+    VALUES (NEW.id, 0, 'KES')
+    ON CONFLICT (user_id) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER tr_on_profile_created_init_wallet
+AFTER INSERT ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.initialize_wallet();
+
+-- 4. Transaction Completion Logic (Wallet Updates)
+CREATE OR REPLACE FUNCTION public.handle_transaction_completion()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- If a deposit or payout (incoming to wallet) is completed
+    IF NEW.status = 'completed' AND (OLD.status = 'pending' OR OLD.status IS NULL) THEN
+        IF NEW.type IN ('deposit', 'payout', 'sale') THEN
+            UPDATE public.wallets
+            SET balance = balance + NEW.amount,
+                updated_at = NOW()
+            WHERE user_id = NEW.user_id;
+        ELSIF NEW.type = 'withdrawal' THEN
+            -- Withdrawal logic usually deducts from pending/escrow or balance
+            -- For simplicity here, we assume it's already deducted from balance on request
+            -- and this just confirms the move.
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS tr_on_transaction_complete ON public.transactions;
+CREATE TRIGGER tr_on_transaction_complete
+AFTER UPDATE ON public.transactions
+FOR EACH ROW EXECUTE FUNCTION public.handle_transaction_completion();
+
+-- 5. RPC to Request Withdrawal (with balance check)
+CREATE OR REPLACE FUNCTION public.request_withdrawal(p_user_id UUID, p_amount NUMERIC, p_method TEXT, p_details JSONB)
+RETURNS UUID AS $$
+DECLARE
+    v_transaction_id UUID;
+    v_current_balance NUMERIC;
+BEGIN
+    SELECT balance INTO v_current_balance FROM public.wallets WHERE user_id = p_user_id;
+
+    IF v_current_balance < p_amount THEN
+        RAISE EXCEPTION 'Insufficient balance';
+    END IF;
+
+    -- Deduct immediately to prevent double spending
+    UPDATE public.wallets SET balance = balance - p_amount WHERE user_id = p_user_id;
+
+    INSERT INTO public.transactions (user_id, amount, type, status, provider, metadata)
+    VALUES (p_user_id, p_amount, 'withdrawal', 'pending', 'intasend', p_details)
+    RETURNING id INTO v_transaction_id;
+
+    RETURN v_transaction_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB) TO authenticated;
+

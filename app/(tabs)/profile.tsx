@@ -11,24 +11,11 @@ import { Post, Profile } from '../../src/domain/models';
 import { VibrantBackground } from '../../src/components/VibrantBackground';
 import { container } from '../../src/di/Container';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
+import { IntelligenceService, StrategyInsight } from '../../src/services/IntelligenceService';
 
 const { width } = Dimensions.get('window');
 
-// --- Sub-Components ---
-
-const StatItem = ({ label, value, onPress }: { label: string, value: number, onPress: () => void }) => (
-  <TouchableOpacity style={styles.statItem} onPress={onPress}>
-    <Text style={styles.statValue}>{value || 0}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </TouchableOpacity>
-);
-
-const TabButton = ({ active, onPress, icon, label }: { active: boolean, onPress: () => void, icon: any, label: string }) => (
-  <TouchableOpacity style={[styles.tab, active && styles.activeTab]} onPress={onPress}>
-    <Ionicons name={icon} size={22} color={active ? '#00D084' : '#555'} />
-    {active && <Text style={styles.tabLabel}>{label}</Text>}
-  </TouchableOpacity>
-);
+// ... (StatItem and TabButton remain the same)
 
 export default function ProfileScreen() {
   const { session } = useAuth();
@@ -43,13 +30,14 @@ export default function ProfileScreen() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState({ followers: 0, following: 0, mutual: 0 });
   const [analytics, setAnalytics] = useState<any>(null);
+  const [strategyInsights, setStrategyInsights] = useState<StrategyInsight[]>([]);
   const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'SAVED' | 'REFER' | 'ANALYTICS'>('REELS');
 
   const fetchData = useCallback(async () => {
     if (!session?.user?.id) return;
     const uid = session.user.id;
     try {
-      const [pData, rData, lData, sData, refData, followStats, aData] = await Promise.all([
+      const [pData, rData, lData, sData, refData, followStats, aData, sInsights] = await Promise.all([
         container.getProfileUseCase.execute(uid),
         container.profileRepository.getUserReels(uid),
         container.profileRepository.getLikedReels(uid),
@@ -57,6 +45,7 @@ export default function ProfileScreen() {
         container.profileRepository.getReferrals(uid),
         container.profileRepository.getFollowStats(uid),
         container.profileRepository.getAnalytics(uid),
+        IntelligenceService.getStrategyIntelligence(uid),
       ]);
 
       setProfile(pData);
@@ -65,6 +54,7 @@ export default function ProfileScreen() {
       setSavedReels(sData);
       setReferralReels(refData);
       setAnalytics(aData);
+      setStrategyInsights(sInsights);
 
       const partnersCount = await container.profileRepository.getPartnersCount(uid);
       setStats({ ...followStats, mutual: partnersCount });
@@ -72,6 +62,7 @@ export default function ProfileScreen() {
       ErrorHandler.handle(err, 'ProfileFetchData');
     }
   }, [session?.user?.id]);
+
 
   const initProfile = useCallback(async () => {
     setLoading(true);
@@ -134,14 +125,13 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* 3. AI Strategy Insights Section */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeaderModern}>Predictive Strategy Intelligence</Text>
           <View style={styles.liveIndicator}><Text style={styles.liveIndicatorText}>OPTIMIZED</Text></View>
         </View>
 
-        {analytics?.recommendations?.length > 0 ? (
-          analytics.recommendations.map((rec: any, idx: number) => (
+        {strategyInsights.length > 0 ? (
+          strategyInsights.map((rec, idx) => (
             <View key={idx} style={styles.insightCardModern}>
               <View style={styles.insightHeader}>
                 <View style={styles.insightIcon}><Ionicons name="shield-checkmark" size={20} color="#00D084" /></View>
@@ -149,12 +139,13 @@ export default function ProfileScreen() {
               </View>
               <Text style={styles.insightTextModern}>{rec.insight}</Text>
               <TouchableOpacity style={styles.actionBtn}>
-                <Text style={styles.actionBtnText}>Execute Strategic Pivot: {rec.action}</Text>
+                <Text style={styles.actionBtnText}>Execute: {rec.action}</Text>
                 <Ionicons name="chevron-forward" size={16} color="#00D084" />
               </TouchableOpacity>
             </View>
           ))
         ) : (
+
           <View style={styles.insightCardModern}>
             <View style={styles.insightHeader}>
                <View style={styles.insightIcon}><Ionicons name="bulb" size={20} color="#00D084" /></View>

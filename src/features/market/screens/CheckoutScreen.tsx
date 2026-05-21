@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../../core/theme/colors';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { IntasendService } from '../../../services/IntasendService';
 
 export const CheckoutScreen = () => {
     const { businessId, total } = useLocalSearchParams();
@@ -28,40 +29,45 @@ export const CheckoutScreen = () => {
         try {
             setLoading(true);
 
-            // 1. Process via RPC
-            const { data: orderId, error } = await supabase.rpc('process_checkout', {
+            // 1. Process Order via RPC (Creates 'orders' and 'order_items')
+            const { data: orderId, error: orderError } = await supabase.rpc('process_checkout', {
                 p_buyer_id: user?.id,
                 p_business_id: businessId,
                 p_address: address,
                 p_payment_method: paymentMethod
             });
 
-            if (error) throw error;
+            if (orderError) throw orderError;
 
-            // 2. Mock Payment Processing (Simulating Gateway)
+            // 2. Process Payment via IntaSend
             if (paymentMethod === 'MPESA') {
-                Alert.alert("STK Push Sent", "Please enter your M-Pesa PIN on your phone to complete payment.");
+                await IntasendService.initiateStkPush(
+                    parseFloat(total as string),
+                    address.contactPhone,
+                    user!.id,
+                    orderId
+                );
+
+                Alert.alert(
+                    "STK Push Sent",
+                    "Please enter your M-Pesa PIN on your phone to complete the payment.",
+                    [
+                        { text: "View Orders", onPress: () => router.replace('/(tabs)/market') }
+                    ]
+                );
+            } else {
+                // Card logic would go here
+                Alert.alert("Coming Soon", "Credit card payments are being integrated.");
             }
 
-            // 3. Log Transaction
-            await supabase.from('transactions').insert({
-                order_id: orderId,
-                user_id: user?.id,
-                amount: parseFloat(total as string),
-                provider: paymentMethod.toLowerCase(),
-                status: 'success' // In real app, this waits for webhook
-            });
-
-            Alert.alert("Order Placed!", "Your business order has been sent to the supplier.", [
-                { text: "View Orders", onPress: () => router.replace('/(tabs)/market') }
-            ]);
-
         } catch (e: any) {
-            Alert.alert("Checkout Failed", e.message);
+            console.error("Checkout Error:", e);
+            Alert.alert("Checkout Failed", e.message || "An error occurred during checkout.");
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <KeyboardAvoidingView

@@ -113,6 +113,8 @@ export default function InboxScreen() {
         case 'save': return { name: 'bookmark', color: '#5856D6' };
         case 'analytics': return { name: 'stats-chart', color: '#00D084' };
         case 'new_review': return { name: 'star', color: '#FFCC00' };
+        case 'order_paid': return { name: 'cash', color: '#00D084' };
+        case 'live_started': return { name: 'radio', color: '#FF3B30' };
         default: return { name: 'notifications', color: '#fff' };
       }
     };
@@ -129,6 +131,8 @@ export default function InboxScreen() {
           }
           if (item.post_id) router.push({ pathname: '/(tabs)', params: { initialPost: item.post_id } });
           else if (item.type === 'follow' || item.type === 'partner_connection') router.push({ pathname: '/profile/[id]', params: { id: item.sender_id } });
+          else if (item.type === 'order_paid') router.push('/profile/dashboard');
+          else if (item.type === 'live_started') router.push('/(tabs)'); // Or to the specific live room if you have the ID
         }}
       >
         <View style={styles.avatarContainer}>
@@ -157,6 +161,8 @@ export default function InboxScreen() {
             {item.type === 'save' && ' bookmarked your reel.'}
             {item.type === 'analytics' && ` Your reel reached ${item.metadata?.milestone || 'a new'} view milestone!`}
             {item.type === 'new_review' && ' left a trust score review on your profile.'}
+            {item.type === 'order_paid' && ' completed a payment for their order!'}
+            {item.type === 'live_started' && ' is now LIVE! Join the commerce session.'}
           </Text>
           <Text style={styles.itemTime}>{new Date(item.created_at).toLocaleDateString()}</Text>
         </View>
@@ -164,6 +170,7 @@ export default function InboxScreen() {
       </TouchableOpacity>
     );
   };
+
 
   const renderMessage = ({ item }: any) => (
     <TouchableOpacity style={styles.item} onPress={() => router.push({ pathname: '/chat/[id]', params: { id: item.other_user_id } })}>

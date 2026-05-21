@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, Text, TouchableOpacity, StatusBar, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, TouchableOpacity, StatusBar, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -8,12 +8,17 @@ import { supabase } from '../../../lib/supabase';
 import { LiveSession, LiveComment } from '../../../domain/models/live';
 import { LiveProductOverlay } from '../components/LiveProductOverlay';
 import { LiveCommentSection } from '../components/LiveCommentSection';
+import { useCartStore } from '../../../store/useCartStore';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 const { height, width } = Dimensions.get('window');
 
 export const LivestreamScreen = () => {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const { user } = useAuthStore();
+    const { addItem } = useCartStore();
+
     const [session, setSession] = useState<LiveSession | null>(null);
     const [comments, setComments] = useState<LiveComment[]>([]);
     const [pinnedProduct, setPinnedProduct] = useState<any>(null);
@@ -21,8 +26,12 @@ export const LivestreamScreen = () => {
 
     useEffect(() => {
         fetchSession();
-        subscribeToComments();
-        subscribeToPinnedProducts();
+        const commentCleanup = subscribeToComments();
+        const productCleanup = subscribeToPinnedProducts();
+        return () => {
+            commentCleanup();
+            productCleanup();
+        };
     }, [id]);
 
     const fetchSession = async () => {
@@ -43,7 +52,6 @@ export const LivestreamScreen = () => {
                 table: 'live_comments',
                 filter: `session_id=eq.${id}`
             }, async (payload) => {
-                // Fetch profile for the new comment
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('username, avatar_url')
@@ -71,7 +79,7 @@ export const LivestreamScreen = () => {
             }, fetchPinnedProduct)
             .subscribe();
 
-        fetchPinnedProduct(); // Initial fetch
+        fetchPinnedProduct();
         return () => supabase.removeChannel(channel);
     };
 
@@ -83,16 +91,14 @@ export const LivestreamScreen = () => {
             .eq('is_pinned', true)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
+
         if (data) setPinnedProduct(data.products);
         else setPinnedProduct(null);
     };
 
     const handleSendComment = async () => {
-        if (!commentText.trim()) return;
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
+        if (!commentText.trim() || !user) return;
         await supabase.from('live_comments').insert({
             session_id: id,
             user_id: user.id,
@@ -101,11 +107,19 @@ export const LivestreamScreen = () => {
         setCommentText('');
     };
 
+    const handleAddToCart = async (product: any) => {
+        if (!user) {
+            Alert.alert("Authentication Required", "Please sign in to add items to your cart.");
+            return;
+        }
+        await addItem(user.id, product.id);
+        Alert.alert("Added to Cart", `${product.name} has been added to your cart.`);
+    };
+
     return (
         <View style={styles.container}>
             <StatusBar hidden />
 
-            {/* VIDEO BACKGROUND */}
             {session?.playback_url ? (
                 <Video
                     source={{ uri: session.playback_url }}
@@ -121,7 +135,6 @@ export const LivestreamScreen = () => {
                 </View>
             )}
 
-            {/* TOP OVERLAY */}
             <View style={styles.topBar}>
                 <View style={styles.bizInfo}>
                     <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -144,7 +157,6 @@ export const LivestreamScreen = () => {
                 </View>
             </View>
 
-            {/* SIDE ACTIONS */}
             <View style={styles.sideActions}>
                 <TouchableOpacity style={styles.actionBtn}>
                     <Ionicons name="heart" size={30} color={Colors.primary} />
@@ -152,22 +164,19 @@ export const LivestreamScreen = () => {
                 <TouchableOpacity style={styles.actionBtn}>
                     <Ionicons name="share-social" size={28} color="#fff" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn}>
+                <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/cart')}>
                     <Ionicons name="cart-outline" size={28} color="#fff" />
                 </TouchableOpacity>
             </View>
 
-            {/* LIVE SHOPPING OVERLAY */}
             <LiveProductOverlay
                 product={pinnedProduct}
                 onClose={() => setPinnedProduct(null)}
-                onAddToCart={(p) => console.log('Add to cart', p)}
+                onAddToCart={handleAddToCart}
             />
 
-            {/* COMMENTS SECTION */}
             <LiveCommentSection comments={comments} />
 
-            {/* BOTTOM INPUT */}
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={styles.bottomArea}
@@ -189,6 +198,7 @@ export const LivestreamScreen = () => {
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
