@@ -4,10 +4,10 @@
     "slug": "BizReel",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/bizreel-logo.svg",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/bizreel-logo.svg",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
