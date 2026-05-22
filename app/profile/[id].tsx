@@ -27,7 +27,8 @@ export default function PublicProfileScreen() {
   const [userComment, setUserComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'REFER' | 'SAVED'>('REELS');
+  const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'REFER' | 'SAVED' | 'REVIEWS'>('REELS');
+  const [reviews, setReviews] = useState<any[]>([]);
   const [savedReels, setSavedReels] = useState<any[]>([]);
   const [perfIndex, setPerfIndex] = useState<any>(null);
 
@@ -48,6 +49,7 @@ export default function PublicProfileScreen() {
           filter: `receiver_id=eq.${id}`
         }, () => {
           fetchRatings();
+          fetchReviews();
         })
         .subscribe();
 
@@ -63,6 +65,7 @@ export default function PublicProfileScreen() {
       await Promise.all([
         fetchProfileAndReels(),
         fetchRatings(),
+        fetchReviews(),
         fetchLikedReels(),
         fetchReferralReels(),
         fetchPerformanceIndex(),
@@ -73,6 +76,17 @@ export default function PublicProfileScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const { data } = await supabase
+        .from('reviews')
+        .select('*, profiles:reviewer_id(username, business_name, avatar_url)')
+        .eq('receiver_id', id)
+        .order('created_at', { ascending: false });
+      setReviews(data || []);
+    } catch (e) {}
   };
 
   const fetchPerformanceIndex = async () => {
@@ -240,6 +254,11 @@ export default function PublicProfileScreen() {
                  </View>
                  <View style={styles.perfDivider} />
                  <View style={styles.perfItem}>
+                    <Text style={styles.perfVal}>{perfIndex.unique_business_partners || 0}</Text>
+                    <Text style={styles.perfLabel}>PARTNERS</Text>
+                 </View>
+                 <View style={styles.perfDivider} />
+                 <View style={styles.perfItem}>
                     <Text style={styles.perfVal}>{perfIndex.total_closed_deals}</Text>
                     <Text style={styles.perfLabel}>DEALS</Text>
                  </View>
@@ -249,6 +268,11 @@ export default function PublicProfileScreen() {
               </View>
            </View>
         )}
+
+        <View style={styles.businessCategoryRow}>
+            <Ionicons name="business" size={14} color="#00D084" />
+            <Text style={styles.categoryText}>{profile?.category || 'General Business'}</Text>
+        </View>
 
         <TouchableOpacity style={styles.trustBadge} onPress={() => !isOwnProfile && setShowReviewModal(true)}>
            <View style={styles.starsInline}>
@@ -270,6 +294,9 @@ export default function PublicProfileScreen() {
           <TouchableOpacity style={[styles.tab, activeTab === 'REELS' && styles.activeTab]} onPress={() => setActiveTab('REELS')}>
             <Ionicons name="grid-outline" size={22} color={activeTab === 'REELS' ? '#00D084' : '#555'} />
           </TouchableOpacity>
+          <TouchableOpacity style={[styles.tab, activeTab === 'REVIEWS' && styles.activeTab]} onPress={() => setActiveTab('REVIEWS')}>
+            <Ionicons name="star-outline" size={22} color={activeTab === 'REVIEWS' ? '#00D084' : '#555'} />
+          </TouchableOpacity>
           <TouchableOpacity style={[styles.tab, activeTab === 'REFER' && styles.activeTab]} onPress={() => setActiveTab('REFER')}>
             <Ionicons name="repeat-outline" size={22} color={activeTab === 'REFER' ? '#00D084' : '#555'} />
           </TouchableOpacity>
@@ -290,23 +317,45 @@ export default function PublicProfileScreen() {
     if (activeTab === 'LIKED') return likedReels;
     if (activeTab === 'REFER') return referralReels;
     if (activeTab === 'SAVED') return savedReels;
+    if (activeTab === 'REVIEWS') return reviews;
     return [];
-  }, [activeTab, reels, likedReels, referralReels, savedReels]);
+  }, [activeTab, reels, likedReels, referralReels, savedReels, reviews]);
+
+  const renderReviewItem = ({ item }: { item: any }) => (
+    <View style={styles.reviewItem}>
+      <View style={styles.reviewHeader}>
+        <Image source={{ uri: item.profiles?.avatar_url }} style={styles.reviewAvatar} />
+        <View style={styles.reviewInfo}>
+          <Text style={styles.reviewUser}>{item.profiles?.business_name || item.profiles?.username}</Text>
+          <View style={styles.starsInlineMini}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Ionicons key={s} name={s <= item.rating ? "star" : "star-outline"} size={10} color="#FFCC00" />
+            ))}
+          </View>
+        </View>
+        <Text style={styles.reviewDate}>{new Date(item.created_at).toLocaleDateString()}</Text>
+      </View>
+      <Text style={styles.reviewComment}>{item.comment}</Text>
+    </View>
+  );
 
   return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         <FlatList
           data={activeData}
-          numColumns={3}
+          numColumns={activeTab === 'REVIEWS' ? 1 : 3}
           ListHeaderComponent={renderHeader}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]', params: { id: item.id } })}>
-               <Video source={{ uri: item.video_url }} style={styles.thumbnail} resizeMode={ResizeMode.COVER} shouldPlay={false} isMuted />
-               <View style={styles.playOverlay}><Ionicons name="play" size={12} color="#fff" /></View>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            if (activeTab === 'REVIEWS') return renderReviewItem({ item });
+            return (
+              <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]', params: { id: item.id } })}>
+                 <Video source={{ uri: item.video_url }} style={styles.thumbnail} resizeMode={ResizeMode.COVER} shouldPlay={false} isMuted />
+                 <View style={styles.playOverlay}><Ionicons name="play" size={12} color="#fff" /></View>
+              </TouchableOpacity>
+            );
+          }}
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>No {activeTab.toLowerCase()} yet.</Text></View>}
         />
@@ -400,10 +449,20 @@ const styles = StyleSheet.create({
   perfDivider: { width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' },
   perfBadge: { alignSelf: 'center', backgroundColor: 'rgba(0,208,132,0.1)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: 'rgba(0,208,132,0.3)' },
   perfStatusText: { color: '#00D084', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  businessCategoryRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, marginBottom: 5 },
+  categoryText: { color: '#00D084', fontSize: 13, fontWeight: '800', textTransform: 'uppercase' },
   trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,204,0,0.1)', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 24, marginBottom: 25, borderWidth: 1, borderColor: 'rgba(255,204,0,0.2)' },
   starsInline: { flexDirection: 'row', gap: 2 },
+  starsInlineMini: { flexDirection: 'row', gap: 1 },
   trustText: { color: '#FFCC00', fontSize: 13, fontWeight: '900' },
   rateLink: { color: '#FFCC00', fontSize: 12, fontWeight: '600', opacity: 0.8 },
+  reviewItem: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#1C1C24' },
+  reviewHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  reviewAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 10 },
+  reviewInfo: { flex: 1 },
+  reviewUser: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  reviewDate: { color: '#555', fontSize: 11 },
+  reviewComment: { color: '#aaa', fontSize: 14, lineHeight: 20 },
   tabBar: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#1C1C24' },
   tab: { flex: 1, height: 50, justifyContent: 'center', alignItems: 'center' },
   activeTab: { borderBottomWidth: 2, borderBottomColor: '#fff' },

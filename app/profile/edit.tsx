@@ -17,6 +17,7 @@ export default function EditProfileScreen() {
 
   const [profile, setProfile] = useState({
     business_name: '',
+    category: '',
     bio: '',
     location: '',
     working_hours: '',
@@ -40,6 +41,7 @@ export default function EditProfileScreen() {
       if (data) {
         setProfile({
           business_name: data.business_name || '',
+          category: data.category || '',
           bio: data.bio || '',
           location: data.location || '',
           working_hours: data.working_hours || '',
@@ -105,6 +107,7 @@ export default function EditProfileScreen() {
         .from('profiles')
         .update({
           business_name: profile.business_name,
+          category: profile.category,
           bio: profile.bio,
           location: profile.location,
           working_hours: profile.working_hours
@@ -166,6 +169,17 @@ export default function EditProfileScreen() {
               value={profile.business_name}
               onChangeText={(text) => setProfile({ ...profile, business_name: text })}
               placeholder="Your Business Name"
+              placeholderTextColor="#555"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Business Category</Text>
+            <TextInput
+              style={styles.input}
+              value={profile.category}
+              onChangeText={(text) => setProfile({ ...profile, category: text })}
+              placeholder="e.g. Technology, Manufacturing, Retail"
               placeholderTextColor="#555"
             />
           </View>
