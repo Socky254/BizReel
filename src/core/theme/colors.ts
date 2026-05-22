@@ -4,26 +4,27 @@
  */
 
 export const Colors = {
-    // Brand Colors
-    primary: '#00C853', // Vibrant Professional Green
-    primaryDark: '#1B5E20', // Emerald Green for depth
-    primaryLight: '#B9F6CA',
+    // Brand Colors: Elite Emerald
+    primary: '#00D084',
+    primaryDark: '#009661',
+    primaryLight: '#D1FAE5',
 
     // Backgrounds (Enterprise Obsidian - Optimized for OLED)
-    background: '#050508', // Deeper than pure black for premium depth
-    surface: '#0E0E14',    // Elevated obsidian
+    background: '#050508',
+    surface: '#0E0E14',
     surfaceElevated: '#15151E',
 
     // Typography
-    textPrimary: '#FFFFFF', // High emphasis
-    textSecondary: '#B0B0B0', // Medium emphasis
-    textTertiary: '#757575', // Disabled / Hint
+    textPrimary: '#FFFFFF',
+    textSecondary: 'rgba(255, 255, 255, 0.6)',
+    textTertiary: 'rgba(255, 255, 255, 0.3)',
 
     // Accents & States
     white: '#FFFFFF',
-    error: '#FF5252',
-    success: '#00C853',
-    border: 'rgba(255, 255, 255, 0.12)',
+    error: '#FF3B30',
+    success: '#00D084',
+    gold: '#D4AF37',
+    border: 'rgba(255, 255, 255, 0.08)',
 
     // Gradients
     gradients: {

@@ -73,7 +73,7 @@ export const FeedFeatureScreen = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [loadFeed]); // Added loadFeed to deps for stability
 
     const loadFeed = async () => {
         try {

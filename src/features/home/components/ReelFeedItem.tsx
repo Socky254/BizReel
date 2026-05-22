@@ -216,13 +216,14 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                                 </Text>
                                 {item.profiles?.is_verified && (
                                     <View style={styles.platinumBadge}>
-                                        <Ionicons name="ribbon" size={10} color="#D4AF37" />
+                                        <Ionicons name="shield-checkmark" size={10} color="#D4AF37" />
                                         <Text style={styles.platinumText}>ELITE</Text>
                                     </View>
                                 )}
                             </View>
                             <View style={styles.sectorBadge}>
-                                <Text style={styles.sectorText}>{item.profiles?.category || 'Enterprise'}</Text>
+                                <Ionicons name="business-outline" size={10} color={Colors.primary} style={{ marginRight: 4 }} />
+                                <Text style={styles.sectorText}>{item.profiles?.category || 'General Business'}</Text>
                             </View>
                         </View>
                     </TouchableOpacity>

@@ -40,10 +40,11 @@ const InteractionButton = ({ icon, label, count, active, activeColor, onPress, a
 export const ReelInteraction = ({ post, onOpenComments }: Props) => {
   const router = useRouter();
   const { user } = useAuthStore();
-  const [isLiked, setIsLiked] = useState(post.likes?.some((l: any) => l.user_id === user?.id) || false);
+  const [isLiked, setIsLiked] = useState(Array.isArray(post.likes) ? post.likes.some((l: any) => l.user_id === user?.id) : false);
   const [isSaved, setIsSaved] = useState(post.isSaved || false);
   const [isReposted, setIsReposted] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
+  const [likeCount, setLikeCount] = useState(Array.isArray(post.likes) ? post.likes.length : 0);
+  const commentCount = Array.isArray(post.comments) ? post.comments.length : 0;
 
   const likeScale = useSharedValue(1);
   const saveScale = useSharedValue(1);
@@ -133,7 +134,7 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
 
       <TouchableOpacity style={styles.actionBtn} onPress={onOpenComments}>
         <Ionicons name="chatbubble-ellipses" size={26} color="#fff" />
-        <Text style={styles.actionText}>{post.comments?.length || 0}</Text>
+        <Text style={styles.actionText}>{commentCount}</Text>
       </TouchableOpacity>
 
       <InteractionButton
