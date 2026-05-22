@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from './SafeLinearGradient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -9,40 +9,37 @@ interface Props {
 }
 
 export const VibrantBackground: React.FC<Props> = ({ children }) => {
-  // Surgical Safety: If LinearGradient fails, we still want a background
-  const GradientComponent = LinearGradient || View;
-
   return (
     <View style={styles.container}>
       {/* Base Deep Background */}
       <View style={[styles.absolute, { backgroundColor: '#000000' }]} />
 
       {/* Primary Brand Glow - Top Left (Green) */}
-      <GradientComponent
+      <SafeLinearGradient
         colors={['rgba(0, 200, 83, 0.12)', 'transparent']}
         style={[styles.glow, { top: -height * 0.2, left: -width * 0.4, width: width * 1.5, height: width * 1.5 }]}
       />
 
       {/* Secondary Accent Glow - Bottom Right (Deep Green) */}
-      <GradientComponent
+      <SafeLinearGradient
         colors={['rgba(27, 94, 32, 0.08)', 'transparent']}
         style={[styles.glow, { bottom: -height * 0.1, right: -width * 0.3, width: width * 1.2, height: width * 1.2 }]}
       />
 
       {/* Center Depth Glow (Green Success Hint) */}
-      <GradientComponent
+      <SafeLinearGradient
         colors={['rgba(0, 208, 132, 0.03)', 'transparent']}
         style={[styles.glow, { top: height * 0.3, right: -width * 0.5, width: width, height: width }]}
       />
 
       {/* Tertiary Accent Glow - Center Right */}
-      <GradientComponent
+      <SafeLinearGradient
         colors={['rgba(0, 208, 132, 0.05)', 'transparent']}
         style={[styles.glow, { top: height * 0.3, right: -width * 0.5, width: width, height: width }]}
       />
 
       {/* Center Depth Glow */}
-      <GradientComponent
+      <SafeLinearGradient
         colors={['transparent', 'rgba(255, 255, 255, 0.02)', 'transparent']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}

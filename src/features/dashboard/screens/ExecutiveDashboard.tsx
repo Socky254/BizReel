@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../../core/theme/colors';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../../components/SafeLinearGradient';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -65,7 +65,7 @@ export const ExecutiveDashboard = () => {
 
             {/* Revenue Card */}
             <Animated.View entering={FadeInUp.delay(200).duration(600)}>
-                <LinearGradient colors={['#111', '#050505']} style={styles.revenueCard}>
+                <SafeLinearGradient colors={['#111', '#050505']} style={styles.revenueCard}>
                     <View>
                         <Text style={styles.cardLabel}>Portfolio Value</Text>
                         <Text style={styles.revenueValue}>
@@ -79,7 +79,7 @@ export const ExecutiveDashboard = () => {
                     <View style={styles.walletIconBox}>
                         <Ionicons name="wallet" size={32} color={Colors.primary} />
                     </View>
-                </LinearGradient>
+                </SafeLinearGradient>
             </Animated.View>
 
             {/* Metrics Grid */}

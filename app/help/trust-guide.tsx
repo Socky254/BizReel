@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 
 export default function TrustGuideScreen() {
   const router = useRouter();
@@ -31,11 +31,11 @@ export default function TrustGuideScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <LinearGradient colors={['#00D084', '#00A86B']} style={styles.heroCard}>
+        <SafeLinearGradient colors={['#00D084', '#00A86B']} style={styles.heroCard}>
           <Ionicons name="shield-checkmark" size={48} color="#000" />
           <Text style={styles.heroTitle}>Your Business, Protected.</Text>
           <Text style={styles.heroSubtitle}>How BizReel ensures secure commercial transactions.</Text>
-        </LinearGradient>
+        </SafeLinearGradient>
 
         <GuideSection
           icon="wallet-outline"

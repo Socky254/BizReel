@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, StatusBar, Dimensions } from 'react-native';
 import { supabase } from '../../src/lib/supabase';
 import { useRouter, Link } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
@@ -47,7 +47,7 @@ export default function LoginScreen() {
         />
       </Animated.View>
 
-      <LinearGradient
+      <SafeLinearGradient
         colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.8)', '#000']}
         style={styles.gradient}
       >
@@ -152,7 +152,7 @@ export default function LoginScreen() {
             </Animated.View>
           </KeyboardAvoidingView>
         </SafeAreaView>
-      </LinearGradient>
+      </SafeLinearGradient>
     </View>
   );
 

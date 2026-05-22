@@ -6,7 +6,7 @@ import { container } from '../../src/di/Container';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { Wallet, Transaction } from '../../src/domain/models/Finance';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 
 export default function WalletScreen() {
   const router = useRouter();
@@ -70,7 +70,7 @@ export default function WalletScreen() {
 
   const renderHeader = () => (
     <View style={styles.headerContent}>
-      <LinearGradient colors={['#00D084', '#00A86B']} style={styles.balanceCard}>
+      <SafeLinearGradient colors={['#00D084', '#00A86B']} style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>Available Balance</Text>
         <Text style={styles.balanceValue}>
           {wallet?.currency || '$'}{wallet?.balance?.toFixed(2) || '0.00'}
@@ -81,7 +81,7 @@ export default function WalletScreen() {
             Pending: {wallet?.currency || '$'}{wallet?.pending_balance?.toFixed(2) || '0.00'}
           </Text>
         </View>
-      </LinearGradient>
+      </SafeLinearGradient>
 
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.actionBtn}>

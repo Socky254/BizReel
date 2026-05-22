@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar } from 'react-native';
 import { supabase, checkSupabaseConnection } from '../../src/core/network/supabase';
 import { useRouter, Link } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -72,7 +72,7 @@ export default function SignUpScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <LinearGradient colors={['#0f0f0f', '#000']} style={styles.gradient}>
+      <SafeLinearGradient colors={['#0f0f0f', '#000']} style={styles.gradient}>
         <SafeAreaView style={{ flex: 1 }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -190,7 +190,7 @@ export default function SignUpScreen() {
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
-      </LinearGradient>
+      </SafeLinearGradient>
     </View>
   );
 

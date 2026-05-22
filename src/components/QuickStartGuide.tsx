@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from './SafeLinearGradient';
 import { useRouter } from 'expo-router';
 import { Colors } from '../core/theme/colors';
 
@@ -24,7 +24,7 @@ export const QuickStartGuide: React.FC<Props> = ({ progress, onClose }) => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#1C1C24', '#0D0D12']} style={styles.card}>
+      <SafeLinearGradient colors={['#1C1C24', '#0D0D12']} style={styles.card}>
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>Quick Start Hub</Text>
@@ -57,7 +57,7 @@ export const QuickStartGuide: React.FC<Props> = ({ progress, onClose }) => {
              </TouchableOpacity>
            ))}
         </ScrollView>
-      </LinearGradient>
+      </SafeLinearGradient>
     </View>
   );
 };

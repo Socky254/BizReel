@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { View, StyleSheet, Dimensions, Text, TouchableOpacity, Pressable } from 'react-native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../../components/SafeLinearGradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Post } from '../../../domain/models';
@@ -120,7 +120,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
             </Pressable>
 
             {/* GRADIENT OVERLAYS */}
-            <LinearGradient
+            <SafeLinearGradient
                 colors={['rgba(0,0,0,0.6)', 'transparent', 'transparent', 'rgba(0,0,0,0.85)']}
                 locations={[0, 0.2, 0.6, 1]}
                 style={styles.fullOverlay}

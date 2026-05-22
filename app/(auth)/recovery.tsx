@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, StatusBar, Dimensions } from 'react-native';
 import { supabase } from '../../src/lib/supabase';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,7 +45,7 @@ export default function RecoveryScreen() {
         transition={1000}
       />
 
-      <LinearGradient
+      <SafeLinearGradient
         colors={['rgba(0,0,0,0.6)', '#000']}
         style={styles.gradient}
       >
@@ -104,7 +104,7 @@ export default function RecoveryScreen() {
             </View>
           </KeyboardAvoidingView>
         </SafeAreaView>
-      </LinearGradient>
+      </SafeLinearGradient>
     </View>
   );
 }

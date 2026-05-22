@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from './SafeLinearGradient';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
@@ -15,7 +15,7 @@ export const Logo: React.FC<Props> = ({ size = 100 }) => {
       {/* Outer Glow Shadow */}
       <View style={[styles.glow, { width: size, height: size, borderRadius: size * 0.3 }]} />
 
-      <LinearGradient
+      <SafeLinearGradient
         colors={['#00C853', '#1B5E20']}
         style={[styles.box, { borderRadius: size * 0.3 }]}
       >
@@ -25,7 +25,7 @@ export const Logo: React.FC<Props> = ({ size = 100 }) => {
                 <Text style={[styles.letter, { fontSize: size * 0.2 }]}>B</Text>
             </View>
         </View>
-      </LinearGradient>
+      </SafeLinearGradient>
     </View>
   );
 };

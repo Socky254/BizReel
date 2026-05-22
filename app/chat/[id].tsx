@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { VibrantBackground } from '../../src/components/VibrantBackground';
 import { Alert, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { Colors } from '../../src/core/theme/colors';
 
 export default function ChatScreen() {

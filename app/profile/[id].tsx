@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, Modal, TextInput, Alert, Linking, KeyboardAvoidingView, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/Context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -189,9 +189,9 @@ export default function PublicProfileScreen() {
               <Text style={[styles.connectText, isFollowing && {color: '#fff'}]}>{isFollowing ? 'Connected' : 'Connect'}</Text>
            </TouchableOpacity>
            <TouchableOpacity style={styles.catalogBtn} onPress={() => router.push({ pathname: '/profile/catalog', params: { id } })}>
-              <LinearGradient colors={['#00D084', '#00A86B']} style={styles.catalogGradient}>
+              <SafeLinearGradient colors={['#00D084', '#00A86B']} style={styles.catalogGradient}>
                 <Ionicons name="storefront" size={16} color="#000" />
-              </LinearGradient>
+              </SafeLinearGradient>
            </TouchableOpacity>
            <TouchableOpacity style={styles.messageBtn} onPress={() => router.push({ pathname: '/chat/[id]', params: { id } })}>
               <Ionicons name="chatbubble-outline" size={18} color="#fff" />

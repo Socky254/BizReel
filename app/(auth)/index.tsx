@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,7 +33,7 @@ export default function WelcomeScreen() {
         />
       </Animated.View>
 
-      <LinearGradient
+      <SafeLinearGradient
         colors={['transparent', 'rgba(0,0,0,0.8)', '#000']}
         style={styles.gradient}
       >
@@ -99,7 +99,7 @@ export default function WelcomeScreen() {
             </Animated.Text>
           </View>
         </SafeAreaView>
-      </LinearGradient>
+      </SafeLinearGradient>
     </View>
   );
 }

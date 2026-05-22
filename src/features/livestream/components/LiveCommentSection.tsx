@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../../components/SafeLinearGradient';
 import { Colors } from '../../../core/theme/colors';
 import { LiveComment } from '../../../domain/models/live';
 
@@ -20,7 +20,7 @@ export const LiveCommentSection: React.FC<Props> = ({ comments }) => {
 
     return (
         <View style={styles.container}>
-            <LinearGradient
+            <SafeLinearGradient
                 colors={['transparent', 'rgba(0,0,0,0.5)']}
                 style={StyleSheet.absoluteFill}
             />

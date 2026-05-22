@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { Colors } from '../../src/core/theme/colors';
 import { Post, Profile } from '../../src/domain/models';
 import { VibrantBackground } from '../../src/components/VibrantBackground';
@@ -201,7 +201,7 @@ export default function ProfileScreen() {
           style={styles.feedbackCard}
           onPress={() => router.push('/profile/settings')}
         >
-          <LinearGradient
+          <SafeLinearGradient
             colors={['#111', '#050505']}
             style={styles.feedbackGradient}
           >
@@ -213,7 +213,7 @@ export default function ProfileScreen() {
               <Text style={styles.feedbackSubtitle}>Direct line to our systems architecture team.</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#333" />
-          </LinearGradient>
+          </SafeLinearGradient>
         </TouchableOpacity>
       </View>
     );

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Share, Vibration } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Post } from '../domain/models';
+import { SafeLinearGradient } from './SafeLinearGradient';
 import { SyncService } from '../services/SyncService';
 import { useAuthStore } from '../store/useAuthStore';
 import Animated, {
@@ -110,12 +111,12 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
     <View style={styles.container}>
       {/* SYNDICATE DEAL (MONETIZATION TRIGGER) */}
       <TouchableOpacity style={styles.actionBtn} onPress={handleDeal}>
-        <LinearGradient
+        <SafeLinearGradient
           colors={['#00E676', '#00C853']}
           style={styles.dealBadge}
         >
           <Ionicons name="briefcase" size={24} color="#000" />
-        </LinearGradient>
+        </SafeLinearGradient>
         <Text style={[styles.actionText, { color: Colors.primary, fontWeight: '900' }]}>Partner</Text>
       </TouchableOpacity>
 
