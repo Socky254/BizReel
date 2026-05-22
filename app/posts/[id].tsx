@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, ActivityIndicator, StatusBar, TouchableOpacity, RefreshControl, ScrollView, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { supabase } from '../../src/lib/supabase';
 import { Post } from '../../src/domain/models';
 import { ReelFeedItem } from '../../src/features/home/components/ReelFeedItem';
@@ -14,6 +15,7 @@ const { height } = Dimensions.get('window');
 export default function SinglePostScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const isFocused = useIsFocused();
     const [post, setPost] = useState<Post | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -94,7 +96,7 @@ export default function SinglePostScreen() {
             >
                 <ReelFeedItem
                     item={post}
-                    isVisible={true}
+                    isVisible={isFocused}
                     onOpenComments={() => {}}
                 />
             </ScrollView>

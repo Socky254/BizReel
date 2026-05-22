@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, ViewToken, Text, StatusBar, TouchableOpacity, Platform, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { container } from '../../../di/Container';
 import { Post } from '../../../domain/models';
@@ -37,6 +38,7 @@ export const FeedFeatureScreen = () => {
     const { initialPost } = useLocalSearchParams();
     const { session } = useAuthStore();
     const router = useRouter();
+    const isFocused = useIsFocused();
 
     const [commentModalVisible, setCommentModalVisible] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
@@ -106,10 +108,10 @@ export const FeedFeatureScreen = () => {
     const renderItem = useCallback(({ item }: { item: Post }) => (
         <ReelFeedItem
             item={item}
-            isVisible={item.id === activeId}
+            isVisible={isFocused && item.id === activeId}
             onOpenComments={handleOpenComments}
         />
-    ), [activeId, handleOpenComments]);
+    ), [activeId, handleOpenComments, isFocused]);
 
     if (loading) return (
         <View style={styles.center}>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { View, StyleSheet, Dimensions, Text, TouchableOpacity, Pressable, Vibration } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, TouchableOpacity, Pressable, Vibration, AppState, AppStateStatus } from 'react-native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { Image } from 'expo-image';
 import { SafeLinearGradient } from '../../../components/SafeLinearGradient';
@@ -34,6 +34,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
     const [isPaused, setIsPaused] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
     const [progress, setProgress] = useState(0);
     const [showLikeHeart, setShowLikeHeart] = useState(false);
     const lastTap = useRef<number>(0);
@@ -42,6 +43,16 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
     const pulse = useSharedValue(1);
     const heartScale = useSharedValue(0);
     const videoSource = useMemo(() => ({ uri: item.video_url }), [item.video_url]);
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            setAppState(nextAppState);
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     useEffect(() => {
         if (!isVisible) {
@@ -144,7 +155,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                     source={videoSource}
                     style={styles.video}
                     resizeMode={ResizeMode.COVER}
-                    shouldPlay={isVisible && !isPaused}
+                    shouldPlay={isVisible && !isPaused && appState === 'active'}
                     isLooping
                     isMuted={isMuted}
                     onPlaybackStatusUpdate={onPlaybackStatusUpdate}

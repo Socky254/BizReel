@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, StatusBar, Text } from 'react-native';
+import { View, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, StatusBar, Text, AppState, AppStateStatus } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../src/lib/supabase';
@@ -13,10 +14,22 @@ const { width, height } = Dimensions.get('window');
 export default function StoryViewerScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
+    const isFocused = useIsFocused();
     const [story, setStory] = useState<Story | null>(null);
     const [loading, setLoading] = useState(true);
     const [progress, setProgress] = useState(0);
+    const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
     const videoRef = useRef<Video>(null);
+
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            setAppState(nextAppState);
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     useEffect(() => {
         fetchStory();
@@ -69,7 +82,7 @@ export default function StoryViewerScreen() {
                 source={{ uri: story.media_url }}
                 style={styles.video}
                 resizeMode={ResizeMode.COVER}
-                shouldPlay
+                shouldPlay={isFocused && appState === 'active'}
                 onPlaybackStatusUpdate={onPlaybackStatusUpdate}
             />
 
