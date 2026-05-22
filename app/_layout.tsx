@@ -38,7 +38,8 @@ const CustomFallback = (props: { error: Error, resetError: () => void }) => (
 );
 
 export default function RootLayout() {
-  const { session, setSession } = useAuthStore();
+  const { session, setSession, setUser } = useAuthStore();
+  const { setProfile } = useUserStore();
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
@@ -52,6 +53,12 @@ export default function RootLayout() {
         const { data: { session } } = await supabase.auth.getSession();
         if (mounted) {
           setSession(session);
+          if (session?.user) {
+              setUser(session.user);
+              // Pre-fetch profile into store
+              const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+              if (data) setProfile(data);
+          }
         }
       } catch (e) {
         console.error("Auth Session Error:", e);

@@ -450,6 +450,7 @@ CREATE TRIGGER tr_notify_live_started AFTER INSERT OR UPDATE ON public.live_sess
 FOR EACH ROW EXECUTE FUNCTION public.handle_special_notifications();
 
 -- C. Search Trends RPC
+DROP FUNCTION IF EXISTS public.get_market_trends();
 CREATE OR REPLACE FUNCTION public.get_market_trends()
 RETURNS TABLE (label TEXT, count_val BIGINT, trend_type TEXT, metadata JSONB) AS $$
 BEGIN
@@ -464,7 +465,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- D. Global Search RPC
-DROP FUNCTION IF EXISTS public.global_search(TEXT);
+DROP FUNCTION IF EXISTS public.global_search(TEXT) CASCADE;
 
 CREATE OR REPLACE FUNCTION public.global_search(search_term TEXT)
 RETURNS TABLE (id UUID, title TEXT, subtitle TEXT, image_url TEXT, entity_type TEXT) AS $$
@@ -480,6 +481,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- E. Checkout Logic (with Price Parsing)
+DROP FUNCTION IF EXISTS public.process_checkout(UUID, UUID, JSONB, TEXT);
 CREATE OR REPLACE FUNCTION public.process_checkout(p_buyer_id UUID, p_business_id UUID, p_address JSONB, p_payment_method TEXT)
 RETURNS UUID AS $$
 DECLARE
@@ -507,6 +509,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- F. Live Streaming Orchestration
+DROP FUNCTION IF EXISTS public.start_live_session(TEXT, UUID);
 CREATE OR REPLACE FUNCTION public.start_live_session(p_title TEXT, p_user_id UUID)
 RETURNS UUID AS $$
 DECLARE
@@ -526,6 +529,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- F. Business Analytics RPC (Enhanced)
+DROP FUNCTION IF EXISTS public.get_advanced_business_analytics(UUID);
 CREATE OR REPLACE FUNCTION get_advanced_business_analytics(target_user_id UUID)
 RETURNS JSONB AS $$
 DECLARE
@@ -565,6 +569,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 GRANT EXECUTE ON FUNCTION public.get_advanced_business_analytics(UUID) TO authenticated;
 
 -- G. Networking Metrics RPC
+DROP FUNCTION IF EXISTS public.get_mutual_connections_count(UUID, UUID);
 CREATE OR REPLACE FUNCTION get_mutual_connections_count(user_id_a UUID, user_id_b UUID)
 RETURNS INTEGER AS $$
 BEGIN
@@ -580,6 +585,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP FUNCTION IF EXISTS public.get_partners_count(UUID);
 CREATE OR REPLACE FUNCTION get_partners_count(u_id UUID)
 RETURNS INTEGER AS $$
 BEGIN
@@ -651,6 +657,7 @@ GRANT EXECUTE ON FUNCTION public.get_mutual_connections_count(UUID, UUID) TO aut
 GRANT EXECUTE ON FUNCTION public.get_partners_count(UUID) TO authenticated;
 
 -- AI-Driven Partner Recommendations
+DROP FUNCTION IF EXISTS public.get_recommended_partners(UUID);
 CREATE OR REPLACE FUNCTION public.get_recommended_partners(u_id UUID)
 RETURNS TABLE (
     id UUID,
@@ -689,6 +696,7 @@ CREATE POLICY "Users can upload product images" ON storage.objects FOR INSERT WI
 CREATE POLICY "Users can update own product images" ON storage.objects FOR UPDATE WITH CHECK (bucket_id = 'products' AND auth.uid()::text = (storage.foldername(name))[1]);
 
 -- I. Conversation List RPC
+DROP FUNCTION IF EXISTS public.get_conversation_list(UUID);
 CREATE OR REPLACE FUNCTION get_conversation_list(u_id UUID)
 RETURNS TABLE (
     other_user_id UUID,
@@ -801,6 +809,7 @@ AFTER UPDATE ON public.transactions
 FOR EACH ROW EXECUTE FUNCTION public.handle_transaction_completion();
 
 -- 5. RPC to Request Withdrawal (with balance check)
+DROP FUNCTION IF EXISTS public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB);
 CREATE OR REPLACE FUNCTION public.request_withdrawal(p_user_id UUID, p_amount NUMERIC, p_method TEXT, p_details JSONB)
 RETURNS UUID AS $$
 DECLARE
@@ -832,6 +841,7 @@ GRANT EXECUTE ON FUNCTION public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB) 
 -- ==========================================
 -- Calculates business reliability based on reviews AND successful transaction cycles.
 
+DROP FUNCTION IF EXISTS public.get_business_performance_index(UUID);
 CREATE OR REPLACE FUNCTION get_business_performance_index(target_user_id UUID)
 RETURNS JSONB AS $$
 DECLARE

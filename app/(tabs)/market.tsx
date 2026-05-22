@@ -10,6 +10,8 @@ import { SearchResult, MarketTrend } from '../../src/domain/repositories/ISearch
 import { supabase } from '../../src/core/network/supabase';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
 
+import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
+
 export default function MarketScreen() {
   const { session } = useAuth();
   const [query, setQuery] = useState('');
@@ -91,32 +93,33 @@ export default function MarketScreen() {
           router.push({ pathname: '/profile/[id]', params: { id: item.id } });
         } else if (item.entity_type === 'reel') {
           router.push({ pathname: '/posts/[id]', params: { id: item.id } });
-        } else if (item.entity_type === 'product') {
-          const businessId = item.metadata?.business_id;
-          if (businessId) {
-            router.push({ pathname: '/profile/catalog', params: { id: businessId } });
-          }
-        } else if (item.entity_type === 'sector') {
-          setQuery(item.title);
         }
       }}
     >
       <View style={styles.imageContainer}>
         {item.image_url ? (
-          <Image source={{ uri: item.image_url }} style={styles.resultImage} />
+          <Image source={{ uri: item.image_url }} style={styles.resultImage} transition={500} />
         ) : (
-          <View style={styles.placeholderImage}><Text style={styles.placeholderText}>B</Text></View>
+          <View style={styles.placeholderImage}>
+            <Ionicons name={item.entity_type === 'business' ? "business" : "videocam"} size={24} color={Colors.primary} />
+          </View>
         )}
-        <View style={styles.typeBadge}><Text style={styles.typeBadgeText}>{item.entity_type.toUpperCase()}</Text></View>
+        <View style={styles.typeBadge}>
+          <Text style={styles.typeBadgeText}>{item.entity_type === 'business' ? 'PARTNER' : 'REEL'}</Text>
+        </View>
       </View>
       <View style={styles.resultInfo}>
         <Text style={styles.resultTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.resultSubtitle} numberOfLines={1}>
-          {item.entity_type === 'product' && item.metadata?.price ? `${item.metadata.price} • ` : ''}
-          {item.subtitle}
-        </Text>
+        <View style={styles.subtitleRow}>
+          {item.entity_type === 'business' && (
+            <Ionicons name="shield-checkmark" size={12} color={Colors.primary} style={{ marginRight: 4 }} />
+          )}
+          <Text style={styles.resultSubtitle} numberOfLines={1}>{item.subtitle}</Text>
+        </View>
       </View>
-      <Ionicons name="chevron-forward" size={18} color="#aaa" />
+      <View style={styles.chevronWrap}>
+        <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.2)" />
+      </View>
     </TouchableOpacity>
   );
 
@@ -155,10 +158,14 @@ export default function MarketScreen() {
           {sectors.map(s => (
             <TouchableOpacity
               key={s}
-              style={[styles.sectorBadge, query === s && styles.activeSector]}
               onPress={() => setQuery(s)}
             >
-              <Text style={[styles.sectorText, query === s && styles.activeSectorText]}>{s}</Text>
+               <SafeLinearGradient
+                colors={query === s ? ['#00D084', '#009661'] : ['#15151E', '#15151E']}
+                style={[styles.sectorBadge, query === s && styles.activeSector]}
+               >
+                <Text style={[styles.sectorText, query === s && styles.activeSectorText]}>{s}</Text>
+               </SafeLinearGradient>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -228,6 +235,8 @@ const styles = StyleSheet.create({
   typeBadgeText: { color: '#000', fontSize: 8, fontWeight: '900' },
   resultInfo: { flex: 1, marginLeft: 15 },
   resultTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  resultSubtitle: { color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4, fontWeight: '600' },
+  subtitleRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  resultSubtitle: { color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' },
+  chevronWrap: { width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.03)', justifyContent: 'center', alignItems: 'center' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#050508' }
 });

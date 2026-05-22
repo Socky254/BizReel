@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, ScrollView, RefreshControl, Dimensions, Alert, Linking, BackHandler } from 'react-native';
-import { useAuth } from '../../src/Context/AuthContext';
+import { useAuthStore } from '../../src/store/useAuthStore';
+import { useUserStore } from '../../src/store/useUserStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { Image } from 'expo-image';
@@ -64,7 +65,8 @@ const TabButton = ({ active, onPress, icon, label }: any) => (
 );
 
 export default function ProfileScreen() {
-  const { session } = useAuth();
+  const { session } = useAuthStore();
+  const { profile: storeProfile, setProfile: setStoreProfile, isPremium } = useUserStore();
   const router = useRouter();
 
   const [reels, setReels] = useState<Post[]>([]);
@@ -101,6 +103,7 @@ export default function ProfileScreen() {
       ]);
 
       setProfile(pData);
+      setStoreProfile(pData); // Sync to global store
       setReels(rData);
       setLikedReels(lData);
       setSavedReels(sData);

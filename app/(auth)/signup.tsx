@@ -10,13 +10,67 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../src/core/theme/colors';
 
 export default function SignUpScreen() {
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [businessName, setBusinessName] = useState('');
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const handleSendOTP = async () => {
+    if (!phone || !businessName) return Alert.alert('Error', 'Please fill in all fields');
+
+    if (!agreedToPolicy) {
+      return Alert.alert(
+        'Business Compliance Required',
+        'You must acknowledge that BizReel is a strictly professional platform.'
+      );
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phone,
+        options: {
+          data: {
+            business_name: businessName,
+          }
+        }
+      });
+      if (error) throw error;
+      setOtpSent(true);
+      Alert.alert('Success', 'OTP has been sent to your mobile number');
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!otp) return Alert.alert('Error', 'Please enter the OTP');
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        phone: phone,
+        token: otp,
+        type: 'sms',
+      });
+      if (error) throw error;
+      Alert.alert('Success', 'Phone number verified!', [
+        { text: 'OK', onPress: () => router.replace('/(tabs)') }
+      ]);
+    } catch (err) {
+      Alert.alert('Verification Failed', err instanceof Error ? err.message : 'Invalid OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignUp = async () => {
     if (!email || !password || !businessName) return Alert.alert('Error', 'Please fill in all fields');
@@ -90,6 +144,21 @@ export default function SignUpScreen() {
                 <Text style={styles.subtitle}>Create your enterprise profile and reach millions of potential customers</Text>
               </Animated.View>
 
+              <View style={styles.methodToggle}>
+                <TouchableOpacity
+                  style={[styles.methodButton, authMethod === 'email' && styles.methodButtonActive]}
+                  onPress={() => setAuthMethod('email')}
+                >
+                  <Text style={[styles.methodButtonText, authMethod === 'email' && styles.methodButtonTextActive]}>Email</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.methodButton, authMethod === 'phone' && styles.methodButtonActive]}
+                  onPress={() => setAuthMethod('phone')}
+                >
+                  <Text style={[styles.methodButtonText, authMethod === 'phone' && styles.methodButtonTextActive]}>Phone OTP</Text>
+                </TouchableOpacity>
+              </View>
+
               <Animated.View entering={FadeInDown.delay(400).duration(800)}>
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>LEGAL BUSINESS NAME</Text>
@@ -105,46 +174,85 @@ export default function SignUpScreen() {
                   </View>
                 </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>OFFICIAL EMAIL</Text>
-                  <View style={styles.inputWrapper}>
-                    <Ionicons name="mail-outline" size={20} color="#555" style={styles.inputIcon} />
-                    <TextInput
-                      placeholder="admin@company.com"
-                      placeholderTextColor="#444"
-                      value={email}
-                      onChangeText={setEmail}
-                      style={styles.input}
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                    />
-                  </View>
-                </View>
+                {authMethod === 'email' ? (
+                  <>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>OFFICIAL EMAIL</Text>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="mail-outline" size={20} color="#555" style={styles.inputIcon} />
+                        <TextInput
+                          placeholder="admin@company.com"
+                          placeholderTextColor="#444"
+                          value={email}
+                          onChangeText={setEmail}
+                          style={styles.input}
+                          autoCapitalize="none"
+                          keyboardType="email-address"
+                        />
+                      </View>
+                    </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>SECURE PASSWORD</Text>
-                  <View style={styles.inputWrapper}>
-                    <Ionicons name="lock-closed-outline" size={20} color="#555" style={styles.inputIcon} />
-                    <TextInput
-                      placeholder="Minimum 8 characters"
-                      placeholderTextColor="#444"
-                      secureTextEntry={!showPassword}
-                      value={password}
-                      onChangeText={setPassword}
-                      style={styles.input}
-                    />
-                    <TouchableOpacity
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={styles.eyeIcon}
-                    >
-                      <Ionicons
-                        name={showPassword ? "eye-off-outline" : "eye-outline"}
-                        size={20}
-                        color="#555"
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>SECURE PASSWORD</Text>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="lock-closed-outline" size={20} color="#555" style={styles.inputIcon} />
+                        <TextInput
+                          placeholder="Minimum 8 characters"
+                          placeholderTextColor="#444"
+                          secureTextEntry={!showPassword}
+                          value={password}
+                          onChangeText={setPassword}
+                          style={styles.input}
+                        />
+                        <TouchableOpacity
+                          onPress={() => setShowPassword(!showPassword)}
+                          style={styles.eyeIcon}
+                        >
+                          <Ionicons
+                            name={showPassword ? "eye-off-outline" : "eye-outline"}
+                            size={20}
+                            color="#555"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>MOBILE NUMBER</Text>
+                      <View style={styles.inputWrapper}>
+                        <Ionicons name="call-outline" size={20} color="#555" style={styles.inputIcon} />
+                        <TextInput
+                          placeholder="+254 700 000 000"
+                          placeholderTextColor="#444"
+                          value={phone}
+                          onChangeText={setPhone}
+                          style={styles.input}
+                          keyboardType="phone-pad"
+                        />
+                      </View>
+                    </View>
+
+                    {otpSent && (
+                      <View style={styles.inputGroup}>
+                        <Text style={styles.label}>ENTER OTP</Text>
+                        <View style={styles.inputWrapper}>
+                          <Ionicons name="key-outline" size={20} color="#555" style={styles.inputIcon} />
+                          <TextInput
+                            placeholder="6-digit code"
+                            placeholderTextColor="#444"
+                            value={otp}
+                            onChangeText={setOtp}
+                            style={styles.input}
+                            keyboardType="number-pad"
+                            maxLength={6}
+                          />
+                        </View>
+                      </View>
+                    )}
+                  </>
+                )}
 
                 <View style={styles.policyContainer}>
                   <TouchableOpacity
@@ -164,18 +272,44 @@ export default function SignUpScreen() {
 
                 <TouchableOpacity
                   style={[styles.button, loading && styles.buttonDisabled]}
-                  onPress={handleSignUp}
+                  onPress={() => {
+                    if (authMethod === 'email') {
+                      handleSignUp();
+                    } else if (!otpSent) {
+                      handleSendOTP();
+                    } else {
+                      handleVerifyOTP();
+                    }
+                  }}
                   disabled={loading}
                 >
                   {loading ? (
                     <ActivityIndicator color="#000" />
                   ) : (
                     <>
-                      <Text style={styles.buttonText}>Initialize Account</Text>
-                      <Ionicons name="rocket-outline" size={20} color="#000" />
+                      <Text style={styles.buttonText}>
+                        {authMethod === 'email'
+                          ? 'Initialize Account'
+                          : (!otpSent ? 'Send OTP' : 'Verify & Sign Up')}
+                      </Text>
+                      <Ionicons
+                        name={authMethod === 'email' ? "rocket-outline" : "chevron-forward-outline"}
+                        size={20}
+                        color="#000"
+                      />
                     </>
                   )}
                 </TouchableOpacity>
+
+                {authMethod === 'phone' && otpSent && (
+                  <TouchableOpacity
+                    style={styles.resendOTP}
+                    onPress={handleSendOTP}
+                    disabled={loading}
+                  >
+                    <Text style={styles.resendOTPText}>Didn't receive code? Resend OTP</Text>
+                  </TouchableOpacity>
+                )}
 
                 <Link href="/(auth)/login" asChild>
                   <TouchableOpacity style={styles.link}>
@@ -204,6 +338,32 @@ const styles = StyleSheet.create({
   inner: { padding: 30, paddingBottom: 50 },
   title: { fontSize: 36, fontWeight: '900', color: '#fff', marginBottom: 10, letterSpacing: -0.5 },
   subtitle: { fontSize: 16, color: 'rgba(255, 255, 255, 0.5)', marginBottom: 40, lineHeight: 22 },
+  methodToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#0E0E14',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 30,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  methodButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  methodButtonActive: {
+    backgroundColor: 'rgba(0, 208, 132, 0.15)',
+  },
+  methodButtonText: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  methodButtonTextActive: {
+    color: '#00D084',
+  },
   inputGroup: { marginBottom: 20 },
   label: { color: '#00D084', fontSize: 12, fontWeight: '800', marginBottom: 8, letterSpacing: 1 },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0E0E14', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
@@ -213,6 +373,15 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#00D084', padding: 20, borderRadius: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10, marginTop: 10 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#000', fontSize: 17, fontWeight: '900' },
+  resendOTP: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  resendOTPText: {
+    color: '#00D084',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   link: { marginTop: 30, alignItems: 'center' },
   linkText: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 14 },
   linkHighlight: { color: '#00D084', fontWeight: '800' },

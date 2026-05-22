@@ -7,7 +7,7 @@ import { container } from '../../../di/Container';
 import { Post } from '../../../domain/models';
 import { CommentsModal } from '../../../components/CommentsModal';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { ReelFeedItem } from '../components/ReelFeedItem';
+import { EnterpriseReel } from '../../../components/EnterpriseReel';
 import { StoriesBar } from '../components/StoriesBar';
 import { Colors } from '../../../core/theme/colors';
 import { supabase } from '../../../lib/supabase';
@@ -105,13 +105,27 @@ export const FeedFeatureScreen = () => {
         setCommentModalVisible(true);
     }, []);
 
+    const handleInquiry = useCallback((userId: string) => {
+        router.push({
+            pathname: '/chat/[id]',
+            params: { id: userId }
+        });
+    }, [router]);
+
+    const handlePartner = useCallback((userId: string) => {
+        // Implementation for partnering/following
+        container.followUseCase.execute(session?.user?.id, userId);
+        Alert.alert("Success", "Partner request sent successfully.");
+    }, [session?.user?.id]);
+
     const renderItem = useCallback(({ item }: { item: Post }) => (
-        <ReelFeedItem
+        <EnterpriseReel
             item={item}
             isVisible={isFocused && item.id === activeId}
-            onOpenComments={handleOpenComments}
+            onInquiry={handleInquiry}
+            onPartner={handlePartner}
         />
-    ), [activeId, handleOpenComments, isFocused]);
+    ), [activeId, isFocused, handleInquiry, handlePartner]);
 
     if (loading) return (
         <View style={styles.center}>

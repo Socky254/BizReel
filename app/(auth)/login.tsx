@@ -15,21 +15,41 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+  const [resending, setResending] = useState(false);
   const router = useRouter();
 
   const handleSignIn = async () => {
     if (!email || !password) return Alert.alert('Error', 'Please fill in all fields');
 
     setLoading(true);
+    setShowResend(false);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       Alert.alert('Access Denied', error.message);
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        setShowResend(true);
+      }
       setLoading(false);
     } else {
       // successful login - the _layout.tsx will handle redirection
-      // we can keep loading true or set it to false.
-      // Setting to false might briefly show the login form again before redirect.
+    }
+  };
+
+  const handleResendEmail = async () => {
+    if (!email) return Alert.alert('Error', 'Please enter your email');
+    setResending(true);
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    });
+    setResending(false);
+    if (error) {
+      Alert.alert('Error', error.message);
+    } else {
+      Alert.alert('Success', 'Verification email sent. Please check your inbox.');
+      setShowResend(false);
     }
   };
 
@@ -122,6 +142,18 @@ export default function LoginScreen() {
                   <Text style={styles.forgotText}>Request Access Recovery</Text>
                 </TouchableOpacity>
 
+                {showResend && (
+                  <TouchableOpacity
+                    style={styles.resendButton}
+                    onPress={handleResendEmail}
+                    disabled={resending}
+                  >
+                    <Text style={styles.resendText}>
+                      {resending ? 'Sending...' : 'Didn\'t get the email? Resend verification'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
                 <TouchableOpacity
                   style={[styles.button, loading && styles.buttonDisabled]}
                   onPress={handleSignIn}
@@ -200,6 +232,20 @@ const styles = StyleSheet.create({
   eyeIcon: { paddingRight: 20 },
   forgotPassword: { alignSelf: 'flex-end', marginBottom: 25 },
   forgotText: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 14, fontWeight: '600' },
+  resendButton: {
+    marginBottom: 20,
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: 'rgba(0, 208, 132, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 208, 132, 0.2)',
+  },
+  resendText: {
+    color: '#00D084',
+    fontSize: 14,
+    fontWeight: '700',
+  },
   button: {
     backgroundColor: '#00D084',
     height: 65,
