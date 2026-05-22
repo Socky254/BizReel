@@ -30,6 +30,7 @@ export default function PublicProfileScreen() {
 
   const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'REFER' | 'SAVED'>('REELS');
   const [savedReels, setSavedReels] = useState<any[]>([]);
+  const [perfIndex, setPerfIndex] = useState<any>(null);
 
   const router = useRouter();
   const isOwnProfile = session?.user?.id === id;
@@ -48,6 +49,7 @@ export default function PublicProfileScreen() {
         fetchRatings(),
         fetchLikedReels(),
         fetchReferralReels(),
+        fetchPerformanceIndex(),
         isOwnProfile ? fetchSavedReels() : Promise.resolve()
       ]);
     } catch (err) {
@@ -55,6 +57,13 @@ export default function PublicProfileScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPerformanceIndex = async () => {
+    try {
+       const { data, error } = await supabase.rpc('get_business_performance_index', { target_user_id: id });
+       if (data) setPerfIndex(data);
+    } catch (e) {}
   };
 
   const fetchProfileAndReels = async () => {
@@ -191,6 +200,30 @@ export default function PublicProfileScreen() {
 
         {profile?.bio && <Text style={styles.profileBio}>{profile.bio}</Text>}
 
+        {perfIndex && (
+           <View style={styles.perfCard}>
+              <View style={styles.perfRow}>
+                 <View style={styles.perfItem}>
+                    <Text style={styles.perfVal}>{perfIndex.index_score}</Text>
+                    <Text style={styles.perfLabel}>SCORE</Text>
+                 </View>
+                 <View style={styles.perfDivider} />
+                 <View style={styles.perfItem}>
+                    <Text style={styles.perfVal}>{perfIndex.fulfillment_rate}%</Text>
+                    <Text style={styles.perfLabel}>SUCCESS</Text>
+                 </View>
+                 <View style={styles.perfDivider} />
+                 <View style={styles.perfItem}>
+                    <Text style={styles.perfVal}>{perfIndex.total_closed_deals}</Text>
+                    <Text style={styles.perfLabel}>DEALS</Text>
+                 </View>
+              </View>
+              <View style={styles.perfBadge}>
+                 <Text style={styles.perfStatusText}>{perfIndex.status} ENTERPRISE</Text>
+              </View>
+           </View>
+        )}
+
         <TouchableOpacity style={styles.trustBadge} onPress={() => !isOwnProfile && setShowReviewModal(true)}>
            <Ionicons name="shield-checkmark" size={14} color="#FFCC00" />
            <Text style={styles.trustText}>Trust Score: {averageRating > 0 ? averageRating.toFixed(1) : '5.0'}</Text>
@@ -324,6 +357,14 @@ const styles = StyleSheet.create({
   catalogGradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   messageBtn: { width: 48, height: 48, borderRadius: 4, backgroundColor: '#1C1C24', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#2C2C34' },
   profileBio: { color: '#eee', fontSize: 14, textAlign: 'center', marginBottom: 15, paddingHorizontal: 20 },
+  perfCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 15, width: '100%', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  perfRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 10 },
+  perfItem: { alignItems: 'center' },
+  perfVal: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  perfLabel: { color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '800', marginTop: 4 },
+  perfDivider: { width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' },
+  perfBadge: { alignSelf: 'center', backgroundColor: 'rgba(0,208,132,0.1)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: 'rgba(0,208,132,0.3)' },
+  perfStatusText: { color: '#00D084', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,204,0,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginBottom: 20 },
   trustText: { color: '#FFCC00', fontSize: 11, fontWeight: '800' },
   tabBar: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#1C1C24' },

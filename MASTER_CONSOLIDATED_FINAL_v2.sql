@@ -700,3 +700,57 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB) TO authenticated;
 
+
+-- ==========================================
+-- ENTERPRISE PERFORMANCE INDEX (RATE CARD)
+-- ==========================================
+-- Calculates business reliability based on reviews AND successful transaction cycles.
+
+CREATE OR REPLACE FUNCTION get_business_performance_index(target_user_id UUID)
+RETURNS JSONB AS 
+DECLARE
+    total_orders INTEGER;
+    completed_orders INTEGER;
+    avg_review_rating NUMERIC;
+    reliability_score NUMERIC;
+    performance_index NUMERIC;
+BEGIN
+    -- 1. Get Transaction Data (Closed Cycles)
+    SELECT COUNT(*), COUNT(*) FILTER (WHERE status = 'completed')
+    INTO total_orders, completed_orders
+    FROM public.orders
+    WHERE business_id = target_user_id;
+
+    -- 2. Get User Review Data
+    SELECT AVG(rating)
+    INTO avg_review_rating
+    FROM public.reviews
+    WHERE receiver_id = target_user_id;
+
+    -- 3. Calculate Transaction Reliability (0-100)
+    -- This measures the success rate of closing business cycles via the platform.
+    IF total_orders > 0 THEN
+        reliability_score := (completed_orders::NUMERIC / total_orders::NUMERIC) * 100;
+    ELSE
+        reliability_score := 100; -- High trust for clean slate startups
+    END IF;
+
+    -- 4. Calculate Final Weighted Performance Index (0-100)
+    -- Formula: (User Reviews weighted 50%) + (Transaction Success weighted 50%)
+    performance_index := (COALESCE(avg_review_rating, 5.0) / 5.0 * 50) + (reliability_score / 100 * 50);
+
+    RETURN jsonb_build_object(
+        'index_score', ROUND(performance_index, 1),
+        'fulfillment_rate', ROUND(reliability_score, 0),
+        'total_closed_deals', completed_orders,
+        'avg_user_rating', ROUND(COALESCE(avg_review_rating, 5.0), 1),
+        'status', CASE 
+            WHEN performance_index >= 90 THEN 'ELITE'
+            WHEN performance_index >= 75 THEN 'TRUSTED'
+            ELSE 'PROBATION'
+        END
+    );
+END;
+ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.get_business_performance_index(UUID) TO authenticated, anon;

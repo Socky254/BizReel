@@ -1,7 +1,7 @@
 import * as Updates from 'expo-updates';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { trackActivity } from './IntelligenceService';
+import { IntelligenceService } from './IntelligenceService';
 import { supabase } from '../lib/supabase';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
@@ -135,7 +135,7 @@ export class AutonomousMaintenanceService {
 
       // 6. Log analysis for restricted access
       if (userId) {
-        await trackActivity(userId, 'security_analysis_generated', {
+        await IntelligenceService.trackActivity(userId, 'security_analysis_generated', {
           concerns: analysis.concerns.length,
           threats: analysis.analytics.threatsDetected
         });

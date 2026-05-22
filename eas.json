@@ -17,7 +17,8 @@
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://naaxpbiipychzoisqumf.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hYXhwYmlpcHljaHpvaXNxdW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDczMjMsImV4cCI6MjA5NDUyMzMyM30.InpPLwi7c18g8eGCtqvlOdmYIVVUf-Byx_2-BwUG0PE",
-        "EXPO_PUBLIC_AGORA_APP_ID": "b7ba162dd6c7400ca34fdfcfb07ecb33"
+        "EXPO_PUBLIC_AGORA_APP_ID": "b7ba162dd6c7400ca34fdfcfb07ecb33",
+        "EXPO_PUBLIC_INTASEND_PUBLISHABLE_KEY": "ISPubKey_live_17af08d1-3287-485a-8bd7-d519e38c7220"
       }
     },
     "production": {
@@ -28,7 +29,8 @@
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://naaxpbiipychzoisqumf.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5hYXhwYmlpcHljaHpvaXNxdW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDczMjMsImV4cCI6MjA5NDUyMzMyM30.InpPLwi7c18g8eGCtqvlOdmYIVVUf-Byx_2-BwUG0PE",
-        "EXPO_PUBLIC_AGORA_APP_ID": "b7ba162dd6c7400ca34fdfcfb07ecb33"
+        "EXPO_PUBLIC_AGORA_APP_ID": "b7ba162dd6c7400ca34fdfcfb07ecb33",
+        "EXPO_PUBLIC_INTASEND_PUBLISHABLE_KEY": "ISPubKey_live_17af08d1-3287-485a-8bd7-d519e38c7220"
       }
     }
   },

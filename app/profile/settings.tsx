@@ -140,6 +140,12 @@ export default function SettingsScreen() {
 
         <Text style={styles.sectionTitle}>Data & Support</Text>
         <SettingItem
+          icon="pulse-outline"
+          title="System Health & Diagnostics"
+          subtitle="Real-time infrastructure analysis"
+          onPress={() => router.push('/profile/diagnostics')}
+        />
+        <SettingItem
           icon="help-circle-outline"
           title="Trust & Security Guide"
           subtitle="How BizReel protects your trades"

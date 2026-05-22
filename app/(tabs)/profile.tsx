@@ -10,12 +10,28 @@ import { Colors } from '../../src/core/theme/colors';
 import { Post, Profile } from '../../src/domain/models';
 import { VibrantBackground } from '../../src/components/VibrantBackground';
 import { container } from '../../src/di/Container';
+import { supabase } from '../../src/lib/supabase';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
 import { IntelligenceService, StrategyInsight } from '../../src/services/IntelligenceService';
 
 const { width } = Dimensions.get('window');
 
-// ... (StatItem and TabButton remain the same)
+const StatItem = ({ label, value, onPress }: any) => (
+  <TouchableOpacity style={styles.statItem} onPress={onPress}>
+    <Text style={styles.statValue}>{value}</Text>
+    <Text style={styles.statLabel}>{label}</Text>
+  </TouchableOpacity>
+);
+
+const TabButton = ({ active, onPress, icon, label }: any) => (
+  <TouchableOpacity
+    style={[styles.tab, active && styles.activeTab]}
+    onPress={onPress}
+  >
+    <Ionicons name={icon} size={20} color={active ? '#00D084' : 'rgba(255,255,255,0.4)'} />
+    {active && <Text style={styles.tabLabel}>{label}</Text>}
+  </TouchableOpacity>
+);
 
 export default function ProfileScreen() {
   const { session } = useAuth();
@@ -32,12 +48,13 @@ export default function ProfileScreen() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [strategyInsights, setStrategyInsights] = useState<StrategyInsight[]>([]);
   const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'SAVED' | 'REFER' | 'ANALYTICS'>('REELS');
+  const [perfIndex, setPerfIndex] = useState<any>(null);
 
   const fetchData = useCallback(async () => {
     if (!session?.user?.id) return;
     const uid = session.user.id;
     try {
-      const [pData, rData, lData, sData, refData, followStats, aData, sInsights] = await Promise.all([
+      const [pData, rData, lData, sData, refData, followStats, aData, sInsights, pIndex] = await Promise.all([
         container.getProfileUseCase.execute(uid),
         container.profileRepository.getUserReels(uid),
         container.profileRepository.getLikedReels(uid),
@@ -46,6 +63,7 @@ export default function ProfileScreen() {
         container.profileRepository.getFollowStats(uid),
         container.profileRepository.getAnalytics(uid),
         IntelligenceService.getStrategyIntelligence(uid),
+        supabase.rpc('get_business_performance_index', { target_user_id: uid }).then(res => res.data)
       ]);
 
       setProfile(pData);
@@ -55,6 +73,7 @@ export default function ProfileScreen() {
       setReferralReels(refData);
       setAnalytics(aData);
       setStrategyInsights(sInsights);
+      setPerfIndex(pIndex);
 
       const partnersCount = await container.profileRepository.getPartnersCount(uid);
       setStats({ ...followStats, mutual: partnersCount });
@@ -249,6 +268,30 @@ export default function ProfileScreen() {
 
         {profile?.bio && <Text style={styles.bioText}>{profile.bio}</Text>}
 
+        {perfIndex && (
+           <View style={styles.perfCard}>
+              <View style={styles.perfRow}>
+                 <View style={styles.perfItem}>
+                    <Text style={styles.perfVal}>{perfIndex.index_score}</Text>
+                    <Text style={styles.perfLabel}>SCORE</Text>
+                 </View>
+                 <View style={styles.perfDivider} />
+                 <View style={styles.perfItem}>
+                    <Text style={styles.perfVal}>{perfIndex.fulfillment_rate}%</Text>
+                    <Text style={styles.perfLabel}>SUCCESS</Text>
+                 </View>
+                 <View style={styles.perfDivider} />
+                 <View style={styles.perfItem}>
+                    <Text style={styles.perfVal}>{perfIndex.total_closed_deals}</Text>
+                    <Text style={styles.perfLabel}>DEALS</Text>
+                 </View>
+              </View>
+              <View style={styles.perfBadge}>
+                 <Text style={styles.perfStatusText}>{perfIndex.status} ENTERPRISE</Text>
+              </View>
+           </View>
+        )}
+
         <View style={styles.businessMetaRow}>
           {profile?.location && (
             <View style={styles.metaItem}>
@@ -383,6 +426,15 @@ const styles = StyleSheet.create({
   tierText: { color: '#D4AF37', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   handle: { color: '#00D084', fontSize: 13, fontWeight: '700', marginTop: 4, opacity: 0.8 },
   bioText: { color: 'rgba(255,255,255,0.6)', fontSize: 14, lineHeight: 22, marginBottom: 20 },
+
+  perfCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 15, width: '100%', marginBottom: 25, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  perfRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 10 },
+  perfItem: { alignItems: 'center' },
+  perfVal: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  perfLabel: { color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '800', marginTop: 4 },
+  perfDivider: { width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' },
+  perfBadge: { alignSelf: 'center', backgroundColor: 'rgba(0,208,132,0.1)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: 'rgba(0,208,132,0.3)' },
+  perfStatusText: { color: '#00D084', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
 
   businessMetaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 25 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.04)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
