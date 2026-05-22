@@ -10,6 +10,7 @@ import { ReelInteraction } from '../../../components/ReelInteraction';
 import { Colors } from '../../../core/theme/colors';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { supabase } from '../../../lib/supabase';
+import { SyncService } from '../../../services/SyncService';
 import Animated, {
   useAnimatedStyle,
   withRepeat,
@@ -94,11 +95,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
         const newState = !isFollowing;
         setIsFollowing(newState);
 
-        if (newState) {
-            await supabase.from('follows').insert({ follower_id: user.id, following_id: item.user_id });
-        } else {
-            await supabase.from('follows').delete().match({ follower_id: user.id, following_id: item.user_id });
-        }
+        await SyncService.enqueue('follow', { follower_id: user.id, following_id: item.user_id }, newState ? 'add' : 'remove');
     };
 
     const handleTap = () => {
@@ -123,9 +120,9 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
             })
         );
 
-        // Trigger like via supabase
+        // Trigger like via SyncService for architectural consistency
         if (user) {
-            await supabase.from('likes').upsert({ post_id: item.id, user_id: user.id });
+            await SyncService.enqueue('like', { post_id: item.id, user_id: user.id }, 'add');
         }
     };
 
