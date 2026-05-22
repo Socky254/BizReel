@@ -68,6 +68,7 @@ export default function ProfileScreen() {
   const router = useRouter();
 
   const [reels, setReels] = useState<Post[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [likedReels, setLikedReels] = useState<Post[]>([]);
   const [savedReels, setSavedReels] = useState<Post[]>([]);
   const [referralReels, setReferralReels] = useState<Post[]>([]);
@@ -77,7 +78,7 @@ export default function ProfileScreen() {
   const [stats, setStats] = useState({ followers: 0, following: 0, mutual: 0 });
   const [analytics, setAnalytics] = useState<any>(null);
   const [strategyInsights, setStrategyInsights] = useState<StrategyInsight[]>([]);
-  const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'SAVED' | 'REFER' | 'ANALYTICS'>('REELS');
+  const [activeTab, setActiveTab] = useState<'PORTFOLIO' | 'CATALOG' | 'SAVED' | 'REFER' | 'ANALYTICS'>('PORTFOLIO');
   const [perfIndex, setPerfIndex] = useState<any>(null);
   const [averageRating, setAverageRating] = useState(5.0);
 
@@ -85,7 +86,7 @@ export default function ProfileScreen() {
     if (!session?.user?.id) return;
     const uid = session.user.id;
     try {
-      const [pData, rData, lData, sData, refData, followStats, aData, sInsights, pIndex, reviewsData] = await Promise.all([
+      const [pData, rData, lData, sData, refData, followStats, aData, sInsights, pIndex, reviewsData, prodData] = await Promise.all([
         container.getProfileUseCase.execute(uid),
         container.profileRepository.getUserReels(uid),
         container.profileRepository.getLikedReels(uid),
@@ -95,7 +96,8 @@ export default function ProfileScreen() {
         container.profileRepository.getAnalytics(uid),
         IntelligenceService.getStrategyIntelligence(uid),
         supabase.rpc('get_business_performance_index', { target_user_id: uid }).then(res => res.data),
-        supabase.from('reviews').select('rating').eq('receiver_id', uid)
+        supabase.from('reviews').select('rating').eq('receiver_id', uid),
+        container.marketplaceRepository.getProducts(uid)
       ]);
 
       setProfile(pData);
@@ -106,6 +108,7 @@ export default function ProfileScreen() {
       setAnalytics(aData);
       setStrategyInsights(sInsights);
       setPerfIndex(pIndex);
+      setProducts(prodData);
 
       if (reviewsData.data && reviewsData.data.length > 0) {
         const sum = reviewsData.data.reduce((acc: number, curr: any) => acc + curr.rating, 0);
@@ -366,13 +369,14 @@ export default function ProfileScreen() {
 
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push('/profile/edit')}><Text style={styles.primaryBtnText}>EDIT PROFILE</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push({ pathname: '/profile/catalog', params: { id: session?.user?.id } })}><Ionicons name="grid-outline" size={18} color="#fff" /><Text style={styles.secondaryBtnText}>CATALOG</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push('/profile/add-product')}><Ionicons name="add-circle" size={18} color="#fff" /><Text style={styles.secondaryBtnText}>LIST PRODUCT</Text></TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setActiveTab('ANALYTICS')}><Ionicons name="analytics" size={20} color={activeTab === 'ANALYTICS' ? Colors.primary : "#fff"} /></TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.tabBar}>
-        <TabButton active={activeTab === 'REELS'} onPress={() => setActiveTab('REELS')} icon="apps-outline" label="REELS" />
+        <TabButton active={activeTab === 'PORTFOLIO'} onPress={() => setActiveTab('PORTFOLIO')} icon="apps-outline" label="PORTFOLIO" />
+        <TabButton active={activeTab === 'CATALOG'} onPress={() => setActiveTab('CATALOG')} icon="grid-outline" label="CATALOG" />
         <TabButton active={activeTab === 'REFER'} onPress={() => setActiveTab('REFER')} icon="trending-up-outline" label="EXPOSURE" />
         <TabButton active={activeTab === 'SAVED'} onPress={() => setActiveTab('SAVED')} icon="bookmark-outline" label="SAVED" />
       </View>
@@ -380,14 +384,31 @@ export default function ProfileScreen() {
   );
 
   const activeData = useMemo(() => {
-    if (activeTab === 'REELS') return reels;
-    if (activeTab === 'LIKED') return likedReels;
+    if (activeTab === 'PORTFOLIO') return reels;
+    if (activeTab === 'CATALOG') return products;
     if (activeTab === 'SAVED') return savedReels;
     if (activeTab === 'REFER') return referralReels;
     return [];
-  }, [activeTab, reels, likedReels, savedReels, referralReels]);
+  }, [activeTab, reels, products, savedReels, referralReels]);
 
   if (loading && !refreshing) return <ProfileSkeleton />;
+
+  const renderGridItem = ({ item }: { item: any }) => {
+    if (activeTab === 'CATALOG') {
+      return (
+        <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/profile/catalog', params: { id: session?.user?.id } })}>
+          <Image source={{ uri: item.image_url }} style={styles.thumbnail} contentFit="cover" />
+          <View style={styles.priceOverlay}><Text style={styles.priceText}>{item.price}</Text></View>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]', params: { id: item.id } })}>
+        <Video source={{ uri: item.video_url }} style={styles.thumbnail} resizeMode={ResizeMode.COVER} shouldPlay={false} isMuted />
+        <View style={styles.gridOverlay}><Ionicons name="play" size={12} color="#fff" /></View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
       <View style={styles.container}>
@@ -404,12 +425,7 @@ export default function ProfileScreen() {
             ListHeaderComponent={renderHeader}
             keyExtractor={(item) => item?.id || Math.random().toString()}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00D084" />}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]', params: { id: item.id } })}>
-                <Video source={{ uri: item.video_url }} style={styles.thumbnail} resizeMode={ResizeMode.COVER} shouldPlay={false} isMuted />
-                <View style={styles.gridOverlay}><Ionicons name="play" size={12} color="#fff" /></View>
-              </TouchableOpacity>
-            )}
+            renderItem={renderGridItem}
             contentContainerStyle={{ paddingBottom: 120 }}
             ListEmptyComponent={!loading ? (
               <View style={styles.emptyContainer}>
@@ -467,6 +483,8 @@ const styles = StyleSheet.create({
   gridItem: { width: '33.33%', aspectRatio: 1, padding: 1 },
   thumbnail: { flex: 1, backgroundColor: '#050505' },
   gridOverlay: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)', padding: 4, borderRadius: 4 },
+  priceOverlay: { position: 'absolute', bottom: 5, left: 5, right: 5, backgroundColor: 'rgba(0, 200, 83, 0.8)', paddingVertical: 2, borderRadius: 4, alignItems: 'center' },
+  priceText: { color: '#000', fontSize: 9, fontWeight: '900' },
   analyticsContainer: { padding: 20 },
   scoreCard: { flexDirection: 'row', backgroundColor: '#080808', borderRadius: 20, padding: 25, marginBottom: 20, alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   scoreInfo: { flex: 1 },

@@ -13,6 +13,7 @@ export default function PublicProfileScreen() {
   const id = params.id as string;
   const { session } = useAuth();
   const [reels, setReels] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [likedReels, setLikedReels] = useState<any[]>([]);
   const [referralReels, setReferralReels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +28,7 @@ export default function PublicProfileScreen() {
   const [userComment, setUserComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'REELS' | 'LIKED' | 'REFER' | 'SAVED' | 'REVIEWS'>('REELS');
+  const [activeTab, setActiveTab] = useState<'PORTFOLIO' | 'CATALOG' | 'REFER' | 'REVIEWS'>('PORTFOLIO');
   const [reviews, setReviews] = useState<any[]>([]);
   const [savedReels, setSavedReels] = useState<any[]>([]);
   const [perfIndex, setPerfIndex] = useState<any>(null);
@@ -69,6 +70,7 @@ export default function PublicProfileScreen() {
         fetchLikedReels(),
         fetchReferralReels(),
         fetchPerformanceIndex(),
+        fetchProducts(),
         isOwnProfile ? fetchSavedReels() : Promise.resolve()
       ]);
     } catch (err) {
@@ -76,6 +78,13 @@ export default function PublicProfileScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchProducts = async () => {
+    try {
+        const { data } = await supabase.from('products').select('*').eq('business_id', id).order('created_at', { ascending: false });
+        setProducts(data || []);
+    } catch (e) {}
   };
 
   const fetchReviews = async () => {
@@ -220,12 +229,6 @@ export default function PublicProfileScreen() {
            </TouchableOpacity>
 
            <View style={styles.actionGroup}>
-               <TouchableOpacity style={styles.catalogBtn} onPress={() => router.push({ pathname: '/profile/catalog', params: { id } })}>
-                  <SafeLinearGradient colors={['#00D084', '#00A86B']} style={styles.catalogGradient}>
-                    <Ionicons name="storefront" size={18} color="#000" />
-                  </SafeLinearGradient>
-               </TouchableOpacity>
-
                <TouchableOpacity style={styles.iconActionBtn} onPress={() => router.push({ pathname: '/chat/[id]', params: { id } })}>
                   <Ionicons name="chatbubble-outline" size={20} color="#fff" />
                </TouchableOpacity>
@@ -291,8 +294,11 @@ export default function PublicProfileScreen() {
       </View>
 
       <View style={styles.tabBar}>
-          <TouchableOpacity style={[styles.tab, activeTab === 'REELS' && styles.activeTab]} onPress={() => setActiveTab('REELS')}>
-            <Ionicons name="grid-outline" size={22} color={activeTab === 'REELS' ? '#00D084' : '#555'} />
+          <TouchableOpacity style={[styles.tab, activeTab === 'PORTFOLIO' && styles.activeTab]} onPress={() => setActiveTab('PORTFOLIO')}>
+            <Ionicons name="apps-outline" size={22} color={activeTab === 'PORTFOLIO' ? '#00D084' : '#555'} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.tab, activeTab === 'CATALOG' && styles.activeTab]} onPress={() => setActiveTab('CATALOG')}>
+            <Ionicons name="grid-outline" size={22} color={activeTab === 'CATALOG' ? '#00D084' : '#555'} />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.tab, activeTab === 'REVIEWS' && styles.activeTab]} onPress={() => setActiveTab('REVIEWS')}>
             <Ionicons name="star-outline" size={22} color={activeTab === 'REVIEWS' ? '#00D084' : '#555'} />
@@ -300,26 +306,17 @@ export default function PublicProfileScreen() {
           <TouchableOpacity style={[styles.tab, activeTab === 'REFER' && styles.activeTab]} onPress={() => setActiveTab('REFER')}>
             <Ionicons name="repeat-outline" size={22} color={activeTab === 'REFER' ? '#00D084' : '#555'} />
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.tab, activeTab === 'LIKED' && styles.activeTab]} onPress={() => setActiveTab('LIKED')}>
-            <Ionicons name="heart-outline" size={22} color={activeTab === 'LIKED' ? '#00D084' : '#555'} />
-          </TouchableOpacity>
-          {isOwnProfile && (
-            <TouchableOpacity style={[styles.tab, activeTab === 'SAVED' && styles.activeTab]} onPress={() => setActiveTab('SAVED')}>
-              <Ionicons name="bookmark-outline" size={22} color={activeTab === 'SAVED' ? '#00D084' : '#555'} />
-            </TouchableOpacity>
-          )}
       </View>
     </View>
   );
 
   const activeData = useMemo(() => {
-    if (activeTab === 'REELS') return reels;
-    if (activeTab === 'LIKED') return likedReels;
+    if (activeTab === 'PORTFOLIO') return reels;
+    if (activeTab === 'CATALOG') return products;
     if (activeTab === 'REFER') return referralReels;
-    if (activeTab === 'SAVED') return savedReels;
     if (activeTab === 'REVIEWS') return reviews;
     return [];
-  }, [activeTab, reels, likedReels, referralReels, savedReels, reviews]);
+  }, [activeTab, reels, products, referralReels, reviews]);
 
   const renderReviewItem = ({ item }: { item: any }) => (
     <View style={styles.reviewItem}>
@@ -339,6 +336,23 @@ export default function PublicProfileScreen() {
     </View>
   );
 
+  const renderGridItem = ({ item }: { item: any }) => {
+    if (activeTab === 'CATALOG') {
+      return (
+        <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/profile/catalog', params: { id } })}>
+           <Image source={{ uri: item.image_url }} style={styles.thumbnail} contentFit="cover" />
+           <View style={styles.priceOverlay}><Text style={styles.priceText}>{item.price}</Text></View>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]', params: { id: item.id } })}>
+         <Video source={{ uri: item.video_url }} style={styles.thumbnail} resizeMode={ResizeMode.COVER} shouldPlay={false} isMuted />
+         <View style={styles.playOverlay}><Ionicons name="play" size={12} color="#fff" /></View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
@@ -349,12 +363,7 @@ export default function PublicProfileScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             if (activeTab === 'REVIEWS') return renderReviewItem({ item });
-            return (
-              <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]', params: { id: item.id } })}>
-                 <Video source={{ uri: item.video_url }} style={styles.thumbnail} resizeMode={ResizeMode.COVER} shouldPlay={false} isMuted />
-                 <View style={styles.playOverlay}><Ionicons name="play" size={12} color="#fff" /></View>
-              </TouchableOpacity>
-            );
+            return renderGridItem({ item });
           }}
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>No {activeTab.toLowerCase()} yet.</Text></View>}
@@ -468,6 +477,9 @@ const styles = StyleSheet.create({
   activeTab: { borderBottomWidth: 2, borderBottomColor: '#fff' },
   gridItem: { width: '33.33%', aspectRatio: 3/4, padding: 1 },
   thumbnail: { flex: 1, backgroundColor: '#111' },
+  gridOverlay: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)', padding: 4, borderRadius: 4 },
+  priceOverlay: { position: 'absolute', bottom: 5, left: 5, right: 5, backgroundColor: 'rgba(0, 200, 83, 0.8)', paddingVertical: 2, borderRadius: 4, alignItems: 'center' },
+  priceText: { color: '#000', fontSize: 9, fontWeight: '900' },
   playOverlay: { position: 'absolute', bottom: 8, left: 8 },
   loading: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center', zIndex: 100 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
