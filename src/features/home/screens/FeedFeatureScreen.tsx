@@ -124,11 +124,18 @@ export const FeedFeatureScreen = () => {
 
     if (error) return (
         <View style={styles.center}>
-            <Animated.View entering={FadeInDown.duration(800)}>
-                <Ionicons name="shield-outline" size={60} color="rgba(255,255,255,0.1)" style={{ alignSelf: 'center' }} />
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity onPress={loadFeed} style={styles.retryBtn}>
-                    <Text style={styles.retryBtnText}>Reconnect to Network</Text>
+            <Animated.View entering={FadeInDown.duration(800)} style={styles.emptyContent}>
+                <View style={styles.emptyIconCircle}>
+                    <Ionicons name="rocket-outline" size={40} color={Colors.primary} />
+                </View>
+                <Text style={styles.emptyTitle}>THE MARKET IS WAITING</Text>
+                <Text style={styles.emptyText}>Be the first to disrupt the industry with your business reels. Your elite networking journey starts here.</Text>
+                <TouchableOpacity onPress={() => router.push('/(tabs)/upload')} style={styles.primaryActionBtn}>
+                    <Text style={styles.primaryActionBtnText}>Launch First Reel</Text>
+                    <Ionicons name="add" size={20} color="#000" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={loadFeed} style={styles.ghostBtn}>
+                    <Text style={styles.ghostBtnText}>Refresh Network</Text>
                 </TouchableOpacity>
             </Animated.View>
         </View>
@@ -255,7 +262,7 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         letterSpacing: 1,
     },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', padding: 40 },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#050508', padding: 40 },
     loadingText: {
         color: 'rgba(255,255,255,0.4)',
         marginTop: 20,
@@ -263,6 +270,68 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         textTransform: 'uppercase',
         letterSpacing: 2
+    },
+    emptyContent: {
+        alignItems: 'center',
+        width: '100%',
+    },
+    emptyIconCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 30,
+        backgroundColor: 'rgba(0, 200, 83, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 25,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 200, 83, 0.2)',
+    },
+    emptyTitle: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: '900',
+        letterSpacing: 2,
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    emptyText: {
+        color: 'rgba(255,255,255,0.5)',
+        fontSize: 14,
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 35,
+        paddingHorizontal: 20,
+    },
+    primaryActionBtn: {
+        backgroundColor: Colors.primary,
+        paddingHorizontal: 30,
+        paddingVertical: 18,
+        borderRadius: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 5,
+    },
+    primaryActionBtnText: {
+        color: '#000',
+        fontWeight: '900',
+        fontSize: 15,
+        textTransform: 'uppercase',
+    },
+    ghostBtn: {
+        marginTop: 20,
+        padding: 10,
+    },
+    ghostBtnText: {
+        color: 'rgba(255,255,255,0.4)',
+        fontSize: 12,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
     errorText: {
         color: 'rgba(255,255,255,0.6)',

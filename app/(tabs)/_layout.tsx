@@ -28,26 +28,28 @@ export default function TabLayout() {
       <Tabs screenOptions={{
       headerShown: false,
       tabBarStyle: {
-        backgroundColor: 'rgba(10, 10, 15, 0.95)',
+        backgroundColor: 'rgba(5, 5, 8, 0.94)', // Obsidian glass
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.1)',
-        height: 90,
+        borderTopColor: 'rgba(255,255,255,0.08)',
+        height: 95,
         paddingBottom: 35,
-        paddingTop: 12,
+        paddingTop: 15,
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
+        elevation: 0,
       },
-      tabBarActiveTintColor: '#00C853',
-      tabBarInactiveTintColor: 'rgba(255,255,255,0.5)',
-      tabBarLabelStyle: { fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.2, marginTop: 4 },
-      sceneContainerStyle: { backgroundColor: '#000' },
+      tabBarActiveTintColor: '#00D084',
+      tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
+      tabBarLabelStyle: {
+        fontSize: 10,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 1.2,
+        marginTop: 6
+      },
+      sceneContainerStyle: { backgroundColor: '#050508' },
     }}>
       <Tabs.Screen
         name="index"
@@ -70,12 +72,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="upload"
         options={{
-          title: '',
-          tabBarIcon: ({ color }) => (
+          title: 'Launch',
+          tabBarIcon: ({ color, focused }) => (
             <View style={styles.uploadBtn}>
-               <View style={[styles.uploadGradient, { backgroundColor: '#00C853' }]}>
-                 <Ionicons name="add" size={28} color="#000" />
-               </View>
+               <SafeLinearGradient
+                colors={focused ? ['#00D084', '#009661'] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
+                style={styles.uploadGradient}
+               >
+                 <Ionicons name="add" size={28} color={focused ? "#000" : "#fff"} />
+               </SafeLinearGradient>
             </View>
           ),
         }}
@@ -130,15 +135,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   uploadBtn: {
-    width: 44,
-    height: 32,
-    borderRadius: 10,
+    width: 48,
+    height: 34,
+    borderRadius: 12,
     overflow: 'hidden',
-    marginTop: 8,
-    shadowColor: '#00C853',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    marginTop: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   uploadGradient: {
     flex: 1,

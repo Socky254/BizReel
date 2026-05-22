@@ -9,10 +9,10 @@ export const Colors = {
     primaryDark: '#1B5E20', // Emerald Green for depth
     primaryLight: '#B9F6CA',
 
-    // Backgrounds (OLED Optimized)
-    background: '#000000',
-    surface: '#121212', // Graphite for cards/surfaces
-    surfaceElevated: '#1E1E1E',
+    // Backgrounds (Enterprise Obsidian - Optimized for OLED)
+    background: '#050508', // Deeper than pure black for premium depth
+    surface: '#0E0E14',    // Elevated obsidian
+    surfaceElevated: '#15151E',
 
     // Typography
     textPrimary: '#FFFFFF', // High emphasis

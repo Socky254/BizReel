@@ -14,22 +14,22 @@ export const VibrantBackground: React.FC<Props> = ({ children }) => {
       {/* Base Deep Background */}
       <View style={[styles.absolute, { backgroundColor: '#000000' }]} />
 
-      {/* Primary Brand Glow - Top Left (Green) */}
+      {/* Primary Brand Glow - Top Left (Emerald Green) */}
       <SafeLinearGradient
-        colors={['rgba(0, 200, 83, 0.18)', 'transparent']}
-        style={[styles.glow, { top: -height * 0.1, left: -width * 0.3, width: width * 1.5, height: width * 1.5 }]}
+        colors={['rgba(0, 200, 83, 0.12)', 'transparent']}
+        style={[styles.glow, { top: -height * 0.2, left: -width * 0.4, width: width * 1.6, height: width * 1.6 }]}
       />
 
-      {/* Secondary Accent Glow - Bottom Right (Deep Green) */}
+      {/* Secondary Accent Glow - Bottom Right (Deep Mint) */}
       <SafeLinearGradient
-        colors={['rgba(0, 208, 132, 0.12)', 'transparent']}
-        style={[styles.glow, { bottom: -height * 0.05, right: -width * 0.2, width: width * 1.2, height: width * 1.2 }]}
+        colors={['rgba(0, 255, 140, 0.08)', 'transparent']}
+        style={[styles.glow, { bottom: -height * 0.1, right: -width * 0.3, width: width * 1.4, height: width * 1.4 }]}
       />
 
-      {/* Center Depth Glow (Green Success Hint) */}
+      {/* Center Depth Glow - Strategy Gold hint for elite feel */}
       <SafeLinearGradient
-        colors={['rgba(0, 208, 132, 0.03)', 'transparent']}
-        style={[styles.glow, { top: height * 0.3, right: -width * 0.5, width: width, height: width }]}
+        colors={['rgba(212, 175, 55, 0.02)', 'transparent']}
+        style={[styles.glow, { top: height * 0.2, right: -width * 0.2, width: width, height: width }]}
       />
 
       {/* Tertiary Accent Glow - Center Right */}

@@ -28,7 +28,7 @@ const InteractionButton = ({ icon, label, count, active, activeColor, onPress, a
   return (
     <TouchableOpacity style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
       <Animated.View style={animatedStyle}>
-        <Ionicons name={active ? icon : `${icon}-outline`} size={30} color={active ? activeColor : "#fff"} />
+        <Ionicons name={active ? icon : `${icon}-outline`} size={28} color={active ? activeColor : "#fff"} />
       </Animated.View>
       <Text style={[styles.actionText, active && { color: activeColor }]}>
         {count !== undefined ? count : label}
@@ -40,7 +40,7 @@ const InteractionButton = ({ icon, label, count, active, activeColor, onPress, a
 export const ReelInteraction = ({ post, onOpenComments }: Props) => {
   const router = useRouter();
   const { user } = useAuthStore();
-  const [isLiked, setIsLiked] = useState(post.likes?.some(l => l.user_id === user?.id) || false);
+  const [isLiked, setIsLiked] = useState(post.likes?.some((l: any) => l.user_id === user?.id) || false);
   const [isSaved, setIsSaved] = useState(post.isSaved || false);
   const [isReposted, setIsReposted] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
@@ -62,7 +62,7 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
     if (!user) return;
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
-    setLikeCount(prev => newLikedState ? prev + 1 : prev - 1);
+    setLikeCount((prev: number) => newLikedState ? prev + 1 : prev - 1);
     triggerFeedback(likeScale);
 
     await SyncService.enqueue('like', { post_id: post.id, user_id: user.id }, newLikedState ? 'add' : 'remove');
@@ -103,24 +103,25 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
   const handleDeal = () => {
     if (!user) return;
     triggerFeedback(dealScale);
-    // Navigate to a "Partnership/Syndicate" proposal screen
     router.push({ pathname: '/chat/[id]', params: { id: post.user_id, mode: 'DEAL', postId: post.id } });
   };
 
   return (
-    <View style={styles.container}>
-      {/* SYNDICATE DEAL (MONETIZATION TRIGGER) */}
+    <View style={styles.glassContainer}>
+      <SafeLinearGradient
+        colors={['rgba(255,255,255,0.05)', 'rgba(0,0,0,0.4)']}
+        style={StyleSheet.absoluteFill}
+      />
+
       <TouchableOpacity style={styles.actionBtn} onPress={handleDeal}>
         <SafeLinearGradient
           colors={['#00E676', '#00C853']}
           style={styles.dealBadge}
         >
-          <Ionicons name="briefcase" size={24} color="#000" />
+          <Ionicons name="briefcase" size={22} color="#000" />
         </SafeLinearGradient>
-        <Text style={[styles.actionText, { color: Colors.primary, fontWeight: '900' }]}>Partner</Text>
       </TouchableOpacity>
 
-      {/* ENDORSE (LIKE) */}
       <InteractionButton
         icon="heart"
         count={likeCount}
@@ -130,15 +131,14 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
         animatedScale={likeScale}
       />
 
-      {/* DISCUSS (COMMENT) */}
       <TouchableOpacity style={styles.actionBtn} onPress={onOpenComments}>
-        <Ionicons name="chatbubble-ellipses-outline" size={30} color="#fff" />
+        <Ionicons name="chatbubble-ellipses" size={26} color="#fff" />
         <Text style={styles.actionText}>{post.comments?.length || 0}</Text>
       </TouchableOpacity>
 
-      {/* PROMOTE (REPOST) */}
       <InteractionButton
         icon="repeat"
+        count={undefined}
         label="Promote"
         active={isReposted}
         activeColor={Colors.primary}
@@ -146,9 +146,9 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
         animatedScale={promoteScale}
       />
 
-      {/* CURATE (SAVE) */}
       <InteractionButton
         icon="bookmark"
+        count={undefined}
         label="Curate"
         active={isSaved}
         activeColor="#FFCC00"
@@ -156,64 +156,50 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
         animatedScale={saveScale}
       />
 
-      {/* STRATEGIC SHARE */}
       <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
-        <View style={styles.shareCircle}>
-          <Ionicons name="paper-plane" size={22} color="#fff" />
-        </View>
-        <Text style={styles.actionText}>Share</Text>
+        <Ionicons name="paper-plane" size={24} color="#fff" />
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  glassContainer: {
     position: 'absolute',
-    right: 12,
+    right: 15,
     bottom: 110,
     alignItems: 'center',
-    gap: 22,
+    gap: 20,
     zIndex: 10,
+    paddingVertical: 25,
+    paddingHorizontal: 8,
+    borderRadius: 30,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   actionBtn: {
     alignItems: 'center',
-    width: 60,
+    width: 50,
   },
   actionText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
-    marginTop: 6,
+    marginTop: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  shareCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   dealBadge: {
-    width: 50,
-    height: 50,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#00C853',
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 6,
-    borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.1)',
   }
 });
-
