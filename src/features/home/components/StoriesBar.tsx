@@ -32,7 +32,7 @@ export const StoriesBar = () => {
     const renderStoryItem = ({ item }: { item: Story }) => (
         <TouchableOpacity
             style={styles.storyContainer}
-            onPress={() => router.push({ pathname: '/stories/[id]', params: { id: item.id } })}
+            onPress={() => router.push({ pathname: '/stories/[id]' as any, params: { id: item.id } })}
         >
             <View style={styles.avatarCircle}>
                 {item.profiles?.avatar_url ? (

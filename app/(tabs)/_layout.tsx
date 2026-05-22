@@ -27,8 +27,8 @@ export default function TabLayout() {
 
       <Tabs
         backBehavior="history"
-        sceneContainerStyle={{ backgroundColor: '#050508' }}
         screenOptions={{
+          sceneStyle: { backgroundColor: '#050508' },
           headerShown: false,
           tabBarStyle: {
             backgroundColor: 'rgba(5, 5, 8, 0.94)', // Obsidian glass

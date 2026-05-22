@@ -359,7 +359,7 @@ export default function PublicProfileScreen() {
       );
     }
     return (
-      <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]', params: { id: item.id } })}>
+      <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]' as any, params: { id: item.id } })}>
          <Video source={{ uri: item.video_url }} style={styles.thumbnail} resizeMode={ResizeMode.COVER} shouldPlay={false} isMuted />
          <View style={styles.playOverlay}><Ionicons name="play" size={12} color="#fff" /></View>
       </TouchableOpacity>
