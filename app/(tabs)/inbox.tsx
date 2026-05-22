@@ -248,13 +248,18 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    padding: 22,
     marginHorizontal: 15,
-    marginVertical: 5,
+    marginVertical: 8,
     borderRadius: 24,
     backgroundColor: '#0E0E14',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)'
+    borderColor: 'rgba(255,255,255,0.05)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 3
   },
   avatarContainer: { position: 'relative' },
   avatar: { width: 52, height: 52, borderRadius: 18, borderWidth: 1, borderColor: '#111' },
