@@ -504,5 +504,7 @@ const styles = StyleSheet.create({
   starsRow: { flexDirection: 'row', gap: 10 },
   reviewInput: { backgroundColor: '#0D0D12', borderRadius: 15, padding: 18, color: '#fff', height: 120, textAlignVertical: 'top', marginBottom: 25, borderWidth: 1, borderColor: '#2C2C34' },
   submitReviewBtn: { backgroundColor: '#00D084', padding: 18, borderRadius: 15, alignItems: 'center' },
-  submitReviewText: { color: '#000', fontSize: 16, fontWeight: '900' }
+  submitReviewText: { color: '#000', fontSize: 16, fontWeight: '900' },
+  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 50, paddingHorizontal: 40 },
+  emptyText: { color: '#555', fontSize: 14, textAlign: 'center', fontWeight: '600' }
 });

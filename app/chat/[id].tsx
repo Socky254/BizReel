@@ -138,7 +138,7 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.partnerInfo} onPress={() => router.push({ pathname: '/profile/[id]', params: { id } })}>
+          <TouchableOpacity style={styles.partnerInfo} onPress={() => router.push({ pathname: '/profile/[id]', params: { id: Array.isArray(id) ? id[0] : id } })}>
             {partner?.avatar_url ? (
               <Image source={{ uri: partner.avatar_url }} style={styles.avatar} />
             ) : (

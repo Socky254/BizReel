@@ -71,7 +71,7 @@ export default function MarketScreen() {
         key={item.label}
         style={styles.trendItem}
         onPress={() => {
-            if (item.trend_type === 'reel') router.push({ pathname: '/posts/[id]', params: { id: item.metadata?.id } });
+            if (item.trend_type === 'reel') router.push({ pathname: '/posts/[id]' as any, params: { id: item.metadata?.id } });
             else setQuery(item.label);
         }}
       >
@@ -90,9 +90,9 @@ export default function MarketScreen() {
       style={styles.resultItem}
       onPress={() => {
         if (item.entity_type === 'business') {
-          router.push({ pathname: '/profile/[id]', params: { id: item.id } });
+          router.push({ pathname: '/profile/[id]' as any, params: { id: item.id } });
         } else if (item.entity_type === 'reel') {
-          router.push({ pathname: '/posts/[id]', params: { id: item.id } });
+          router.push({ pathname: '/posts/[id]' as any, params: { id: item.id } });
         }
       }}
     >

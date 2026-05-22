@@ -137,7 +137,7 @@ export default function LoginScreen() {
 
                 <TouchableOpacity
                   style={styles.forgotPassword}
-                  onPress={() => router.push('/(auth)/recovery')}
+                  onPress={() => router.push('/(auth)/recovery' as any)}
                 >
                   <Text style={styles.forgotText}>Request Access Recovery</Text>
                 </TouchableOpacity>

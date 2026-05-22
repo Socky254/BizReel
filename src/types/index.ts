@@ -1,2 +1,2 @@
-export * from '../src/domain/models';
-export * from '../src/domain/models/intelligence';
+export * from '../domain/models';
+export * from '../domain/models/intelligence';

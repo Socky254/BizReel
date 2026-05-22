@@ -1,5 +1,5 @@
-import { Post } from '../src/domain/models';
-import { FeedRepositoryImpl } from '../src/data/repositories/FeedRepositoryImpl';
+import { Post } from '../domain/models';
+import { FeedRepositoryImpl } from '../data/repositories/FeedRepositoryImpl';
 import { supabase } from '../lib/supabase';
 import { SyncService } from './SyncService';
 

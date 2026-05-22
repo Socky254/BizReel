@@ -80,7 +80,7 @@ export default function ProfileScreen() {
   const [stats, setStats] = useState({ followers: 0, following: 0, mutual: 0 });
   const [analytics, setAnalytics] = useState<any>(null);
   const [strategyInsights, setStrategyInsights] = useState<StrategyInsight[]>([]);
-  const [activeTab, setActiveTab] = useState<'PORTFOLIO' | 'CATALOG' | 'SAVED' | 'REFER' | 'ANALYTICS'>('PORTFOLIO');
+  const [activeTab, setActiveTab] = useState<'PORTFOLIO' | 'CATALOG' | 'SAVED' | 'REFER' | 'ANALYTICS' | 'REELS' | 'LIKED'>('PORTFOLIO');
   const [perfIndex, setPerfIndex] = useState<any>(null);
   const [averageRating, setAverageRating] = useState(5.0);
 

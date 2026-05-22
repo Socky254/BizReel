@@ -25,10 +25,11 @@ export default function TabLayout() {
         <Text style={styles.offlineText}>NETWORK SYNCHRONIZATION PAUSED</Text>
       </Animated.View>
 
-      <Tabs screenOptions={{
-      headerShown: false,
-      backBehavior: 'history',
-      tabBarStyle: {
+      <Tabs
+        backBehavior="history"
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
         backgroundColor: 'rgba(5, 5, 8, 0.94)', // Obsidian glass
         borderTopWidth: 1,
         borderTopColor: 'rgba(255,255,255,0.08)',

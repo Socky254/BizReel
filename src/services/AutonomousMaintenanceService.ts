@@ -73,10 +73,11 @@ export class AutonomousMaintenanceService {
         const update = await Updates.checkForUpdateAsync();
         if (update.isAvailable) {
           analysis.status = analysis.status === 'optimized' ? 'pending_authorization' : analysis.status;
+          const manifest: any = update.manifest;
           analysis.suggestedFixes.push({
             id: 'apply_update',
             title: 'Apply Runtime Update',
-            description: `A new system update (${update.manifest?.version || 'latest'}) is available.`,
+            description: `A new system update (${manifest?.version || 'latest'}) is available.`,
             riskLevel: 'low',
             impact: 'Medium: Requires app reload to apply changes.'
           });

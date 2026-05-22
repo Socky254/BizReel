@@ -28,7 +28,7 @@ export const EnterpriseReel = memo(({ item, isVisible, onInquiry, onPartner }: R
       playsInSilentModeIOS: true,
       staysActiveInBackground: false,
       interruptionModeIOS: 1, // DoNotMix
-      shouldRouteThroughEarpieceAndroid: false,
+      playThroughEarpieceAndroid: false,
     });
   }, []);
 

@@ -47,11 +47,11 @@ export default function FollowsScreen() {
         .select('following:profiles!following_id(*)')
         .eq('follower_id', id);
 
-      const followerList = (followersData?.map(f => f.follower) || []).filter(Boolean);
-      const followingList = (followingData?.map(f => f.following) || []).filter(Boolean);
+      const followerList: any[] = (followersData?.map(f => f.follower) || []).filter(Boolean);
+      const followingList: any[] = (followingData?.map(f => f.following) || []).filter(Boolean);
 
-      const followerIds = new Set(followerList.map(u => u.id));
-      const followingIds = new Set(followingList.map(u => u.id));
+      const followerIds = new Set(followerList.map((u: any) => u.id));
+      const followingIds = new Set(followingList.map((u: any) => u.id));
 
       let finalUsers: any[] = [];
 
@@ -63,7 +63,7 @@ export default function FollowsScreen() {
         finalUsers = followingList;
       } else if (type === 'partners') {
         // PARTNERS (Mutual)
-        finalUsers = followingList.filter(u => followerIds.has(u.id));
+        finalUsers = followingList.filter((u: any) => followerIds.has(u.id));
       }
 
       setUsers(finalUsers);

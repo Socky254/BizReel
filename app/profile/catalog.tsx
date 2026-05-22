@@ -94,7 +94,7 @@ export default function CatalogScreen() {
 
         {!isOwnProfile ? (
           <View style={styles.buyerActions}>
-            <TouchableOpacity style={styles.buyNowBtn} onPress={() => router.push({ pathname: '/marketplace/checkout/[id]', params: { id: item.id } })}>
+            <TouchableOpacity style={styles.buyNowBtn} onPress={() => router.push({ pathname: '/marketplace/checkout/[id]' as any, params: { id: item.id } })}>
                 <Text style={styles.buyNowText}>Buy Now</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.addToCartBtn} onPress={() => handleAddToCart(item)}>

@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { container } from '../../../di/Container';
+import { SyncService } from '../../../services/SyncService';
 import { Post } from '../../../domain/models';
 import { CommentsModal } from '../../../components/CommentsModal';
 import { useAuthStore } from '../../../store/useAuthStore';
@@ -113,9 +114,15 @@ export const FeedFeatureScreen = () => {
     }, [router]);
 
     const handlePartner = useCallback((userId: string) => {
-        // Implementation for partnering/following
-        container.followUseCase.execute(session?.user?.id, userId);
-        Alert.alert("Success", "Partner request sent successfully.");
+        if (!session?.user?.id) {
+            Alert.alert("Authentication Required", "Please sign in to connect with partners.");
+            return;
+        }
+        SyncService.enqueue('follow', {
+            follower_id: session.user.id,
+            following_id: userId
+        });
+        Alert.alert("Success", "Partner connection requested.");
     }, [session?.user?.id]);
 
     const renderItem = useCallback(({ item }: { item: Post }) => (
@@ -184,7 +191,6 @@ export const FeedFeatureScreen = () => {
                     renderItem={renderItem}
                     keyExtractor={(item) => item.id}
                     pagingEnabled
-                    vertical
                     onViewableItemsChanged={onViewableItemsChanged}
                     viewabilityConfig={viewabilityConfig}
                     removeClippedSubviews={true}

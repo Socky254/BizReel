@@ -160,7 +160,7 @@ export default function SettingsScreen() {
           icon="help-circle-outline"
           title="Trust & Security Guide"
           subtitle="How BizReel protects your trades"
-          onPress={() => router.push('/help/trust-guide')}
+          onPress={() => router.push('/help/trust-guide' as any)}
         />
         <SettingItem
           icon="document-text-outline"
