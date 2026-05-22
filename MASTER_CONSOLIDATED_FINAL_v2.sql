@@ -450,7 +450,7 @@ CREATE TRIGGER tr_notify_live_started AFTER INSERT OR UPDATE ON public.live_sess
 FOR EACH ROW EXECUTE FUNCTION public.handle_special_notifications();
 
 -- C. Search Trends RPC
-DROP FUNCTION IF EXISTS public.get_market_trends();
+DROP FUNCTION IF EXISTS public.get_market_trends() CASCADE;
 CREATE OR REPLACE FUNCTION public.get_market_trends()
 RETURNS TABLE (label TEXT, count_val BIGINT, trend_type TEXT, metadata JSONB) AS $$
 BEGIN
@@ -463,6 +463,8 @@ BEGIN
     FROM public.posts WHERE caption IS NOT NULL ORDER BY views DESC LIMIT 5;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.get_market_trends() TO authenticated, anon;
 
 -- D. Global Search RPC
 DROP FUNCTION IF EXISTS public.global_search(TEXT) CASCADE;
@@ -809,7 +811,7 @@ AFTER UPDATE ON public.transactions
 FOR EACH ROW EXECUTE FUNCTION public.handle_transaction_completion();
 
 -- 5. RPC to Request Withdrawal (with balance check)
-DROP FUNCTION IF EXISTS public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB);
+DROP FUNCTION IF EXISTS public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB) CASCADE;
 CREATE OR REPLACE FUNCTION public.request_withdrawal(p_user_id UUID, p_amount NUMERIC, p_method TEXT, p_details JSONB)
 RETURNS UUID AS $$
 DECLARE
@@ -832,6 +834,8 @@ BEGIN
     RETURN v_transaction_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB) TO authenticated;
 
 GRANT EXECUTE ON FUNCTION public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB) TO authenticated;
 
