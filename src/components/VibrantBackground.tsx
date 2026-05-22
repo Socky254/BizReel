@@ -55,7 +55,7 @@ export const VibrantBackground: React.FC<Props> = ({ children }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#050508',
   },
   absolute: {
     ...StyleSheet.absoluteFillObject,

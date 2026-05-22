@@ -110,24 +110,24 @@ export default function VerificationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D0D12' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#1C1C24' },
-  backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: '#050508' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12 },
   title: { color: '#fff', fontSize: 18, fontWeight: '900' },
   content: { padding: 25 },
-  infoBox: { flexDirection: 'row', backgroundColor: 'rgba(0,208,132,0.1)', padding: 20, borderRadius: 16, marginBottom: 30, gap: 15 },
+  infoBox: { flexDirection: 'row', backgroundColor: 'rgba(0,208,132,0.05)', padding: 20, borderRadius: 16, marginBottom: 30, gap: 15, borderWidth: 1, borderColor: 'rgba(0,208,132,0.1)' },
   infoText: { flex: 1, color: '#00D084', fontSize: 14, lineHeight: 20, fontWeight: '600' },
   label: { color: '#fff', fontSize: 16, fontWeight: '800', marginBottom: 15 },
   reqItem: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-  reqText: { color: '#777', fontSize: 14, fontWeight: '600' },
-  uploadArea: { width: '100%', height: 250, backgroundColor: '#13131A', borderRadius: 20, borderStyle: 'dashed', borderWidth: 2, borderColor: '#222', marginTop: 20, overflow: 'hidden' },
+  reqText: { color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: '600' },
+  uploadArea: { width: '100%', height: 250, backgroundColor: '#0E0E14', borderRadius: 20, borderStyle: 'dashed', borderWidth: 2, borderColor: 'rgba(255,255,255,0.1)', marginTop: 20, overflow: 'hidden' },
   uploadPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 10 },
-  uploadText: { color: '#555', fontSize: 14, fontWeight: '700' },
+  uploadText: { color: 'rgba(255,255,255,0.3)', fontSize: 14, fontWeight: '700' },
   previewImage: { width: '100%', height: '100%', resizeMode: 'cover' },
   changeBtn: { alignSelf: 'center', marginTop: 15 },
   changeText: { color: '#00D084', fontSize: 14, fontWeight: '800' },
   submitBtn: { backgroundColor: '#00D084', padding: 18, borderRadius: 16, alignItems: 'center', marginTop: 40 },
   submitBtnDisabled: { opacity: 0.5 },
   submitText: { color: '#000', fontSize: 16, fontWeight: '900' },
-  privacyNote: { color: '#444', fontSize: 12, textAlign: 'center', marginTop: 20, lineHeight: 18 }
+  privacyNote: { color: 'rgba(255,255,255,0.2)', fontSize: 12, textAlign: 'center', marginTop: 20, lineHeight: 18 }
 });

@@ -159,7 +159,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: '#050508' },
   backgroundImage: {
     position: 'absolute',
     width: width,
@@ -173,26 +173,26 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 15,
-    backgroundColor: 'rgba(26, 26, 26, 0.8)',
+    backgroundColor: 'rgba(5, 5, 8, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)'
+    borderColor: 'rgba(255, 255, 255, 0.08)'
   },
   inner: { flex: 1, justifyContent: 'flex-end', padding: 30, paddingBottom: 40 },
   titleSection: { marginBottom: 35 },
   title: { fontSize: 40, fontWeight: '900', color: '#fff', letterSpacing: -1 },
-  subtitle: { fontSize: 17, color: 'rgba(255, 255, 255, 0.6)', marginTop: 5 },
+  subtitle: { fontSize: 17, color: 'rgba(255, 255, 255, 0.5)', marginTop: 5 },
   form: { width: '100%' },
   inputGroup: { marginBottom: 20 },
   label: { color: '#00D084', fontSize: 11, fontWeight: '800', marginBottom: 10, letterSpacing: 1.5 },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(17, 17, 17, 0.8)',
+    backgroundColor: '#0E0E14',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     height: 65
   },
   inputIcon: { marginLeft: 20 },

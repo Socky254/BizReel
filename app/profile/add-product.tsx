@@ -120,7 +120,7 @@ export default function AddProductScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D0D12' },
+  container: { flex: 1, backgroundColor: '#050508' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#1C1C24' },
   backBtn: { width: 40 },
   title: { color: '#fff', fontSize: 18, fontWeight: '900' },

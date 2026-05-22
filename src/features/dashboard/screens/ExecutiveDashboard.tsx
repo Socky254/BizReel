@@ -138,32 +138,33 @@ const MetricBox = ({ label, value, icon, delay, color = Colors.primary }: any) =
 );
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
+    container: { flex: 1, backgroundColor: '#050508' },
     content: { padding: 20, paddingBottom: 100 },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#050508' },
     loadingText: { color: Colors.textTertiary, marginTop: 20, fontSize: 12, fontWeight: '800', letterSpacing: 2 },
-    header: { marginTop: 40, marginBottom: 30 },
+    header: { marginTop: 60, marginBottom: 30 },
     greeting: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
-    subGreeting: { color: Colors.textSecondary, fontSize: 14, marginTop: 4 },
+    subGreeting: { color: 'rgba(255,255,255,0.4)', fontSize: 14, marginTop: 4 },
     revenueCard: {
         padding: 25,
         borderRadius: 24,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: 'rgba(255,255,255,0.08)',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 25
+        marginBottom: 25,
+        backgroundColor: '#0E0E14'
     },
-    cardLabel: { color: Colors.textSecondary, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+    cardLabel: { color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
     revenueValue: { color: '#fff', fontSize: 32, fontWeight: '900', marginVertical: 8 },
     growthBadge: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    growthText: { color: Colors.primary, fontSize: 12, fontWeight: '700' },
+    growthText: { color: '#00D084', fontSize: 12, fontWeight: '700' },
     walletIconBox: { width: 60, height: 60, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.03)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 30 },
     metricBox: {
         width: (width - 52) / 2,
-        backgroundColor: '#080808',
+        backgroundColor: '#0E0E14',
         padding: 20,
         borderRadius: 20,
         borderWidth: 1,
@@ -171,10 +172,10 @@ const styles = StyleSheet.create({
     },
     metricIconBox: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
     metricValue: { color: '#fff', fontSize: 18, fontWeight: '900' },
-    metricLabel: { color: Colors.textSecondary, fontSize: 12, fontWeight: '600', marginTop: 4 },
+    metricLabel: { color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '600', marginTop: 4 },
     sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 20 },
-    insightCard: { backgroundColor: '#080808', padding: 20, borderRadius: 20, marginBottom: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+    insightCard: { backgroundColor: '#0E0E14', padding: 20, borderRadius: 20, marginBottom: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
     insightHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
     insightTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
-    insightText: { color: Colors.textSecondary, fontSize: 13, lineHeight: 20 }
+    insightText: { color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20 }
 });

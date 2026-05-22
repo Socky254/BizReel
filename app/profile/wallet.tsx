@@ -175,8 +175,8 @@ export default function WalletScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D0D12' },
-  navBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#1C1C24' },
+  container: { flex: 1, backgroundColor: '#050508' },
+  navBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
   navTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   headerContent: { padding: 20 },
   balanceCard: { padding: 25, borderRadius: 24, marginBottom: 20 },
@@ -185,21 +185,21 @@ const styles = StyleSheet.create({
   pendingRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   pendingText: { color: 'rgba(0,0,0,0.5)', fontSize: 13, fontWeight: '600' },
   actionRow: { flexDirection: 'row', gap: 15, marginBottom: 30 },
-  actionBtn: { flex: 1, backgroundColor: '#1C1C24', padding: 15, borderRadius: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10, borderWidth: 1, borderColor: '#2C2C34' },
+  actionBtn: { flex: 1, backgroundColor: '#0E0E14', padding: 15, borderRadius: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   actionText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-  payoutSettingsBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#13131A', padding: 15, borderRadius: 16, marginBottom: 30, borderWidth: 1, borderColor: '#1C1C24', gap: 12 },
+  payoutSettingsBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0E0E14', padding: 15, borderRadius: 16, marginBottom: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', gap: 12 },
   payoutSettingsText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 15 },
   list: { paddingBottom: 40 },
-  transactionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#13131A', padding: 15, borderRadius: 18, marginBottom: 12, borderWidth: 1, borderColor: '#1C1C24' },
+  transactionItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0E0E14', padding: 15, borderRadius: 18, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   iconBox: { width: 45, height: 45, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   transactionInfo: { flex: 1, marginLeft: 15 },
   transactionType: { color: '#fff', fontSize: 14, fontWeight: '800' },
-  transactionDate: { color: '#555', fontSize: 12, marginTop: 2 },
+  transactionDate: { color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 },
   transactionAmountBox: { alignItems: 'flex-end' },
   transactionAmount: { fontSize: 16, fontWeight: '900' },
-  transactionStatus: { color: '#444', fontSize: 10, fontWeight: '700', textTransform: 'uppercase', marginTop: 4 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  transactionStatus: { color: 'rgba(255,255,255,0.2)', fontSize: 10, fontWeight: '700', textTransform: 'uppercase', marginTop: 4 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#050508' },
   emptyState: { alignItems: 'center', marginTop: 50 },
-  emptyText: { color: '#333', marginTop: 15, fontSize: 16, fontWeight: '600' }
+  emptyText: { color: 'rgba(255,255,255,0.2)', marginTop: 15, fontSize: 16, fontWeight: '600' }
 });
