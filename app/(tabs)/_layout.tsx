@@ -27,32 +27,32 @@ export default function TabLayout() {
 
       <Tabs
         backBehavior="history"
+        sceneContainerStyle={{ backgroundColor: '#050508' }}
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-        backgroundColor: 'rgba(5, 5, 8, 0.94)', // Obsidian glass
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.08)',
-        height: 95,
-        paddingBottom: 35,
-        paddingTop: 15,
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        elevation: 0,
-      },
-      tabBarActiveTintColor: '#00D084',
-      tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
-      tabBarLabelStyle: {
-        fontSize: 10,
-        fontWeight: '900',
-        textTransform: 'uppercase',
-        letterSpacing: 1.2,
-        marginTop: 6
-      },
-      sceneContainerStyle: { backgroundColor: '#050508' },
-    }}>
+            backgroundColor: 'rgba(5, 5, 8, 0.94)', // Obsidian glass
+            borderTopWidth: 1,
+            borderTopColor: 'rgba(255,255,255,0.08)',
+            height: 95,
+            paddingBottom: 35,
+            paddingTop: 15,
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            elevation: 0,
+          },
+          tabBarActiveTintColor: '#00D084',
+          tabBarInactiveTintColor: 'rgba(255,255,255,0.4)',
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '900',
+            textTransform: 'uppercase',
+            letterSpacing: 1.2,
+            marginTop: 6
+          },
+        }}>
       <Tabs.Screen
         name="index"
         options={{
