@@ -151,6 +151,23 @@ export default function UploadScreen() {
                 <Text style={styles.optionDesc}>Quick 30s update</Text>
             </TouchableOpacity>
 
+            <View style={styles.templateSection}>
+                <Text style={styles.templateHeader}>PITCH TEMPLATES</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.templateScroll}>
+                    {[
+                        { title: 'Product Demo', icon: 'cube-outline' },
+                        { title: 'Meet the Team', icon: 'people-outline' },
+                        { title: 'Client Review', icon: 'star-outline' },
+                        { title: 'Behind Scenes', icon: 'eye-outline' }
+                    ].map(t => (
+                        <TouchableOpacity key={t.title} style={styles.templateItem} onPress={() => pickVideo(false, false)}>
+                            <Ionicons name={t.icon as any} size={20} color="#fff" />
+                            <Text style={styles.templateLabel}>{t.title}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
+
             <TouchableOpacity style={styles.optionCard} onPress={() => pickVideo(false, false)}>
                 <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]}>
                     <Ionicons name="cloud-upload" size={32} color="#fff" />
@@ -262,6 +279,11 @@ const styles = StyleSheet.create({
   selSubtitle: { color: Colors.primary, fontSize: 14, fontWeight: '700', marginTop: 8 },
   optionsGrid: { gap: 15 },
   optionCard: { backgroundColor: Colors.surface, padding: 20, borderRadius: 24, borderWidth: 1, borderColor: Colors.border, flexDirection: 'row', alignItems: 'center' },
+  templateSection: { marginVertical: 10 },
+  templateHeader: { color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginBottom: 15 },
+  templateScroll: { gap: 10 },
+  templateItem: { paddingHorizontal: 15, paddingVertical: 12, borderRadius: 15, backgroundColor: Colors.surfaceElevated, marginRight: 12, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  templateLabel: { color: '#fff', fontSize: 12, fontWeight: '700' },
   liveCard: { borderColor: 'rgba(255, 59, 48, 0.3)' },
   iconBox: { width: 64, height: 64, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 20 },
   optionLabel: { color: Colors.textPrimary, fontSize: 18, fontWeight: '900', letterSpacing: 1 },

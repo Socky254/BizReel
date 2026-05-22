@@ -341,6 +341,18 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
+      {strategyInsights.length > 0 && (
+          <TouchableOpacity
+            style={styles.strategyPulse}
+            onPress={() => setActiveTab('ANALYTICS')}
+          >
+              <Ionicons name="bulb" size={16} color={Colors.primary} />
+              <Text style={styles.strategyText} numberOfLines={1}>
+                  STRATEGY PULSE: {strategyInsights[0].insight}
+              </Text>
+          </TouchableOpacity>
+      )}
+
       <View style={styles.profileInfoSection}>
         <View style={styles.avatarRow}>
           <View style={styles.avatarWrap}>
@@ -461,6 +473,8 @@ const styles = StyleSheet.create({
   navTitleContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   navTitle: { color: '#fff', fontSize: 13, fontWeight: '900', letterSpacing: 2 },
   onlineBadge: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#00D084' },
+  strategyPulse: { marginHorizontal: 20, marginBottom: 20, padding: 12, backgroundColor: 'rgba(0,208,132,0.05)', borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: 'rgba(0,208,132,0.1)' },
+  strategyText: { color: Colors.primary, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
   iconCircle: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   profileInfoSection: { paddingHorizontal: 20, paddingBottom: 25 },
   avatarRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },

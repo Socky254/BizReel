@@ -129,6 +129,8 @@ export default function MarketScreen() {
     setRefreshing(false);
   };
 
+  const sectors = ['Technology', 'Retail', 'Manufacturing', 'Services', 'Healthcare', 'Finance', 'Logistics'];
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -146,6 +148,20 @@ export default function MarketScreen() {
             onChangeText={setQuery}
           />
         </View>
+      </View>
+
+      <View style={styles.sectorBar}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sectorScroll}>
+          {sectors.map(s => (
+            <TouchableOpacity
+              key={s}
+              style={[styles.sectorBadge, query === s && styles.activeSector]}
+              onPress={() => setQuery(s)}
+            >
+              <Text style={[styles.sectorText, query === s && styles.activeSectorText]}>{s}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
       {query.length <= 1 ? (
@@ -186,6 +202,12 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: Colors.surfaceElevated },
   backBtn: { marginRight: 15 },
   searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, paddingHorizontal: 12, height: 45, borderWidth: 1, borderColor: Colors.border },
+  sectorBar: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: Colors.surfaceElevated },
+  sectorScroll: { paddingHorizontal: 15, gap: 10 },
+  sectorBadge: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: Colors.surfaceElevated, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  activeSector: { backgroundColor: 'rgba(0, 208, 132, 0.1)', borderColor: Colors.primary },
+  sectorText: { color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  activeSectorText: { color: Colors.primary },
   input: { flex: 1, color: Colors.textPrimary, marginLeft: 10, fontSize: 14 },
   trendsContainer: { flex: 1 },
   trendsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.surfaceElevated },

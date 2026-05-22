@@ -210,9 +210,17 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                             )}
                         </View>
                         <View style={styles.businessTextInfo}>
-                            <Text style={styles.businessName}>
-                                {item.profiles?.business_name || 'Premium Business'}
-                            </Text>
+                            <View style={styles.businessNameRow}>
+                                <Text style={styles.businessName}>
+                                    {item.profiles?.business_name || 'Premium Business'}
+                                </Text>
+                                {item.profiles?.is_verified && (
+                                    <View style={styles.platinumBadge}>
+                                        <Ionicons name="ribbon" size={10} color="#D4AF37" />
+                                        <Text style={styles.platinumText}>ELITE</Text>
+                                    </View>
+                                )}
+                            </View>
                             <View style={styles.sectorBadge}>
                                 <Text style={styles.sectorText}>{item.profiles?.category || 'Enterprise'}</Text>
                             </View>
@@ -377,6 +385,28 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0, 0, 0, 0.8)',
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 3,
+    },
+    businessNameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    platinumBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: 'rgba(212, 175, 55, 0.15)',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        borderWidth: 0.5,
+        borderColor: 'rgba(212, 175, 55, 0.3)',
+    },
+    platinumText: {
+        color: '#D4AF37',
+        fontSize: 8,
+        fontWeight: '900',
+        letterSpacing: 0.5,
     },
     sectorBadge: {
         backgroundColor: 'rgba(0, 200, 83, 0.1)',

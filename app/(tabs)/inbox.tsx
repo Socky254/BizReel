@@ -235,7 +235,7 @@ export default function InboxScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#050508' },
   header: { paddingTop: 60, paddingHorizontal: 25, backgroundColor: 'transparent', paddingBottom: 20 },
   title: { color: '#fff', fontSize: 32, fontWeight: '900', letterSpacing: -1.5, marginBottom: 25 },
   tabContainer: { flexDirection: 'row', gap: 30 },
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
     marginVertical: 5,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    backgroundColor: '#0E0E14',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)'
   },

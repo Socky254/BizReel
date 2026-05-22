@@ -99,7 +99,13 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Business Account</Text>
+        <Text style={styles.sectionTitle}>Commercial Center</Text>
+        <SettingItem
+          icon="cart-outline"
+          title="Active Deals & Orders"
+          subtitle="Track your current business cycles"
+          onPress={() => router.push('/profile/dashboard')}
+        />
         <SettingItem
           icon="stats-chart-outline"
           title="Executive Dashboard"
