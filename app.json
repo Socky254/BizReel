@@ -50,7 +50,8 @@
           "android": {
             "usesCleartextTraffic": true,
             "enableProguardInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "kotlinCompilerMaxHeapSize": "2048M"
           }
         }
       ]
