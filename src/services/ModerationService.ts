@@ -14,8 +14,18 @@ export type ModerationResult = {
  */
 export class ModerationService {
   private static UNPROFESSIONAL_KEYWORDS = [
-    'scam', 'spam', 'hack', 'cheat', 'free money', 'betting', 'gambling',
-    'win fast', 'unregulated', 'fake', 'porn', 'nsfw'
+    'scam',
+    'spam',
+    'hack',
+    'cheat',
+    'free money',
+    'betting',
+    'gambling',
+    'win fast',
+    'unregulated',
+    'fake',
+    'porn',
+    'nsfw',
   ];
 
   /**
@@ -26,7 +36,7 @@ export class ModerationService {
     const foundFlags: string[] = [];
 
     // 1. Keyword check (Heuristics)
-    this.UNPROFESSIONAL_KEYWORDS.forEach(word => {
+    this.UNPROFESSIONAL_KEYWORDS.forEach((word) => {
       if (lowerText.includes(word)) {
         foundFlags.push(`Restricted Term: ${word}`);
       }
@@ -35,16 +45,16 @@ export class ModerationService {
     // 2. Format Analysis (Excessive caps/symbols)
     const capsCount = (text.match(/[A-Z]/g) || []).length;
     if (capsCount > text.length * 0.5 && text.length > 20) {
-      foundFlags.push("Excessive Capitalization");
+      foundFlags.push('Excessive Capitalization');
     }
 
     // 3. Link Safety
     if (text.includes('http') && !text.includes('bizreel.app') && !text.includes('technova')) {
-        // In a real AI implementation, we would ping a safe-browsing API here
+      // In a real AI implementation, we would ping a safe-browsing API here
     }
 
     // Scoring Logic
-    const score = Math.max(0, 1 - (foundFlags.length * 0.25));
+    const score = Math.max(0, 1 - foundFlags.length * 0.25);
     let suggestedAction: 'approve' | 'flag' | 'reject' = 'approve';
 
     if (score < 0.5) suggestedAction = 'reject';
@@ -55,7 +65,7 @@ export class ModerationService {
       score,
       flags: foundFlags,
       suggestedAction,
-      cleanedCaption: text.trim()
+      cleanedCaption: text.trim(),
     };
   }
 
@@ -68,13 +78,13 @@ export class ModerationService {
         post_id: postId,
         reporter_id: reporterId,
         reason: reason,
-        status: 'pending'
+        status: 'pending',
       });
 
       if (error) throw error;
       return { success: true };
     } catch (e) {
-      console.error("Reporting Error:", e);
+      console.error('Reporting Error:', e);
       return { success: false, error: e };
     }
   }
@@ -84,7 +94,7 @@ export class ModerationService {
    * Can be triggered by the AutonomousMaintenanceService.
    */
   static async performSweep() {
-    console.log("MODERATION: Performing platform professionality sweep...");
+    console.log('MODERATION: Performing platform professionality sweep...');
     // Logic to identify and flag posts with > 5 reports automatically
   }
 }

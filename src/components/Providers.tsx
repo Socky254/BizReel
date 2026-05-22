@@ -19,7 +19,9 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
       }, 5000);
 
       try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const {
+          data: { session: initialSession },
+        } = await supabase.auth.getSession();
         if (mounted) {
           setSession(initialSession);
           if (initialSession?.user) {
@@ -48,9 +50,5 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
     };
   }, []);
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 };

@@ -13,12 +13,12 @@ class EventBus {
 
   off(event: string, callback: Callback) {
     if (!this.events[event]) return;
-    this.events[event] = this.events[event].filter(cb => cb !== callback);
+    this.events[event] = this.events[event].filter((cb) => cb !== callback);
   }
 
   emit(event: string, data?: any) {
     if (!this.events[event]) return;
-    this.events[event].forEach(callback => callback(data));
+    this.events[event].forEach((callback) => callback(data));
   }
 }
 

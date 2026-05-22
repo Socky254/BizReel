@@ -1,85 +1,93 @@
 import { supabase } from '../../../lib/supabase';
 
 export class UploadService {
-    static async uploadReel(userId: string, videoUri: string, caption: string, category: string) {
-        const filename = `${userId}/${Date.now()}.mp4`;
+  static async uploadReel(userId: string, videoUri: string, caption: string, category: string) {
+    const filename = `${userId}/${Date.now()}.mp4`;
 
-        // 1. Convert URI to Blob/ArrayBuffer
-        const response = await fetch(videoUri);
-        const blob = await response.blob();
-        const arrayBuffer = await new Response(blob).arrayBuffer();
+    // 1. Convert URI to Blob/ArrayBuffer
+    const response = await fetch(videoUri);
+    const blob = await response.blob();
+    const arrayBuffer = await new Response(blob).arrayBuffer();
 
-        // 2. Upload to Storage
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('reels')
-            .upload(filename, arrayBuffer, {
-                contentType: 'video/mp4',
-                upsert: false
-            });
+    // 2. Upload to Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('reels')
+      .upload(filename, arrayBuffer, {
+        contentType: 'video/mp4',
+        upsert: false,
+      });
 
-        if (uploadError) throw uploadError;
+    if (uploadError) throw uploadError;
 
-        // 3. Get Public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from('reels')
-            .getPublicUrl(filename);
+    // 3. Get Public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('reels').getPublicUrl(filename);
 
-        // 4. Insert into DB
-        const { data: postData, error: dbError } = await supabase.from('posts').insert({
-            user_id: userId,
-            video_url: publicUrl,
-            caption: caption,
-            category: category || 'General'
-        }).select().single();
+    // 4. Insert into DB
+    const { data: postData, error: dbError } = await supabase
+      .from('posts')
+      .insert({
+        user_id: userId,
+        video_url: publicUrl,
+        caption: caption,
+        category: category || 'General',
+      })
+      .select()
+      .single();
 
-        if (dbError) throw dbError;
+    if (dbError) throw dbError;
 
-        return postData;
-    }
+    return postData;
+  }
 
-    static async uploadStory(userId: string, videoUri: string) {
-        const filename = `${userId}/stories/${Date.now()}.mp4`;
+  static async uploadStory(userId: string, videoUri: string) {
+    const filename = `${userId}/stories/${Date.now()}.mp4`;
 
-        // 1. Convert URI to Blob
-        const response = await fetch(videoUri);
-        const blob = await response.blob();
-        const arrayBuffer = await new Response(blob).arrayBuffer();
+    // 1. Convert URI to Blob
+    const response = await fetch(videoUri);
+    const blob = await response.blob();
+    const arrayBuffer = await new Response(blob).arrayBuffer();
 
-        // 2. Upload to Storage (reusing 'reels' bucket or using 'stories' if defined)
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('reels')
-            .upload(filename, arrayBuffer, {
-                contentType: 'video/mp4',
-                upsert: false
-            });
+    // 2. Upload to Storage (reusing 'reels' bucket or using 'stories' if defined)
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('reels')
+      .upload(filename, arrayBuffer, {
+        contentType: 'video/mp4',
+        upsert: false,
+      });
 
-        if (uploadError) throw uploadError;
+    if (uploadError) throw uploadError;
 
-        // 3. Get Public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from('reels')
-            .getPublicUrl(filename);
+    // 3. Get Public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('reels').getPublicUrl(filename);
 
-        // 4. Insert into DB
-        const { data: storyData, error: dbError } = await supabase.from('stories').insert({
-            user_id: userId,
-            media_url: publicUrl,
-            type: 'video',
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
-        }).select().single();
+    // 4. Insert into DB
+    const { data: storyData, error: dbError } = await supabase
+      .from('stories')
+      .insert({
+        user_id: userId,
+        media_url: publicUrl,
+        type: 'video',
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+      })
+      .select()
+      .single();
 
-        if (dbError) throw dbError;
+    if (dbError) throw dbError;
 
-        return storyData;
-    }
+    return storyData;
+  }
 
-    static async startLiveSession(userId: string, title: string) {
-        const { data: sessionId, error } = await supabase.rpc('start_live_session', {
-            p_user_id: userId,
-            p_title: title.trim()
-        });
+  static async startLiveSession(userId: string, title: string) {
+    const { data: sessionId, error } = await supabase.rpc('start_live_session', {
+      p_user_id: userId,
+      p_title: title.trim(),
+    });
 
-        if (error) throw error;
-        return sessionId;
-    }
+    if (error) throw error;
+    return sessionId;
+  }
 }

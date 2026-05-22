@@ -11,7 +11,7 @@ import Animated, {
   useSharedValue,
   withSpring,
   withSequence,
-  withTiming
+  withTiming,
 } from 'react-native-reanimated';
 import { Colors } from '../core/theme/colors';
 
@@ -20,7 +20,15 @@ interface Props {
   onOpenComments: () => void;
 }
 
-const InteractionButton = ({ icon, label, count, active, activeColor, onPress, animatedScale }: any) => {
+const InteractionButton = ({
+  icon,
+  label,
+  count,
+  active,
+  activeColor,
+  onPress,
+  animatedScale,
+}: any) => {
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: animatedScale.value }],
   }));
@@ -28,7 +36,11 @@ const InteractionButton = ({ icon, label, count, active, activeColor, onPress, a
   return (
     <TouchableOpacity style={styles.actionBtn} onPress={onPress} activeOpacity={0.7}>
       <Animated.View style={animatedStyle}>
-        <Ionicons name={active ? icon : `${icon}-outline`} size={28} color={active ? activeColor : "#fff"} />
+        <Ionicons
+          name={active ? icon : `${icon}-outline`}
+          size={28}
+          color={active ? activeColor : '#fff'}
+        />
       </Animated.View>
       <Text style={[styles.actionText, active && { color: activeColor }]}>
         {count !== undefined ? count : label}
@@ -40,7 +52,9 @@ const InteractionButton = ({ icon, label, count, active, activeColor, onPress, a
 export const ReelInteraction = ({ post, onOpenComments }: Props) => {
   const router = useRouter();
   const { user } = useAuthStore();
-  const [isLiked, setIsLiked] = useState(Array.isArray(post.likes) ? post.likes.some((l: any) => l.user_id === user?.id) : false);
+  const [isLiked, setIsLiked] = useState(
+    Array.isArray(post.likes) ? post.likes.some((l: any) => l.user_id === user?.id) : false,
+  );
   const [isSaved, setIsSaved] = useState(post.isSaved || false);
   const [isReposted, setIsReposted] = useState(false);
   const [likeCount, setLikeCount] = useState(Array.isArray(post.likes) ? post.likes.length : 0);
@@ -53,20 +67,21 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
 
   const triggerFeedback = useCallback((scaleValue: any) => {
     Vibration.vibrate(10);
-    scaleValue.value = withSequence(
-      withSpring(1.4, { damping: 2, stiffness: 300 }),
-      withSpring(1)
-    );
+    scaleValue.value = withSequence(withSpring(1.4, { damping: 2, stiffness: 300 }), withSpring(1));
   }, []);
 
   const handleLike = async () => {
     if (!user) return;
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
-    setLikeCount((prev: number) => newLikedState ? prev + 1 : prev - 1);
+    setLikeCount((prev: number) => (newLikedState ? prev + 1 : prev - 1));
     triggerFeedback(likeScale);
 
-    await SyncService.enqueue('like', { post_id: post.id, user_id: user.id }, newLikedState ? 'add' : 'remove');
+    await SyncService.enqueue(
+      'like',
+      { post_id: post.id, user_id: user.id },
+      newLikedState ? 'add' : 'remove',
+    );
   };
 
   const handleSave = async () => {
@@ -75,7 +90,11 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
     setIsSaved(newSavedState);
     triggerFeedback(saveScale);
 
-    await SyncService.enqueue('save', { post_id: post.id, user_id: user.id }, newSavedState ? 'add' : 'remove');
+    await SyncService.enqueue(
+      'save',
+      { post_id: post.id, user_id: user.id },
+      newSavedState ? 'add' : 'remove',
+    );
   };
 
   const handleRefer = async () => {
@@ -84,7 +103,11 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
     setIsReposted(newRepostedState);
     triggerFeedback(promoteScale);
 
-    await SyncService.enqueue('repost', { post_id: post.id, user_id: user.id }, newRepostedState ? 'add' : 'remove');
+    await SyncService.enqueue(
+      'repost',
+      { post_id: post.id, user_id: user.id },
+      newRepostedState ? 'add' : 'remove',
+    );
   };
 
   const handleShare = async () => {
@@ -104,7 +127,10 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
   const handleDeal = () => {
     if (!user) return;
     triggerFeedback(dealScale);
-    router.push({ pathname: '/chat/[id]', params: { id: post.user_id, mode: 'DEAL', postId: post.id } });
+    router.push({
+      pathname: '/chat/[id]',
+      params: { id: post.user_id, mode: 'DEAL', postId: post.id },
+    });
   };
 
   return (
@@ -115,10 +141,7 @@ export const ReelInteraction = ({ post, onOpenComments }: Props) => {
       />
 
       <TouchableOpacity style={styles.actionBtn} onPress={handleDeal}>
-        <SafeLinearGradient
-          colors={['#00E676', '#00C853']}
-          style={styles.dealBadge}
-        >
+        <SafeLinearGradient colors={['#00E676', '#00C853']} style={styles.dealBadge}>
           <Ionicons name="briefcase" size={22} color="#000" />
         </SafeLinearGradient>
       </TouchableOpacity>
@@ -202,5 +225,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 6,
-  }
+  },
 });

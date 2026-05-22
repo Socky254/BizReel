@@ -14,5 +14,3 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
-
-

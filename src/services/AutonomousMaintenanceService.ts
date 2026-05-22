@@ -44,8 +44,8 @@ export class AutonomousMaintenanceService {
         storageUsage: 'Unknown',
         unstableLinks: 0,
         threatsDetected: 0,
-        lastAudit: new Date().toISOString()
-      }
+        lastAudit: new Date().toISOString(),
+      },
     };
 
     try {
@@ -55,7 +55,7 @@ export class AutonomousMaintenanceService {
       const isCompromised = await this.detectIntrusions();
       if (isCompromised) {
         analysis.status = 'defensive_lock';
-        analysis.concerns.push("CRITICAL: Active intrusion patterns detected.");
+        analysis.concerns.push('CRITICAL: Active intrusion patterns detected.');
         analysis.analytics.threatsDetected++;
 
         analysis.suggestedFixes.push({
@@ -63,7 +63,7 @@ export class AutonomousMaintenanceService {
           title: 'Terminate Unauthorized Sessions',
           description: 'Forcefully disconnect all non-owner processes and reset sensitive tokens.',
           riskLevel: 'critical',
-          impact: 'High: Restores system integrity but logs out all users.'
+          impact: 'High: Restores system integrity but logs out all users.',
         });
         this.pendingFixes.set('kill_sessions', this.killActiveIntrusions);
       }
@@ -72,14 +72,15 @@ export class AutonomousMaintenanceService {
       if (!__DEV__) {
         const update = await Updates.checkForUpdateAsync();
         if (update.isAvailable) {
-          analysis.status = analysis.status === 'optimized' ? 'pending_authorization' : analysis.status;
+          analysis.status =
+            analysis.status === 'optimized' ? 'pending_authorization' : analysis.status;
           const manifest: any = update.manifest;
           analysis.suggestedFixes.push({
             id: 'apply_update',
             title: 'Apply Runtime Update',
             description: `A new system update (${manifest?.version || 'latest'}) is available.`,
             riskLevel: 'low',
-            impact: 'Medium: Requires app reload to apply changes.'
+            impact: 'Medium: Requires app reload to apply changes.',
           });
           this.pendingFixes.set('apply_update', async () => {
             await Updates.fetchUpdateAsync();
@@ -89,8 +90,8 @@ export class AutonomousMaintenanceService {
       }
 
       // 3. Environment Audit
-      if (!__DEV__ && (Constants.appConfig === null)) {
-        analysis.concerns.push("Vulnerability: Debugger attached in production-like environment.");
+      if (!__DEV__ && Constants.appConfig === null) {
+        analysis.concerns.push('Vulnerability: Debugger attached in production-like environment.');
         if (analysis.status === 'optimized') analysis.status = 'security_alert';
       }
 
@@ -103,7 +104,7 @@ export class AutonomousMaintenanceService {
 
         // SAFE THRESHOLD: Only recommend purge if > 100 items AND last purge > 7 days ago
         const lastPurge = await AsyncStorage.getItem('BIZREEL_LAST_PURGE');
-        const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
         const isStale = !lastPurge || parseInt(lastPurge) < sevenDaysAgo;
 
         if (totalSize > 100 && isStale) {
@@ -112,11 +113,11 @@ export class AutonomousMaintenanceService {
             title: 'Recommended: Optimize Storage',
             description: `Application has ${totalSize} cached items. Clearing cache can free up device space.`,
             riskLevel: 'low',
-            impact: 'Low: Clears transient data. User content is unaffected.'
+            impact: 'Low: Clears transient data. User content is unaffected.',
           });
           this.pendingFixes.set('purge_cache', async () => {
-             await this.purgeTransientData();
-             await AsyncStorage.setItem('BIZREEL_LAST_PURGE', Date.now().toString());
+            await this.purgeTransientData();
+            await AsyncStorage.setItem('BIZREEL_LAST_PURGE', Date.now().toString());
           });
         }
       }
@@ -125,41 +126,48 @@ export class AutonomousMaintenanceService {
       try {
         const { error } = await supabase.from('profiles').select('id').limit(1);
         if (error) {
-          analysis.concerns.push("Database link unstable or restricted.");
+          analysis.concerns.push('Database link unstable or restricted.');
           analysis.analytics.unstableLinks++;
           if (analysis.status === 'optimized') analysis.status = 'security_alert';
         }
       } catch (e) {
-         analysis.concerns.push("Database connection failure.");
-         analysis.analytics.unstableLinks++;
+        analysis.concerns.push('Database connection failure.');
+        analysis.analytics.unstableLinks++;
       }
 
       // 6. Log analysis for restricted access
       if (userId) {
         await IntelligenceService.trackActivity(userId, 'security_analysis_generated', {
           concerns: analysis.concerns.length,
-          threats: analysis.analytics.threatsDetected
+          threats: analysis.analytics.threatsDetected,
         });
       }
 
       return analysis;
     } catch (e) {
-      console.error("Analysis Error:", e);
-      return { ...analysis, status: 'security_alert', concerns: ["System analysis failed prematurely."] };
+      console.error('Analysis Error:', e);
+      return {
+        ...analysis,
+        status: 'security_alert',
+        concerns: ['System analysis failed prematurely.'],
+      };
     }
   }
 
   /**
    * Applies a fix only after explicit authorization.
    */
-  static async authorizeAndFix(fixId: string, isAdmin: boolean): Promise<{success: boolean, message: string}> {
+  static async authorizeAndFix(
+    fixId: string,
+    isAdmin: boolean,
+  ): Promise<{ success: boolean; message: string }> {
     if (!isAdmin) {
-      return { success: false, message: "Access Denied: Administrative authorization required." };
+      return { success: false, message: 'Access Denied: Administrative authorization required.' };
     }
 
     const fixAction = this.pendingFixes.get(fixId);
     if (!fixAction) {
-      return { success: false, message: "Fix ID not found or already processed." };
+      return { success: false, message: 'Fix ID not found or already processed.' };
     }
 
     try {
@@ -167,7 +175,10 @@ export class AutonomousMaintenanceService {
       this.pendingFixes.delete(fixId);
       return { success: true, message: `Action '${fixId}' executed successfully.` };
     } catch (e) {
-      return { success: false, message: `Failed to execute fix: ${e instanceof Error ? e.message : 'Unknown error'}` };
+      return {
+        success: false,
+        message: `Failed to execute fix: ${e instanceof Error ? e.message : 'Unknown error'}`,
+      };
     }
   }
 
@@ -178,7 +189,7 @@ export class AutonomousMaintenanceService {
 
   private static async killActiveIntrusions() {
     // Clear sensitive session data and force app reset for non-owners
-    console.log("SENTINEL: Killing unauthorized processes.");
+    console.log('SENTINEL: Killing unauthorized processes.');
   }
 
   /**
@@ -191,7 +202,11 @@ export class AutonomousMaintenanceService {
       const files = await FileSystem.readDirectoryAsync(cacheDir);
       for (const file of files) {
         // Only delete system cache, never user documents or generated content
-        if (!file.includes('ExponentExperienceData') && !file.endsWith('.pdf') && !file.endsWith('.jpg')) {
+        if (
+          !file.includes('ExponentExperienceData') &&
+          !file.endsWith('.pdf') &&
+          !file.endsWith('.jpg')
+        ) {
           await FileSystem.deleteAsync(cacheDir + file, { idempotent: true });
         }
       }
@@ -200,7 +215,7 @@ export class AutonomousMaintenanceService {
 
   static async getIntelligenceStatus() {
     const lastRun = await AsyncStorage.getItem(MAINTENANCE_KEY);
-    if (!lastRun) return "System Initializing...";
+    if (!lastRun) return 'System Initializing...';
     const hoursAgo = Math.floor((Date.now() - parseInt(lastRun)) / (1000 * 60 * 60));
     return `Optimized ${hoursAgo}h ago.`;
   }

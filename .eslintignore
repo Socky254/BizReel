@@ -1,0 +1,9 @@
+node_modules/
+android/
+ios/
+.expo/
+supabase/
+__tests__/
+SUPABASE_EDGE_FUNCTION_AI_GATEWAY.js
+intasend_integration/
+*.sql

@@ -25,13 +25,30 @@ const BizReelTheme = {
   },
 };
 
-const CustomFallback = (props: { error: Error, resetError: () => void }) => (
-  <View style={{ flex: 1, backgroundColor: '#050508', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-    <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>Oops! Something went wrong.</Text>
-    <Text style={{ color: '#aaa', textAlign: 'center', marginBottom: 20 }}>{props.error.toString()}</Text>
+const CustomFallback = (props: { error: Error; resetError: () => void }) => (
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: '#050508',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    }}
+  >
+    <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>
+      Oops! Something went wrong.
+    </Text>
+    <Text style={{ color: '#aaa', textAlign: 'center', marginBottom: 20 }}>
+      {props.error.toString()}
+    </Text>
     <TouchableOpacity
       onPress={props.resetError}
-      style={{ backgroundColor: '#00D084', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 }}
+      style={{
+        backgroundColor: '#00D084',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 10,
+      }}
     >
       <Text style={{ color: '#000', fontWeight: 'bold' }}>Try Again</Text>
     </TouchableOpacity>
@@ -51,18 +68,24 @@ export default function RootLayout() {
     // 1. Initial Session Check
     const init = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (mounted) {
           setSession(session);
           if (session?.user) {
-              setUser(session.user);
-              // Pre-fetch profile into store
-              const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-              if (data) setProfile(data);
+            setUser(session.user);
+            // Pre-fetch profile into store
+            const { data } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            if (data) setProfile(data);
           }
         }
       } catch (e) {
-        console.error("Auth Session Error:", e);
+        console.error('Auth Session Error:', e);
       } finally {
         if (mounted) {
           setIsReady(true);
@@ -74,7 +97,9 @@ export default function RootLayout() {
     init();
 
     // 2. Auth State Change Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (mounted) {
         setSession(session);
       }
@@ -100,7 +125,14 @@ export default function RootLayout() {
 
   if (!isReady) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#050508', justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#050508',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <ActivityIndicator color="#00D084" size="large" />
       </View>
     );
@@ -113,11 +145,13 @@ export default function RootLayout() {
         <VibrantBackground>
           <View style={{ flex: 1, backgroundColor: 'transparent' }}>
             <QueryClientProvider client={queryClient}>
-              <Stack screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: 'transparent' },
-                animation: 'fade'
-              }}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: 'transparent' },
+                  animation: 'fade',
+                }}
+              >
                 <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
                 <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
                 <Stack.Screen name="profile/follows" options={{ presentation: 'modal' }} />
@@ -129,4 +163,3 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
-

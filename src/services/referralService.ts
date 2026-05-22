@@ -3,12 +3,10 @@ import { supabase } from '../lib/supabase';
 export const referPost = async (postId: string, userId: string, postOwnerId: string) => {
   try {
     // 1. Create the referral entry
-    const { error: referralError } = await supabase
-      .from('reposts')
-      .insert({
-        post_id: postId,
-        user_id: userId
-      });
+    const { error: referralError } = await supabase.from('reposts').insert({
+      post_id: postId,
+      user_id: userId,
+    });
 
     if (referralError) throw referralError;
 
@@ -27,5 +25,5 @@ export const fetchReferrals = async (userId: string) => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data.map(item => item.posts);
+  return data.map((item) => item.posts);
 };

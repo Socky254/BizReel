@@ -7,7 +7,7 @@ export class RequestVerificationUseCase {
 
   async execute(userId: string, documentUri: string) {
     try {
-      if (!documentUri) throw new Error("A business document is required for verification.");
+      if (!documentUri) throw new Error('A business document is required for verification.');
 
       const request = await this.verificationRepo.submitRequest(userId, documentUri);
 

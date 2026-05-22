@@ -11,7 +11,7 @@ let LinearGradient: any;
 try {
   LinearGradient = require('expo-linear-gradient').LinearGradient;
 } catch (e) {
-  console.error("CRITICAL: expo-linear-gradient native module missing.", e);
+  console.error('CRITICAL: expo-linear-gradient native module missing.', e);
 }
 
 interface SafeLinearGradientProps extends ViewProps {

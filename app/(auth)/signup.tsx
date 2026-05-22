@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, ScrollView, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  ScrollView,
+  StatusBar,
+} from 'react-native';
 import { supabase, checkSupabaseConnection } from '../../src/core/network/supabase';
 import { useRouter, Link } from 'expo-router';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
@@ -28,7 +40,7 @@ export default function SignUpScreen() {
     if (!agreedToPolicy) {
       return Alert.alert(
         'Business Compliance Required',
-        'You must acknowledge that BizReel is a strictly professional platform.'
+        'You must acknowledge that BizReel is a strictly professional platform.',
       );
     }
 
@@ -39,8 +51,8 @@ export default function SignUpScreen() {
         options: {
           data: {
             business_name: businessName,
-          }
-        }
+          },
+        },
       });
       if (error) throw error;
       setOtpSent(true);
@@ -63,7 +75,7 @@ export default function SignUpScreen() {
       });
       if (error) throw error;
       Alert.alert('Success', 'Phone number verified!', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)') }
+        { text: 'OK', onPress: () => router.replace('/(tabs)') },
       ]);
     } catch (err) {
       Alert.alert('Verification Failed', err instanceof Error ? err.message : 'Invalid OTP');
@@ -73,12 +85,13 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
-    if (!email || !password || !businessName) return Alert.alert('Error', 'Please fill in all fields');
+    if (!email || !password || !businessName)
+      return Alert.alert('Error', 'Please fill in all fields');
 
     if (!agreedToPolicy) {
       return Alert.alert(
         'Business Compliance Required',
-        'You must acknowledge that BizReel is a strictly professional platform. Non-business content will be flagged and removed.'
+        'You must acknowledge that BizReel is a strictly professional platform. Non-business content will be flagged and removed.',
       );
     }
 
@@ -90,7 +103,7 @@ export default function SignUpScreen() {
       if (!connection.success) {
         Alert.alert(
           'Network Error',
-          `Cannot reach servers: ${connection.error}\n\nPlease check your internet connection and ensure your Supabase project is active.`
+          `Cannot reach servers: ${connection.error}\n\nPlease check your internet connection and ensure your Supabase project is active.`,
         );
         setLoading(false);
         return;
@@ -102,18 +115,16 @@ export default function SignUpScreen() {
         options: {
           data: {
             business_name: businessName,
-          }
-        }
+          },
+        },
       });
 
       if (error) {
         Alert.alert('Registration Failed', error.message);
       } else {
-        Alert.alert(
-          'Success',
-          'Verification email sent. Please check your inbox.',
-          [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
-        );
+        Alert.alert('Success', 'Verification email sent. Please check your inbox.', [
+          { text: 'OK', onPress: () => router.replace('/(auth)/login') },
+        ]);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -141,7 +152,9 @@ export default function SignUpScreen() {
             <ScrollView contentContainerStyle={styles.inner} showsVerticalScrollIndicator={false}>
               <Animated.View entering={FadeInDown.delay(200).duration(800)}>
                 <Text style={styles.title}>Partner With Us</Text>
-                <Text style={styles.subtitle}>Create your enterprise profile and reach millions of potential customers</Text>
+                <Text style={styles.subtitle}>
+                  Create your enterprise profile and reach millions of potential customers
+                </Text>
               </Animated.View>
 
               <View style={styles.methodToggle}>
@@ -149,13 +162,27 @@ export default function SignUpScreen() {
                   style={[styles.methodButton, authMethod === 'email' && styles.methodButtonActive]}
                   onPress={() => setAuthMethod('email')}
                 >
-                  <Text style={[styles.methodButtonText, authMethod === 'email' && styles.methodButtonTextActive]}>Email</Text>
+                  <Text
+                    style={[
+                      styles.methodButtonText,
+                      authMethod === 'email' && styles.methodButtonTextActive,
+                    ]}
+                  >
+                    Email
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.methodButton, authMethod === 'phone' && styles.methodButtonActive]}
                   onPress={() => setAuthMethod('phone')}
                 >
-                  <Text style={[styles.methodButtonText, authMethod === 'phone' && styles.methodButtonTextActive]}>Phone OTP</Text>
+                  <Text
+                    style={[
+                      styles.methodButtonText,
+                      authMethod === 'phone' && styles.methodButtonTextActive,
+                    ]}
+                  >
+                    Phone OTP
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -163,7 +190,12 @@ export default function SignUpScreen() {
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>LEGAL BUSINESS NAME</Text>
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="business-outline" size={20} color="#555" style={styles.inputIcon} />
+                    <Ionicons
+                      name="business-outline"
+                      size={20}
+                      color="#555"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       placeholder="Enterprise name"
                       placeholderTextColor="#444"
@@ -179,7 +211,12 @@ export default function SignUpScreen() {
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>OFFICIAL EMAIL</Text>
                       <View style={styles.inputWrapper}>
-                        <Ionicons name="mail-outline" size={20} color="#555" style={styles.inputIcon} />
+                        <Ionicons
+                          name="mail-outline"
+                          size={20}
+                          color="#555"
+                          style={styles.inputIcon}
+                        />
                         <TextInput
                           placeholder="admin@company.com"
                           placeholderTextColor="#444"
@@ -195,7 +232,12 @@ export default function SignUpScreen() {
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>SECURE PASSWORD</Text>
                       <View style={styles.inputWrapper}>
-                        <Ionicons name="lock-closed-outline" size={20} color="#555" style={styles.inputIcon} />
+                        <Ionicons
+                          name="lock-closed-outline"
+                          size={20}
+                          color="#555"
+                          style={styles.inputIcon}
+                        />
                         <TextInput
                           placeholder="Minimum 8 characters"
                           placeholderTextColor="#444"
@@ -209,7 +251,7 @@ export default function SignUpScreen() {
                           style={styles.eyeIcon}
                         >
                           <Ionicons
-                            name={showPassword ? "eye-off-outline" : "eye-outline"}
+                            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                             size={20}
                             color="#555"
                           />
@@ -222,7 +264,12 @@ export default function SignUpScreen() {
                     <View style={styles.inputGroup}>
                       <Text style={styles.label}>MOBILE NUMBER</Text>
                       <View style={styles.inputWrapper}>
-                        <Ionicons name="call-outline" size={20} color="#555" style={styles.inputIcon} />
+                        <Ionicons
+                          name="call-outline"
+                          size={20}
+                          color="#555"
+                          style={styles.inputIcon}
+                        />
                         <TextInput
                           placeholder="+254 700 000 000"
                           placeholderTextColor="#444"
@@ -238,7 +285,12 @@ export default function SignUpScreen() {
                       <View style={styles.inputGroup}>
                         <Text style={styles.label}>ENTER OTP</Text>
                         <View style={styles.inputWrapper}>
-                          <Ionicons name="key-outline" size={20} color="#555" style={styles.inputIcon} />
+                          <Ionicons
+                            name="key-outline"
+                            size={20}
+                            color="#555"
+                            style={styles.inputIcon}
+                          />
                           <TextInput
                             placeholder="6-digit code"
                             placeholderTextColor="#444"
@@ -260,13 +312,16 @@ export default function SignUpScreen() {
                     onPress={() => setAgreedToPolicy(!agreedToPolicy)}
                   >
                     <Ionicons
-                      name={agreedToPolicy ? "checkbox" : "square-outline"}
+                      name={agreedToPolicy ? 'checkbox' : 'square-outline'}
                       size={24}
-                      color={agreedToPolicy ? Colors.primary : "#555"}
+                      color={agreedToPolicy ? Colors.primary : '#555'}
                     />
                   </TouchableOpacity>
                   <Text style={styles.policyText}>
-                    I acknowledge BizReel is <Text style={styles.policyBold}>Strictly for Business</Text>. I understand that personal or non-commercial posts will be flagged and removed to maintain professional integrity.
+                    I acknowledge BizReel is{' '}
+                    <Text style={styles.policyBold}>Strictly for Business</Text>. I understand that
+                    personal or non-commercial posts will be flagged and removed to maintain
+                    professional integrity.
                   </Text>
                 </View>
 
@@ -290,10 +345,12 @@ export default function SignUpScreen() {
                       <Text style={styles.buttonText}>
                         {authMethod === 'email'
                           ? 'Initialize Account'
-                          : (!otpSent ? 'Send OTP' : 'Verify & Sign Up')}
+                          : !otpSent
+                            ? 'Send OTP'
+                            : 'Verify & Sign Up'}
                       </Text>
                       <Ionicons
-                        name={authMethod === 'email' ? "rocket-outline" : "chevron-forward-outline"}
+                        name={authMethod === 'email' ? 'rocket-outline' : 'chevron-forward-outline'}
                         size={20}
                         color="#000"
                       />
@@ -313,12 +370,15 @@ export default function SignUpScreen() {
 
                 <Link href="/(auth)/login" asChild>
                   <TouchableOpacity style={styles.link}>
-                    <Text style={styles.linkText}>Already Registered? <Text style={styles.linkHighlight}>Sign In</Text></Text>
+                    <Text style={styles.linkText}>
+                      Already Registered? <Text style={styles.linkHighlight}>Sign In</Text>
+                    </Text>
                   </TouchableOpacity>
                 </Link>
 
                 <Text style={styles.terms}>
-                  By proceeding, you agree to the BizReel <Text style={styles.termsLink}>Commercial Terms of Service</Text>
+                  By proceeding, you agree to the BizReel{' '}
+                  <Text style={styles.termsLink}>Commercial Terms of Service</Text>
                 </Text>
               </Animated.View>
             </ScrollView>
@@ -327,14 +387,22 @@ export default function SignUpScreen() {
       </SafeLinearGradient>
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#050508' },
   gradient: { flex: 1 },
   header: { paddingTop: 60, paddingHorizontal: 20 },
-  backButton: { width: 45, height: 45, borderRadius: 12, backgroundColor: 'rgba(5, 5, 8, 0.8)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
+  backButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    backgroundColor: 'rgba(5, 5, 8, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
   inner: { padding: 30, paddingBottom: 50 },
   title: { fontSize: 36, fontWeight: '900', color: '#fff', marginBottom: 10, letterSpacing: -0.5 },
   subtitle: { fontSize: 16, color: 'rgba(255, 255, 255, 0.5)', marginBottom: 40, lineHeight: 22 },
@@ -366,11 +434,27 @@ const styles = StyleSheet.create({
   },
   inputGroup: { marginBottom: 20 },
   label: { color: '#00D084', fontSize: 12, fontWeight: '800', marginBottom: 8, letterSpacing: 1 },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0E0E14', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)' },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0E0E14',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
   inputIcon: { marginLeft: 15 },
   input: { flex: 1, padding: 18, color: '#fff', fontSize: 16 },
   eyeIcon: { paddingRight: 15 },
-  button: { backgroundColor: '#00D084', padding: 20, borderRadius: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10, marginTop: 10 },
+  button: {
+    backgroundColor: '#00D084',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 10,
+  },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#000', fontSize: 17, fontWeight: '900' },
   resendOTP: {
@@ -385,7 +469,13 @@ const styles = StyleSheet.create({
   link: { marginTop: 30, alignItems: 'center' },
   linkText: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 14 },
   linkHighlight: { color: '#00D084', fontWeight: '800' },
-  terms: { marginTop: 40, textAlign: 'center', color: 'rgba(255, 255, 255, 0.2)', fontSize: 12, lineHeight: 18 },
+  terms: {
+    marginTop: 40,
+    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.2)',
+    fontSize: 12,
+    lineHeight: 18,
+  },
   termsLink: { color: 'rgba(255, 255, 255, 0.4)', textDecorationLine: 'underline' },
   policyContainer: {
     flexDirection: 'row',
@@ -411,5 +501,5 @@ const styles = StyleSheet.create({
   policyBold: {
     color: '#fff',
     fontWeight: '900',
-  }
+  },
 });

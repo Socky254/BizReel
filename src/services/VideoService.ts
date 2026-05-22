@@ -59,7 +59,7 @@ export class VideoService {
       await FileSystem.deleteAsync(VIDEO_CACHE_DIR, { idempotent: true });
       await this.ensureCacheDir();
     } catch (e) {
-      console.error("[VideoService] Cache clear error", e);
+      console.error('[VideoService] Cache clear error', e);
     }
   }
 }

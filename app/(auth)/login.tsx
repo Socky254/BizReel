@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, StatusBar, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  StatusBar,
+  Dimensions,
+} from 'react-native';
 import { supabase } from '../../src/lib/supabase';
 import { useRouter, Link } from 'expo-router';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
@@ -83,7 +95,10 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.inner}>
-              <Animated.View entering={FadeInDown.delay(200).duration(800)} style={styles.titleSection}>
+              <Animated.View
+                entering={FadeInDown.delay(200).duration(800)}
+                style={styles.titleSection}
+              >
                 <Image
                   source={require('../../assets/bizreel-logo.svg')}
                   style={{ width: 60, height: 60, marginBottom: 20 }}
@@ -97,7 +112,12 @@ export default function LoginScreen() {
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>CORPORATE EMAIL</Text>
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="mail-outline" size={20} color="#00D084" style={styles.inputIcon} />
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color="#00D084"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       placeholder="admin@enterprise.com"
                       placeholderTextColor="#444"
@@ -113,7 +133,12 @@ export default function LoginScreen() {
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>ACCESS KEY</Text>
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="lock-closed-outline" size={20} color="#00D084" style={styles.inputIcon} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color="#00D084"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       placeholder="••••••••"
                       placeholderTextColor="#444"
@@ -127,7 +152,7 @@ export default function LoginScreen() {
                       style={styles.eyeIcon}
                     >
                       <Ionicons
-                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                         size={20}
                         color="rgba(255,255,255,0.4)"
                       />
@@ -149,7 +174,7 @@ export default function LoginScreen() {
                     disabled={resending}
                   >
                     <Text style={styles.resendText}>
-                      {resending ? 'Sending...' : 'Didn\'t get the email? Resend verification'}
+                      {resending ? 'Sending...' : "Didn't get the email? Resend verification"}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -178,7 +203,10 @@ export default function LoginScreen() {
               </Animated.View>
             </View>
 
-            <Animated.View entering={FadeInDown.delay(600).duration(800)} style={styles.enterpriseBadge}>
+            <Animated.View
+              entering={FadeInDown.delay(600).duration(800)}
+              style={styles.enterpriseBadge}
+            >
               <Ionicons name="ribbon-outline" size={14} color="rgba(255,255,255,0.4)" />
               <Text style={styles.enterpriseText}>SECURED BY BIZREEL ENTERPRISE MESH</Text>
             </Animated.View>
@@ -187,7 +215,6 @@ export default function LoginScreen() {
       </SafeLinearGradient>
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({
@@ -209,7 +236,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)'
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   inner: { flex: 1, justifyContent: 'flex-end', padding: 30, paddingBottom: 40 },
   titleSection: { marginBottom: 35 },
@@ -217,7 +244,13 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 17, color: 'rgba(255, 255, 255, 0.5)', marginTop: 5 },
   form: { width: '100%' },
   inputGroup: { marginBottom: 20 },
-  label: { color: '#00D084', fontSize: 11, fontWeight: '800', marginBottom: 10, letterSpacing: 1.5 },
+  label: {
+    color: '#00D084',
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 10,
+    letterSpacing: 1.5,
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -225,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
-    height: 65
+    height: 65,
   },
   inputIcon: { marginLeft: 20 },
   input: { flex: 1, paddingHorizontal: 15, color: '#fff', fontSize: 16, fontWeight: '500' },
@@ -258,7 +291,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 15,
-    elevation: 8
+    elevation: 8,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#000', fontSize: 18, fontWeight: '900' },
@@ -271,7 +304,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginBottom: 30,
-    opacity: 0.5
+    opacity: 0.5,
   },
-  enterpriseText: { color: '#fff', fontSize: 10, fontWeight: '700', letterSpacing: 1 }
+  enterpriseText: { color: '#fff', fontSize: 10, fontWeight: '700', letterSpacing: 1 },
 });

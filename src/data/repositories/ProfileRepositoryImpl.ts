@@ -7,11 +7,15 @@ import { PostMapper } from '../mappers/PostMapper';
 export class ProfileRepositoryImpl implements IProfileRepository {
   async getProfile(id: string): Promise<Profile | null> {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
       if (error) throw error;
       return data ? ProfileMapper.toDomain(data) : null;
     } catch (e) {
-      console.error("ProfileRepo Error (getProfile):", e);
+      console.error('ProfileRepo Error (getProfile):', e);
       return null;
     }
   }
@@ -23,47 +27,63 @@ export class ProfileRepositoryImpl implements IProfileRepository {
 
   async getUserReels(userId: string): Promise<Post[]> {
     try {
-      const { data, error } = await supabase.from('posts').select('*, profiles(*)').eq('user_id', userId).order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*, profiles(*)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return PostMapper.toDomainList(data || []);
     } catch (e) {
-      console.error("ProfileRepo Error (getUserReels):", e);
+      console.error('ProfileRepo Error (getUserReels):', e);
       return [];
     }
   }
 
   async getLikedReels(userId: string): Promise<Post[]> {
     try {
-      const { data, error } = await supabase.from('likes').select('post_id, posts(*, profiles(*))').eq('user_id', userId).order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('likes')
+        .select('post_id, posts(*, profiles(*))')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       const rawPosts = (data || []).map((item: any) => item.posts).filter((p: any) => p !== null);
       return PostMapper.toDomainList(rawPosts);
     } catch (e) {
-      console.error("ProfileRepo Error (getLikedReels):", e);
+      console.error('ProfileRepo Error (getLikedReels):', e);
       return [];
     }
   }
 
   async getSavedReels(userId: string): Promise<Post[]> {
     try {
-      const { data, error } = await supabase.from('saved_posts').select('post_id, posts(*, profiles(*))').eq('user_id', userId).order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('saved_posts')
+        .select('post_id, posts(*, profiles(*))')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       const rawPosts = (data || []).map((item: any) => item.posts).filter((p: any) => p !== null);
       return PostMapper.toDomainList(rawPosts);
     } catch (e) {
-      console.error("ProfileRepo Error (getSavedReels):", e);
+      console.error('ProfileRepo Error (getSavedReels):', e);
       return [];
     }
   }
 
   async getReferrals(userId: string): Promise<Post[]> {
     try {
-      const { data, error } = await supabase.from('reposts').select('post_id, posts(*, profiles(*))').eq('user_id', userId).order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('reposts')
+        .select('post_id, posts(*, profiles(*))')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       const rawPosts = (data || []).map((item: any) => item.posts).filter((p: any) => p !== null);
       return PostMapper.toDomainList(rawPosts);
     } catch (e) {
-      console.error("ProfileRepo Error (getReferrals):", e);
+      console.error('ProfileRepo Error (getReferrals):', e);
       return [];
     }
   }
@@ -86,16 +106,20 @@ export class ProfileRepositoryImpl implements IProfileRepository {
 
     if (uploadError) throw uploadError;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('reels')
-      .getPublicUrl(fileName);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('reels').getPublicUrl(fileName);
 
     // 3. Create DB Record
-    const { data, error } = await supabase.from('posts').insert({
-      user_id: userId,
-      video_url: publicUrl,
-      caption: caption
-    }).select('*, profiles(*)').single();
+    const { data, error } = await supabase
+      .from('posts')
+      .insert({
+        user_id: userId,
+        video_url: publicUrl,
+        caption: caption,
+      })
+      .select('*, profiles(*)')
+      .single();
 
     if (error) throw error;
     return PostMapper.toDomain(data);
@@ -103,8 +127,14 @@ export class ProfileRepositoryImpl implements IProfileRepository {
 
   async getFollowStats(userId: string): Promise<{ followers: number; following: number }> {
     const [followersRes, followingRes] = await Promise.all([
-      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId),
-      supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId),
+      supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', userId),
+      supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', userId),
     ]);
     return {
       followers: followersRes.count || 0,
@@ -117,10 +147,10 @@ export class ProfileRepositoryImpl implements IProfileRepository {
     // Common businesses both users are "connected" to (following)
     const { data, error } = await supabase.rpc('get_mutual_connections_count', {
       user_id_a: userId1,
-      user_id_b: userId2
+      user_id_b: userId2,
     });
     if (error) {
-      console.error("Mutual Count Error:", error);
+      console.error('Mutual Count Error:', error);
       return 0;
     }
     return data || 0;
@@ -133,9 +163,11 @@ export class ProfileRepositoryImpl implements IProfileRepository {
   }
 
   async getAnalytics(userId: string): Promise<any> {
-    const { data, error } = await supabase.rpc('get_advanced_business_analytics', { target_user_id: userId });
+    const { data, error } = await supabase.rpc('get_advanced_business_analytics', {
+      target_user_id: userId,
+    });
     if (error) {
-      console.error("Advanced Analytics Error:", error);
+      console.error('Advanced Analytics Error:', error);
       return null;
     }
     return data;

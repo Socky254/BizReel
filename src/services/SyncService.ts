@@ -20,7 +20,11 @@ export class SyncService {
   /**
    * Enqueues an action with an idempotency key and attempts a silent background flush.
    */
-  static async enqueue(type: OfflineAction['type'], payload: any, actionType: OfflineAction['action'] = 'add') {
+  static async enqueue(
+    type: OfflineAction['type'],
+    payload: any,
+    actionType: OfflineAction['action'] = 'add',
+  ) {
     // IDEMPOTENCY KEY: Prevents duplicate processing (e.g., like_user123_post456)
     const idempotencyKey = `${type}_${payload.user_id}_${payload.post_id || payload.following_id || Math.random().toString(36).substr(2, 5)}`;
 
@@ -29,7 +33,7 @@ export class SyncService {
       type,
       action: actionType,
       payload,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     try {
@@ -37,7 +41,7 @@ export class SyncService {
       let queue: OfflineAction[] = queueStr ? JSON.parse(queueStr) : [];
 
       // DEDUPLICATION: Remove existing action with same ID before adding new state
-      queue = queue.filter(a => a.id !== idempotencyKey);
+      queue = queue.filter((a) => a.id !== idempotencyKey);
       queue.push(action);
 
       await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
@@ -45,7 +49,7 @@ export class SyncService {
       // Attempt background flush (In production, replace with WorkManager/TaskGraph equivalent)
       this.processQueue().catch(() => {});
     } catch (e) {
-      console.error("Sync Error:", e);
+      console.error('Sync Error:', e);
     }
   }
 
@@ -80,7 +84,7 @@ export class SyncService {
         setTimeout(() => this.processQueue(attempt + 1), delay);
       }
     } catch (e) {
-      console.error("Queue Processing Error:", e);
+      console.error('Queue Processing Error:', e);
     }
   }
 

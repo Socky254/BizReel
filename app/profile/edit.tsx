@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -21,7 +30,7 @@ export default function EditProfileScreen() {
     bio: '',
     location: '',
     working_hours: '',
-    avatar_url: ''
+    avatar_url: '',
   });
 
   useEffect(() => {
@@ -45,7 +54,7 @@ export default function EditProfileScreen() {
           bio: data.bio || '',
           location: data.location || '',
           working_hours: data.working_hours || '',
-          avatar_url: data.avatar_url || ''
+          avatar_url: data.avatar_url || '',
         });
       }
     } catch (e) {
@@ -80,9 +89,9 @@ export default function EditProfileScreen() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
       const { error: updateError } = await supabase
         .from('profiles')
@@ -92,9 +101,9 @@ export default function EditProfileScreen() {
       if (updateError) throw updateError;
 
       setProfile({ ...profile, avatar_url: publicUrl });
-      Alert.alert("Success", "Avatar updated!");
+      Alert.alert('Success', 'Avatar updated!');
     } catch (e: any) {
-      Alert.alert("Error", e.message);
+      Alert.alert('Error', e.message);
     } finally {
       setUpdating(false);
     }
@@ -110,15 +119,15 @@ export default function EditProfileScreen() {
           category: profile.category,
           bio: profile.bio,
           location: profile.location,
-          working_hours: profile.working_hours
+          working_hours: profile.working_hours,
         })
         .eq('id', session?.user?.id);
 
       if (error) throw error;
-      Alert.alert("Success", "Profile updated!");
+      Alert.alert('Success', 'Profile updated!');
       router.back();
     } catch (e: any) {
-      Alert.alert("Error", e.message);
+      Alert.alert('Error', e.message);
     } finally {
       setUpdating(false);
     }
@@ -141,7 +150,11 @@ export default function EditProfileScreen() {
           </TouchableOpacity>
           <Text style={styles.title}>Edit Profile</Text>
           <TouchableOpacity onPress={handleSave} disabled={updating}>
-            {updating ? <ActivityIndicator color="#00D084" /> : <Text style={styles.saveBtnText}>Save</Text>}
+            {updating ? (
+              <ActivityIndicator color="#00D084" />
+            ) : (
+              <Text style={styles.saveBtnText}>Save</Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -228,8 +241,20 @@ export default function EditProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  loadingContainer: { flex: 1, backgroundColor: '#050508', justifyContent: 'center', alignItems: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20 },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#050508',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
   backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   title: { color: '#fff', fontSize: 18, fontWeight: '900' },
   saveBtnText: { color: '#D4AF37', fontSize: 16, fontWeight: '900' },
@@ -238,10 +263,37 @@ const styles = StyleSheet.create({
   avatarContainer: { width: 100, height: 100, position: 'relative' },
   avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#D4AF37' },
   placeholder: { backgroundColor: '#1C1C24', justifyContent: 'center', alignItems: 'center' },
-  editBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#D4AF37', width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#000' },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#D4AF37',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
   changeAvatarText: { color: '#D4AF37', fontSize: 14, fontWeight: '700', marginTop: 15 },
   inputGroup: { marginBottom: 25 },
-  label: { color: '#555', fontSize: 12, fontWeight: '900', textTransform: 'uppercase', marginBottom: 10, letterSpacing: 1 },
-  input: { backgroundColor: '#0D0D12', borderRadius: 12, padding: 15, color: '#fff', fontSize: 15, borderWidth: 1, borderColor: '#1C1C24' },
-  textArea: { height: 100, textAlignVertical: 'top' }
+  label: {
+    color: '#555',
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    marginBottom: 10,
+    letterSpacing: 1,
+  },
+  input: {
+    backgroundColor: '#0D0D12',
+    borderRadius: 12,
+    padding: 15,
+    color: '#fff',
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: '#1C1C24',
+  },
+  textArea: { height: 100, textAlignVertical: 'top' },
 });

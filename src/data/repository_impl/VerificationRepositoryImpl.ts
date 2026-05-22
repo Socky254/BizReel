@@ -1,4 +1,7 @@
-import { IVerificationRepository, VerificationRequest } from '../../domain/repositories/IVerificationRepository';
+import {
+  IVerificationRepository,
+  VerificationRequest,
+} from '../../domain/repositories/IVerificationRepository';
 import { supabase } from '../../core/network/supabase';
 
 export class VerificationRepositoryImpl implements IVerificationRepository {
@@ -16,9 +19,9 @@ export class VerificationRepositoryImpl implements IVerificationRepository {
 
     if (uploadError) throw uploadError;
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('verification')
-      .getPublicUrl(fileName);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('verification').getPublicUrl(fileName);
 
     // 2. Create DB Entry
     const { data, error } = await supabase
@@ -26,7 +29,7 @@ export class VerificationRepositoryImpl implements IVerificationRepository {
       .insert({
         user_id: userId,
         business_doc_url: publicUrl,
-        status: 'pending'
+        status: 'pending',
       })
       .select('*')
       .single();

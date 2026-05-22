@@ -34,9 +34,10 @@ export async function registerForPushNotificationsAsync(userId: string) {
 
     try {
       // Robust Project ID fetching
-      const projectId = Constants.expoConfig?.extra?.eas?.projectId ||
-                        Constants.easConfig?.projectId ||
-                        '020ed245-4101-4c4f-8836-132f3a65d79b'; // Fallback to last known
+      const projectId =
+        Constants.expoConfig?.extra?.eas?.projectId ||
+        Constants.easConfig?.projectId ||
+        '020ed245-4101-4c4f-8836-132f3a65d79b'; // Fallback to last known
 
       token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
 

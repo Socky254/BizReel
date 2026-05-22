@@ -29,13 +29,13 @@ export class GetFeedUseCase {
       if (userId && posts.length > 0) {
         const rankedReels = await this.aiGateway.executeTask<any[]>('RECOMMENDATION', {
           userId,
-          candidateIds: posts.map(p => p.id)
+          candidateIds: posts.map((p) => p.id),
         });
 
         if (rankedReels) {
           return posts.sort((a, b) => {
-            const rankA = rankedReels.find(r => r.id === a.id)?.score || 0;
-            const rankB = rankedReels.find(r => r.id === b.id)?.score || 0;
+            const rankA = rankedReels.find((r) => r.id === a.id)?.score || 0;
+            const rankB = rankedReels.find((r) => r.id === b.id)?.score || 0;
             return rankB - rankA;
           });
         }
@@ -43,7 +43,7 @@ export class GetFeedUseCase {
 
       return posts;
     } catch (e) {
-      console.error("GetFeedUseCase Failure:", e);
+      console.error('GetFeedUseCase Failure:', e);
       return [];
     }
   }

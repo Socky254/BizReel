@@ -1,9 +1,22 @@
 import React, { useRef, useState, useEffect, memo, useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
 import { Video, ResizeMode, Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { FadeIn, useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { Colors } from '../core/theme/colors';
 
 import { Post } from '../domain/models';
@@ -78,20 +91,27 @@ export const EnterpriseReel = memo(({ item, isVisible, onInquiry, onPartner }: R
         <Animated.View entering={FadeIn.duration(600)} style={styles.content}>
           <View style={styles.businessHeader}>
             <TouchableOpacity style={styles.avatarWrapper}>
-                <Ionicons name="business" size={18} color={Colors.primary} />
+              <Ionicons name="business" size={18} color={Colors.primary} />
             </TouchableOpacity>
             <View>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.businessName}>{item.profiles?.business_name || 'Enterprise'}</Text>
-                    {item.profiles?.is_verified && (
-                        <Ionicons name="shield-checkmark" size={14} color={Colors.primary} style={{ marginLeft: 6 }} />
-                    )}
-                </View>
-                <Text style={styles.sectorText}>Verified Business Partner</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.businessName}>
+                  {item.profiles?.business_name || 'Enterprise'}
+                </Text>
+                {item.profiles?.is_verified && (
+                  <Ionicons
+                    name="shield-checkmark"
+                    size={14}
+                    color={Colors.primary}
+                    style={{ marginLeft: 6 }}
+                  />
+                )}
+              </View>
+              <Text style={styles.sectorText}>Verified Business Partner</Text>
             </View>
             <TouchableOpacity
-                style={styles.partnerButton}
-                onPress={() => onPartner?.(item.user_id)}
+              style={styles.partnerButton}
+              onPress={() => onPartner?.(item.user_id)}
             >
               <Text style={styles.partnerText}>PARTNER</Text>
             </TouchableOpacity>
@@ -111,10 +131,7 @@ export const EnterpriseReel = memo(({ item, isVisible, onInquiry, onPartner }: R
           <Text style={styles.actionLabel}>Connect</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => onInquiry?.(item.user_id)}
-        >
+        <TouchableOpacity style={styles.actionBtn} onPress={() => onInquiry?.(item.user_id)}>
           <View style={styles.iconCircle}>
             <Ionicons name="chatbubble-ellipses" size={26} color="#fff" />
           </View>

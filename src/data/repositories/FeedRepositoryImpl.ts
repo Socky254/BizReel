@@ -20,7 +20,7 @@ export class FeedRepositoryImpl implements IFeedRepository {
       // Use Mapper to transform DTO to Domain Model (Architecture Principle 3)
       return PostMapper.toDomainList(data || []);
     } catch (e) {
-      console.error("Data Layer Error: Falling back to empty state", e);
+      console.error('Data Layer Error: Falling back to empty state', e);
       return [];
     }
   }
@@ -44,7 +44,7 @@ export class FeedRepositoryImpl implements IFeedRepository {
       if (error) throw error;
       return (data || []) as Story[];
     } catch (e) {
-      console.error("FeedRepo Error (getStories):", e);
+      console.error('FeedRepo Error (getStories):', e);
       return [];
     }
   }

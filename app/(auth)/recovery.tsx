@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, Alert, StatusBar, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  StatusBar,
+  Dimensions,
+} from 'react-native';
 import { supabase } from '../../src/lib/supabase';
 import { useRouter } from 'expo-router';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
@@ -29,7 +41,7 @@ export default function RecoveryScreen() {
       Alert.alert(
         'Email Sent',
         'If an account exists for this email, you will receive a password reset link shortly.',
-        [{ text: 'Return to Login', onPress: () => router.back() }]
+        [{ text: 'Return to Login', onPress: () => router.back() }],
       );
     }
   };
@@ -45,10 +57,7 @@ export default function RecoveryScreen() {
         transition={1000}
       />
 
-      <SafeLinearGradient
-        colors={['rgba(0,0,0,0.6)', '#000']}
-        style={styles.gradient}
-      >
+      <SafeLinearGradient colors={['rgba(0,0,0,0.6)', '#000']} style={styles.gradient}>
         <SafeAreaView style={styles.safeArea}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -61,14 +70,21 @@ export default function RecoveryScreen() {
             <View style={styles.content}>
               <View style={styles.header}>
                 <Text style={styles.title}>Access Recovery</Text>
-                <Text style={styles.subtitle}>Enter your email to receive a secure restoration link</Text>
+                <Text style={styles.subtitle}>
+                  Enter your email to receive a secure restoration link
+                </Text>
               </View>
 
               <View style={styles.form}>
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>CORPORATE EMAIL</Text>
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="mail-outline" size={20} color="#00D084" style={styles.inputIcon} />
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color="#00D084"
+                      style={styles.inputIcon}
+                    />
                     <TextInput
                       placeholder="admin@enterprise.com"
                       placeholderTextColor="#444"
@@ -129,7 +145,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    marginBottom: 40
+    marginBottom: 40,
   },
   content: { flex: 1, justifyContent: 'center' },
   header: { marginBottom: 40 },
@@ -137,7 +153,13 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 17, color: 'rgba(255, 255, 255, 0.6)', marginTop: 10, lineHeight: 24 },
   form: { width: '100%' },
   inputGroup: { marginBottom: 30 },
-  label: { color: '#00D084', fontSize: 11, fontWeight: '800', marginBottom: 10, letterSpacing: 1.5 },
+  label: {
+    color: '#00D084',
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 10,
+    letterSpacing: 1.5,
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -145,7 +167,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    height: 65
+    height: 65,
   },
   inputIcon: { marginLeft: 20 },
   input: { flex: 1, paddingHorizontal: 15, color: '#fff', fontSize: 16, fontWeight: '500' },
@@ -161,7 +183,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 15,
-    elevation: 8
+    elevation: 8,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#000', fontSize: 18, fontWeight: '900' },
@@ -171,7 +193,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     opacity: 0.5,
-    paddingBottom: 20
+    paddingBottom: 20,
   },
-  footerText: { color: '#fff', fontSize: 10, fontWeight: '700', letterSpacing: 1 }
+  footerText: { color: '#fff', fontSize: 10, fontWeight: '700', letterSpacing: 1 },
 });

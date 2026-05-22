@@ -9,7 +9,7 @@ const supabaseUrl = rawUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  Logger.error("CRITICAL: Supabase environment variables are missing!");
+  Logger.error('CRITICAL: Supabase environment variables are missing!');
 }
 
 // Provide fallback values to prevent createClient from throwing on empty strings
@@ -29,7 +29,10 @@ export const supabase = createClient(finalUrl, finalKey, {
 export const checkSupabaseConnection = async () => {
   try {
     const start = Date.now();
-    const { data, error } = await supabase.from('profiles').select('count', { count: 'exact', head: true }).limit(0);
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('count', { count: 'exact', head: true })
+      .limit(0);
     const duration = Date.now() - start;
 
     if (error) {

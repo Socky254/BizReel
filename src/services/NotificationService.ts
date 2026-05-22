@@ -4,7 +4,14 @@ export interface Notification {
   id: string;
   receiver_id: string;
   sender_id: string;
-  type: 'like' | 'comment' | 'follow' | 'save' | 'order_paid' | 'live_started' | 'partner_connection';
+  type:
+    | 'like'
+    | 'comment'
+    | 'follow'
+    | 'save'
+    | 'order_paid'
+    | 'live_started'
+    | 'partner_connection';
   post_id?: string;
   is_read: boolean;
   created_at: string;

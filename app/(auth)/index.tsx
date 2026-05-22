@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
   withDelay,
   FadeInDown,
-  FadeIn
+  FadeIn,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -53,18 +53,13 @@ export default function WelcomeScreen() {
               <Text style={styles.brandName}>BIZREEL</Text>
             </Animated.View>
 
-            <Animated.Text
-              entering={FadeInDown.delay(500).duration(800)}
-              style={styles.title}
-            >
+            <Animated.Text entering={FadeInDown.delay(500).duration(800)} style={styles.title}>
               Elevate Your Business Presence
             </Animated.Text>
 
-            <Animated.Text
-              entering={FadeInDown.delay(700).duration(800)}
-              style={styles.subtitle}
-            >
-              The premium platform for modern entrepreneurs to showcase, connect, and grow through short-form video commerce.
+            <Animated.Text entering={FadeInDown.delay(700).duration(800)} style={styles.subtitle}>
+              The premium platform for modern entrepreneurs to showcase, connect, and grow through
+              short-form video commerce.
             </Animated.Text>
 
             <Animated.View
@@ -209,4 +204,3 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
 });
-

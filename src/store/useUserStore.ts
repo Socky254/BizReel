@@ -11,9 +11,10 @@ interface UserState {
 export const useUserStore = create<UserState>((set) => ({
   profile: null,
   isPremium: false,
-  setProfile: (profile) => set({
-    profile,
-    isPremium: profile?.tier === 'PRO' || profile?.tier === 'ENTERPRISE'
-  }),
+  setProfile: (profile) =>
+    set({
+      profile,
+      isPremium: profile?.tier === 'PRO' || profile?.tier === 'ENTERPRISE',
+    }),
   setPremium: (isPremium) => set({ isPremium }),
 }));

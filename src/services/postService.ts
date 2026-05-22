@@ -14,7 +14,7 @@ export const toggleLike = async (postId: string, userId: string, isLiked: boolea
   await SyncService.enqueue(
     'like',
     { post_id: postId, user_id: userId },
-    isLiked ? 'add' : 'remove'
+    isLiked ? 'add' : 'remove',
   );
 };
 
@@ -23,7 +23,7 @@ export const toggleSave = async (postId: string, userId: string, isSaved: boolea
   await SyncService.enqueue(
     'save',
     { post_id: postId, user_id: userId },
-    isSaved ? 'add' : 'remove'
+    isSaved ? 'add' : 'remove',
   );
 };
 

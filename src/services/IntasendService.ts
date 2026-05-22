@@ -16,20 +16,25 @@ export class IntasendService {
   /**
    * Triggers an M-Pesa STK Push via Supabase Edge Function
    */
-  static async initiateStkPush(amount: number, phone: string, userId: string, orderId?: string): Promise<StkPushResponse> {
+  static async initiateStkPush(
+    amount: number,
+    phone: string,
+    userId: string,
+    orderId?: string,
+  ): Promise<StkPushResponse> {
     const { data, error } = await supabase.functions.invoke('intasend-payments', {
       body: {
         action: 'stk-push',
         amount,
         phone: phone.startsWith('0') ? '254' + phone.substring(1) : phone, // Ensure 254 format
         userId,
-        orderId
-      }
+        orderId,
+      },
     });
 
     if (error) {
-        console.error("Intasend Service Error:", error);
-        throw new Error(error.message || "Failed to initiate payment");
+      console.error('Intasend Service Error:', error);
+      throw new Error(error.message || 'Failed to initiate payment');
     }
 
     return data;
@@ -44,7 +49,7 @@ export class IntasendService {
       p_user_id: userId,
       p_amount: amount,
       p_method: 'MPESA',
-      p_details: { phone }
+      p_details: { phone },
     });
 
     if (rpcError) throw rpcError;
@@ -56,8 +61,8 @@ export class IntasendService {
         amount,
         userId,
         phone,
-        transactionId
-      }
+        transactionId,
+      },
     });
 
     if (error) throw error;

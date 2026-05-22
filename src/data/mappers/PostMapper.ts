@@ -12,18 +12,20 @@ export class PostMapper {
       shares: raw.shares || 0,
       is_sponsored: raw.is_sponsored || false,
       created_at: raw.created_at,
-      profiles: raw.profiles ? {
-        id: raw.profiles.id,
-        username: raw.profiles.username,
-        business_name: raw.profiles.business_name,
-        avatar_url: raw.profiles.avatar_url,
-      } : undefined,
+      profiles: raw.profiles
+        ? {
+            id: raw.profiles.id,
+            username: raw.profiles.username,
+            business_name: raw.profiles.business_name,
+            avatar_url: raw.profiles.avatar_url,
+          }
+        : undefined,
       likes: raw.likes || [],
       comments: raw.comments || [],
     };
   }
 
   static toDomainList(rawList: any[]): Post[] {
-    return rawList.map(item => this.toDomain(item));
+    return rawList.map((item) => this.toDomain(item));
   }
 }

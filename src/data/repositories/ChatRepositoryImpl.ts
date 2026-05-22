@@ -15,7 +15,7 @@ export class ChatRepositoryImpl implements IChatRepository {
       if (error) throw error;
       return (data || []) as unknown as Message[];
     } catch (e) {
-      console.error("ChatRepo Error (getMessages):", e);
+      console.error('ChatRepo Error (getMessages):', e);
       return [];
     }
   }
@@ -24,7 +24,7 @@ export class ChatRepositoryImpl implements IChatRepository {
     const { error } = await supabase.from('messages').insert({
       sender_id: senderId,
       receiver_id: receiverId,
-      text: text.trim()
+      text: text.trim(),
     });
     if (error) throw error;
   }
@@ -32,11 +32,18 @@ export class ChatRepositoryImpl implements IChatRepository {
   subscribeToMessages(currentUserId: string, callback: (message: Message) => void): () => void {
     const subscription = supabase
       .channel('messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        if (payload.new.receiver_id === currentUserId || payload.new.sender_id === currentUserId) {
-          callback(payload.new as unknown as Message);
-        }
-      })
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        (payload) => {
+          if (
+            payload.new.receiver_id === currentUserId ||
+            payload.new.sender_id === currentUserId
+          ) {
+            callback(payload.new as unknown as Message);
+          }
+        },
+      )
       .subscribe();
 
     return () => {

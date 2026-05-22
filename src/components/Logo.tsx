@@ -20,10 +20,10 @@ export const Logo: React.FC<Props> = ({ size = 100 }) => {
         style={[styles.box, { borderRadius: size * 0.3 }]}
       >
         <View style={[styles.innerBox, { borderRadius: size * 0.25 }]}>
-            <Ionicons name="stats-chart" size={iconSize * 0.8} color="#00C853" />
-            <View style={styles.textOverlay}>
-                <Text style={[styles.letter, { fontSize: size * 0.2 }]}>B</Text>
-            </View>
+          <Ionicons name="stats-chart" size={iconSize * 0.8} color="#00C853" />
+          <View style={styles.textOverlay}>
+            <Text style={[styles.letter, { fontSize: size * 0.2 }]}>B</Text>
+          </View>
         </View>
       </SafeLinearGradient>
     </View>
@@ -73,5 +73,5 @@ const styles = StyleSheet.create({
   letter: {
     color: '#000',
     fontWeight: '900',
-  }
+  },
 });

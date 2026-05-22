@@ -19,7 +19,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       const remoteConfig = await ConfigService.fetchRemoteConfig();
       set({ config: remoteConfig, loading: false, safeMode: false });
     } catch (e) {
-      console.error("Critical Boot Error: Entering Safe Mode");
+      console.error('Critical Boot Error: Entering Safe Mode');
       set({ loading: false, safeMode: true });
     }
   },
@@ -27,5 +27,5 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     const config = get().config;
     if (!config) return false;
     return !!config[feature];
-  }
+  },
 }));

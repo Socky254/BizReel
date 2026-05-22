@@ -52,22 +52,22 @@ export default function SettingsScreen() {
           } catch (e) {
             Alert.alert('Error', 'Failed to sign out');
           }
-        }
-      }
+        },
+      },
     ]);
   };
 
   const togglePrivacy = async (val: boolean) => {
     setIsPrivate(val);
     if (session?.user?.id) {
-       await supabase.from('profiles').update({ is_private: val }).eq('id', session.user.id);
+      await supabase.from('profiles').update({ is_private: val }).eq('id', session.user.id);
     }
   };
 
   const toggleDownloads = async (val: boolean) => {
     setAllowDownloads(val);
     if (session?.user?.id) {
-       await supabase.from('profiles').update({ allow_downloads: val }).eq('id', session.user.id);
+      await supabase.from('profiles').update({ allow_downloads: val }).eq('id', session.user.id);
     }
   };
 
@@ -80,7 +80,11 @@ export default function SettingsScreen() {
         <Text style={styles.itemTitle}>{title}</Text>
         {subtitle && <Text style={styles.itemSubtitle}>{subtitle}</Text>}
       </View>
-      {rightElement ? rightElement : <Ionicons name="chevron-forward" size={18} color={Colors.border} />}
+      {rightElement ? (
+        rightElement
+      ) : (
+        <Ionicons name="chevron-forward" size={18} color={Colors.border} />
+      )}
     </TouchableOpacity>
   );
 
@@ -136,18 +140,40 @@ export default function SettingsScreen() {
           icon="lock-closed-outline"
           title="Private Account"
           subtitle="Only connections can see your reels"
-          rightElement={<Switch value={isPrivate} onValueChange={togglePrivacy} trackColor={{ false: Colors.surfaceElevated, true: Colors.primary }} />}
+          rightElement={
+            <Switch
+              value={isPrivate}
+              onValueChange={togglePrivacy}
+              trackColor={{ false: Colors.surfaceElevated, true: Colors.primary }}
+            />
+          }
         />
         <SettingItem
           icon="download-outline"
           title="Allow Downloads"
           subtitle="Let others save your reels to their device"
-          rightElement={<Switch value={allowDownloads} onValueChange={toggleDownloads} trackColor={{ false: Colors.surfaceElevated, true: Colors.primary }} />}
+          rightElement={
+            <Switch
+              value={allowDownloads}
+              onValueChange={toggleDownloads}
+              trackColor={{ false: Colors.surfaceElevated, true: Colors.primary }}
+            />
+          }
         />
 
         <Text style={styles.sectionTitle}>Content & Display</Text>
-        <SettingItem icon="notifications-outline" title="Notifications" subtitle="Push, Email, and SMS signals" />
-        <SettingItem icon="moon-outline" title="Dark Mode" rightElement={<Text style={{color: Colors.primary, fontWeight: '900', fontSize: 10}}>ACTIVE</Text>} />
+        <SettingItem
+          icon="notifications-outline"
+          title="Notifications"
+          subtitle="Push, Email, and SMS signals"
+        />
+        <SettingItem
+          icon="moon-outline"
+          title="Dark Mode"
+          rightElement={
+            <Text style={{ color: Colors.primary, fontWeight: '900', fontSize: 10 }}>ACTIVE</Text>
+          }
+        />
 
         <Text style={styles.sectionTitle}>Data & Support</Text>
         <SettingItem
@@ -165,24 +191,37 @@ export default function SettingsScreen() {
         <SettingItem
           icon="document-text-outline"
           title="Terms of Commerce"
-          onPress={() => Alert.alert("Standard Commercial Terms", "1. Professional Conduct: Users must represent businesses accurately.\n2. Transaction Transparency: BizReel facilitates connections; fulfillment is the responsibility of the business.\n3. Content Ownership: You retain rights to your reels but grant BizReel a license to display them to partners.")}
+          onPress={() =>
+            Alert.alert(
+              'Standard Commercial Terms',
+              '1. Professional Conduct: Users must represent businesses accurately.\n2. Transaction Transparency: BizReel facilitates connections; fulfillment is the responsibility of the business.\n3. Content Ownership: You retain rights to your reels but grant BizReel a license to display them to partners.',
+            )
+          }
         />
         <SettingItem
           icon="information-circle-outline"
           title="About BizReel"
-          onPress={() => Alert.alert("About BizReel", "Version 1.0.0\n\nThe ultimate B2B short-form video platform designed for professional networking and business growth.")}
+          onPress={() =>
+            Alert.alert(
+              'About BizReel',
+              'Version 1.0.0\n\nThe ultimate B2B short-form video platform designed for professional networking and business growth.',
+            )
+          }
         />
 
         <View style={styles.footer}>
-           <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
-             <Ionicons name="log-out-outline" size={20} color={Colors.error} />
-             <Text style={styles.signOutText}>Sign Out Executive</Text>
-           </TouchableOpacity>
+          <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+            <Ionicons name="log-out-outline" size={20} color={Colors.error} />
+            <Text style={styles.signOutText}>Sign Out Executive</Text>
+          </TouchableOpacity>
 
-           <Text style={styles.versionText}>BizReel Enterprise v1.0.0 (Production Build)</Text>
-           <TouchableOpacity style={styles.deleteBtn} onPress={() => Alert.alert("Delete Account", "Are you sure? This action is permanent.")}>
-             <Text style={styles.deleteText}>Delete Professional Account</Text>
-           </TouchableOpacity>
+          <Text style={styles.versionText}>BizReel Enterprise v1.0.0 (Production Build)</Text>
+          <TouchableOpacity
+            style={styles.deleteBtn}
+            onPress={() => Alert.alert('Delete Account', 'Are you sure? This action is permanent.')}
+          >
+            <Text style={styles.deleteText}>Delete Professional Account</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={{ height: 60 }} />
@@ -193,20 +232,81 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#050508' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
-  backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
   title: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: -0.5 },
   content: { flex: 1 },
-  sectionTitle: { color: Colors.textTertiary, fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.5, marginLeft: 20, marginTop: 35, marginBottom: 12 },
-  item: { flexDirection: 'row', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: Colors.border },
+  sectionTitle: {
+    color: Colors.textTertiary,
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginLeft: 20,
+    marginTop: 35,
+    marginBottom: 12,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.border,
+  },
   iconArea: { width: 40 },
   textArea: { flex: 1 },
   itemTitle: { color: Colors.textPrimary, fontSize: 15, fontWeight: '700' },
   itemSubtitle: { color: Colors.textSecondary, fontSize: 12, marginTop: 4, fontWeight: '600' },
   footer: { marginTop: 40, paddingHorizontal: 20 },
-  signOutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 18, backgroundColor: 'rgba(255,82,82,0.05)', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,82,82,0.1)' },
-  signOutText: { color: Colors.error, fontSize: 14, fontWeight: '900', marginLeft: 10, textTransform: 'uppercase', letterSpacing: 1 },
-  versionText: { color: Colors.textTertiary, fontSize: 10, fontWeight: '700', textAlign: 'center', marginTop: 25, letterSpacing: 0.5 },
+  signOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+    backgroundColor: 'rgba(255,82,82,0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,82,82,0.1)',
+  },
+  signOutText: {
+    color: Colors.error,
+    fontSize: 14,
+    fontWeight: '900',
+    marginLeft: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  versionText: {
+    color: Colors.textTertiary,
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 25,
+    letterSpacing: 0.5,
+  },
   deleteBtn: { alignItems: 'center', marginTop: 15 },
-  deleteText: { color: Colors.textTertiary, fontSize: 12, fontWeight: '700', textDecorationLine: 'underline' }
+  deleteText: {
+    color: Colors.textTertiary,
+    fontSize: 12,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
 });

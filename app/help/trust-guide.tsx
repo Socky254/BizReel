@@ -7,7 +7,15 @@ import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 export default function TrustGuideScreen() {
   const router = useRouter();
 
-  const GuideSection = ({ icon, title, content }: { icon: any, title: string, content: string }) => (
+  const GuideSection = ({
+    icon,
+    title,
+    content,
+  }: {
+    icon: any;
+    title: string;
+    content: string;
+  }) => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <View style={styles.iconCircle}>
@@ -34,7 +42,9 @@ export default function TrustGuideScreen() {
         <SafeLinearGradient colors={['#00D084', '#00A86B']} style={styles.heroCard}>
           <Ionicons name="shield-checkmark" size={48} color="#000" />
           <Text style={styles.heroTitle}>Your Business, Protected.</Text>
-          <Text style={styles.heroSubtitle}>How BizReel ensures secure commercial transactions.</Text>
+          <Text style={styles.heroSubtitle}>
+            How BizReel ensures secure commercial transactions.
+          </Text>
         </SafeLinearGradient>
 
         <GuideSection
@@ -80,18 +90,51 @@ export default function TrustGuideScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0D12' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#1C1C24' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1C1C24',
+  },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '900' },
   backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   scrollContent: { padding: 20 },
   heroCard: { padding: 30, borderRadius: 24, alignItems: 'center', marginBottom: 30 },
   heroTitle: { color: '#000', fontSize: 22, fontWeight: '900', marginTop: 15, textAlign: 'center' },
-  heroSubtitle: { color: 'rgba(0,0,0,0.7)', fontSize: 14, fontWeight: '600', marginTop: 8, textAlign: 'center', lineHeight: 20 },
+  heroSubtitle: {
+    color: 'rgba(0,0,0,0.7)',
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 8,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
   section: { marginBottom: 25 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  iconCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,208,132,0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,208,132,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
   sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
   sectionContent: { color: '#888', fontSize: 14, lineHeight: 22, paddingLeft: 48 },
-  ctaButton: { backgroundColor: '#00D084', padding: 18, borderRadius: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginTop: 10 },
-  ctaText: { color: '#000', fontSize: 16, fontWeight: '900' }
+  ctaButton: {
+    backgroundColor: '#00D084',
+    padding: 18,
+    borderRadius: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 10,
+  },
+  ctaText: { color: '#000', fontSize: 16, fontWeight: '900' },
 });

@@ -12,9 +12,9 @@ export default function TabLayout() {
     // In a real app, use @react-native-community/netinfo
     // Simulating a check or listener
     if (isOffline) {
-        Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start();
+      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start();
     } else {
-        Animated.timing(slideAnim, { toValue: -100, duration: 500, useNativeDriver: true }).start();
+      Animated.timing(slideAnim, { toValue: -100, duration: 500, useNativeDriver: true }).start();
     }
   }, [isOffline]);
 
@@ -50,63 +50,80 @@ export default function TabLayout() {
             fontWeight: '900',
             textTransform: 'uppercase',
             letterSpacing: 1.2,
-            marginTop: 6
+            marginTop: 6,
           },
-        }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Insights',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "stats-chart" : "stats-chart-outline"} size={22} color={color} />
-          ),
         }}
-      />
-      <Tabs.Screen
-        name="market"
-        options={{
-          title: 'Exchange',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "swap-horizontal" : "swap-horizontal-outline"} size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="upload"
-        options={{
-          title: 'Launch',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={styles.uploadBtn}>
-               <SafeLinearGradient
-                colors={focused ? ['#00D084', '#009661'] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
-                style={styles.uploadGradient}
-               >
-                 <Ionicons name="add" size={28} color={focused ? "#000" : "#fff"} />
-               </SafeLinearGradient>
-            </View>
-          ),
-        }}
-      />
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Insights',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'stats-chart' : 'stats-chart-outline'}
+                size={22}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="market"
+          options={{
+            title: 'Exchange',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'swap-horizontal' : 'swap-horizontal-outline'}
+                size={24}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="upload"
+          options={{
+            title: 'Launch',
+            tabBarIcon: ({ color, focused }) => (
+              <View style={styles.uploadBtn}>
+                <SafeLinearGradient
+                  colors={
+                    focused
+                      ? ['#00D084', '#009661']
+                      : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']
+                  }
+                  style={styles.uploadGradient}
+                >
+                  <Ionicons name="add" size={28} color={focused ? '#000' : '#fff'} />
+                </SafeLinearGradient>
+              </View>
+            ),
+          }}
+        />
 
-      <Tabs.Screen
-        name="inbox"
-        options={{
-          title: 'Signals',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "chatbubbles" : "chatbubbles-outline"} size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'HQ',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "business" : "business-outline"} size={22} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+        <Tabs.Screen
+          name="inbox"
+          options={{
+            title: 'Signals',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
+                size={22}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'HQ',
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? 'business' : 'business-outline'} size={22} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
     </View>
   );
 }
@@ -149,6 +166,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
 });
-

@@ -1,4 +1,8 @@
-import { ISearchRepository, SearchResult, MarketTrend } from '../../domain/repositories/ISearchRepository';
+import {
+  ISearchRepository,
+  SearchResult,
+  MarketTrend,
+} from '../../domain/repositories/ISearchRepository';
 import { supabase } from '../../core/network/supabase';
 
 export class SearchRepositoryImpl implements ISearchRepository {
@@ -8,7 +12,7 @@ export class SearchRepositoryImpl implements ISearchRepository {
       if (error) throw error;
       return (data || []) as SearchResult[];
     } catch (e) {
-      console.error("SearchRepo Error (globalSearch):", e);
+      console.error('SearchRepo Error (globalSearch):', e);
       return [];
     }
   }
@@ -19,7 +23,7 @@ export class SearchRepositoryImpl implements ISearchRepository {
       if (error) throw error;
       return (data || []) as MarketTrend[];
     } catch (e) {
-      console.error("SearchRepo Error (getTrends):", e);
+      console.error('SearchRepo Error (getTrends):', e);
       return [];
     }
   }

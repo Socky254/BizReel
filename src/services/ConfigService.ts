@@ -33,13 +33,13 @@ export class ConfigService {
         .eq('key', 'app_parameters')
         .maybeSingle();
 
-      if (error || !data) throw new Error("Cloud unreachable");
+      if (error || !data) throw new Error('Cloud unreachable');
 
       const config = { ...DEFAULT_CONFIG, ...data.value };
       await AsyncStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify(config));
       return config;
     } catch (e) {
-      console.warn("Using offline fallback config");
+      console.warn('Using offline fallback config');
       const cached = await AsyncStorage.getItem(CONFIG_CACHE_KEY);
       return cached ? JSON.parse(cached) : DEFAULT_CONFIG;
     }

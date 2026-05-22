@@ -14,7 +14,7 @@ export class FinanceRepositoryImpl {
       if (error) throw error;
       return data as Wallet;
     } catch (e) {
-      console.error("FinanceRepo Error (getWallet):", e);
+      console.error('FinanceRepo Error (getWallet):', e);
       return null;
     }
   }
@@ -30,7 +30,7 @@ export class FinanceRepositoryImpl {
       if (error) throw error;
       return (data || []) as Transaction[];
     } catch (e) {
-      console.error("FinanceRepo Error (getTransactions):", e);
+      console.error('FinanceRepo Error (getTransactions):', e);
       return [];
     }
   }
@@ -44,7 +44,7 @@ export class FinanceRepositoryImpl {
         amount: amount,
         type: 'purchase',
         status: 'pending',
-        provider: 'intasend'
+        provider: 'intasend',
       })
       .select()
       .single();
@@ -57,4 +57,3 @@ export class FinanceRepositoryImpl {
     return await IntasendService.requestWithdrawal(amount, userId, phone);
   }
 }
-

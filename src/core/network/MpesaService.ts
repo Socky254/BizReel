@@ -17,20 +17,22 @@ export class MpesaService {
    */
   static async initiateStkPush(phoneNumber: string, amount: number, reference: string) {
     try {
-      console.log(`[MPESA] Initiating ${this.IS_SANDBOX ? 'SANDBOX' : 'LIVE'} STK Push for ${phoneNumber}`);
+      console.log(
+        `[MPESA] Initiating ${this.IS_SANDBOX ? 'SANDBOX' : 'LIVE'} STK Push for ${phoneNumber}`,
+      );
 
       const response = await fetch(this.BASE_URL, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            // Auth header if needed for your edge function
+          'Content-Type': 'application/json',
+          // Auth header if needed for your edge function
         },
         body: JSON.stringify({
           phone: phoneNumber,
           amount: Math.round(amount), // M-Pesa requires whole numbers in some APIs
           reference: reference,
-          isSandbox: this.IS_SANDBOX
-        })
+          isSandbox: this.IS_SANDBOX,
+        }),
       });
 
       const result = await response.json();

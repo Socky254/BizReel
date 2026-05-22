@@ -24,8 +24,9 @@ export const Logger = {
   },
 
   perf: (metric: string, duration: number) => {
-    if (IS_DEV && duration > 100) { // Log slow operations
+    if (IS_DEV && duration > 100) {
+      // Log slow operations
       console.log(`[BIZREEL PERF] ${metric} took ${duration}ms`);
     }
-  }
+  },
 };

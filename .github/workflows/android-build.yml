@@ -1,9 +1,9 @@
 name: Android Build
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
@@ -32,10 +32,10 @@ jobs:
           npm install --legacy-peer-deps
           npx expo install --check
 
-      - name: "Health Check: Type Check"
+      - name: 'Health Check: Type Check'
         run: npm run type-check
 
-      - name: "Health Check: Lint"
+      - name: 'Health Check: Lint'
         run: npm run lint
 
       - name: Install SVG converter

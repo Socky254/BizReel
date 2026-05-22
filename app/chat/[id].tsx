@@ -1,5 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/Context/AuthContext';
@@ -32,14 +42,18 @@ export default function ChatScreen() {
 
       const subscription = supabase
         .channel(`chat:${id}`)
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `sender_id=eq.${id},receiver_id=eq.${session.user.id}`
-        }, (payload) => {
-          setMessages(prev => [payload.new, ...prev]);
-        })
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `sender_id=eq.${id},receiver_id=eq.${session.user.id}`,
+          },
+          (payload) => {
+            setMessages((prev) => [payload.new, ...prev]);
+          },
+        )
         .subscribe();
 
       return () => {
@@ -64,7 +78,9 @@ export default function ChatScreen() {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`and(sender_id.eq.${session?.user?.id},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${session?.user?.id})`)
+        .or(
+          `and(sender_id.eq.${session?.user?.id},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${session?.user?.id})`,
+        )
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -77,7 +93,6 @@ export default function ChatScreen() {
         .eq('sender_id', id)
         .eq('receiver_id', session?.user?.id)
         .eq('is_read', false);
-
     } catch (e) {
       console.error(e);
     } finally {
@@ -90,12 +105,20 @@ export default function ChatScreen() {
 
     // LEADS MONETIZATION LOGIC: If first message and it's a DEAL mode, deduct credit
     if (messages.length === 0 && mode === 'DEAL') {
-      const { data: profile } = await supabase.from('profiles').select('lead_credits, tier').eq('id', session?.user?.id).single();
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('lead_credits, tier')
+        .eq('id', session?.user?.id)
+        .single();
       if (profile && profile.lead_credits <= 0 && profile.tier === 'BASIC') {
-        Alert.alert("Lead Credits Empty", "You have used your 5 free business leads. Upgrade to PRO to unlock unlimited market connections.", [
-          { text: "Upgrade to PRO", onPress: () => router.push('/profile/settings') },
-          { text: "Cancel", style: 'cancel' }
-        ]);
+        Alert.alert(
+          'Lead Credits Empty',
+          'You have used your 5 free business leads. Upgrade to PRO to unlock unlimited market connections.',
+          [
+            { text: 'Upgrade to PRO', onPress: () => router.push('/profile/settings') },
+            { text: 'Cancel', style: 'cancel' },
+          ],
+        );
         return;
       }
       // Deduct credit
@@ -112,15 +135,15 @@ export default function ChatScreen() {
         .insert({
           sender_id: session?.user?.id,
           receiver_id: id,
-          text: messageText
+          text: messageText,
         })
         .select()
         .single();
 
       if (error) throw error;
-      setMessages(prev => [data, ...prev]);
+      setMessages((prev) => [data, ...prev]);
     } catch (e) {
-      Alert.alert("Error", "Failed to send message");
+      Alert.alert('Error', 'Failed to send message');
     } finally {
       setSending(false);
     }
@@ -138,11 +161,21 @@ export default function ChatScreen() {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.partnerInfo} onPress={() => router.push({ pathname: '/profile/[id]', params: { id: Array.isArray(id) ? id[0] : id } })}>
+          <TouchableOpacity
+            style={styles.partnerInfo}
+            onPress={() =>
+              router.push({
+                pathname: '/profile/[id]',
+                params: { id: Array.isArray(id) ? id[0] : id },
+              })
+            }
+          >
             {partner?.avatar_url ? (
               <Image source={{ uri: partner.avatar_url }} style={styles.avatar} />
             ) : (
-              <View style={styles.placeholderAvatar}><Text style={styles.avatarText}>B</Text></View>
+              <View style={styles.placeholderAvatar}>
+                <Text style={styles.avatarText}>B</Text>
+              </View>
             )}
             <View>
               <Text style={styles.partnerName}>{partner?.business_name || 'Business Partner'}</Text>
@@ -160,16 +193,20 @@ export default function ChatScreen() {
             <Image source={{ uri: post.video_url }} style={styles.dealThumbnail} />
             <View style={styles.dealInfo}>
               <Text style={styles.dealBadgeText}>SYNDICATE PROPOSAL</Text>
-              <Text style={styles.dealTitle} numberOfLines={1}>{post.caption || 'Business Opportunity'}</Text>
+              <Text style={styles.dealTitle} numberOfLines={1}>
+                {post.caption || 'Business Opportunity'}
+              </Text>
             </View>
             <View style={styles.dealAction}>
-               <Ionicons name="shield-checkmark" size={20} color={Colors.primary} />
+              <Ionicons name="shield-checkmark" size={20} color={Colors.primary} />
             </View>
           </View>
         )}
 
         {loading ? (
-          <View style={styles.center}><ActivityIndicator color="#00D084" /></View>
+          <View style={styles.center}>
+            <ActivityIndicator color="#00D084" />
+          </View>
         ) : (
           <FlatList
             ref={flatListRef}
@@ -184,7 +221,10 @@ export default function ChatScreen() {
                     {item.text}
                   </Text>
                   <Text style={[styles.messageTime, isMine ? styles.myTime : styles.theirTime]}>
-                    {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(item.created_at).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </Text>
                 </View>
               );
@@ -212,7 +252,11 @@ export default function ChatScreen() {
             onPress={handleSend}
             disabled={!text.trim() || sending}
           >
-            {sending ? <ActivityIndicator size="small" color="#000" /> : <Ionicons name="send" size={20} color="#000" />}
+            {sending ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <Ionicons name="send" size={20} color="#000" />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -222,31 +266,87 @@ export default function ChatScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 15, backgroundColor: 'rgba(0,0,0,0.3)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
   backBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   partnerInfo: { flex: 1, flexDirection: 'row', alignItems: 'center', marginLeft: 10 },
   avatar: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: '#1C1C24' },
-  placeholderAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1C1C24', justifyContent: 'center', alignItems: 'center' },
+  placeholderAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1C1C24',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   avatarText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   partnerName: { color: '#fff', fontSize: 16, fontWeight: '800', marginLeft: 12 },
-  partnerStatus: { color: '#00D084', fontSize: 11, fontWeight: '700', marginLeft: 12, marginTop: 2 },
+  partnerStatus: {
+    color: '#00D084',
+    fontSize: 11,
+    fontWeight: '700',
+    marginLeft: 12,
+    marginTop: 2,
+  },
   headerIcon: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   listContent: { padding: 20, paddingBottom: 40 },
   messageBubble: { maxWidth: '80%', padding: 16, borderRadius: 24, marginBottom: 15 },
   myBubble: { alignSelf: 'flex-end', backgroundColor: '#00D084', borderBottomRightRadius: 4 },
-  theirBubble: { alignSelf: 'flex-start', backgroundColor: '#1C1C24', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  theirBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#1C1C24',
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
   messageText: { fontSize: 15, lineHeight: 20 },
   myText: { color: '#000', fontWeight: '500' },
   theirText: { color: '#eee', fontWeight: '500' },
   messageTime: { fontSize: 10, marginTop: 6, fontWeight: '600' },
   myTime: { color: 'rgba(0,0,0,0.4)', textAlign: 'right' },
   theirTime: { color: '#444' },
-  inputContainer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 15, paddingVertical: 15, backgroundColor: '#050508', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)' },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 15,
+    paddingVertical: 15,
+    backgroundColor: '#050508',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
+  },
   attachBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  inputWrapper: { flex: 1, backgroundColor: '#111', borderRadius: 22, paddingHorizontal: 18, paddingVertical: 10, marginHorizontal: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  inputWrapper: {
+    flex: 1,
+    backgroundColor: '#111',
+    borderRadius: 22,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    marginHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
   input: { color: '#fff', fontSize: 15, maxHeight: 100 },
-  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#00D084', justifyContent: 'center', alignItems: 'center', shadowColor: '#00D084', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+  sendBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#00D084',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#00D084',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
   sendBtnDisabled: { backgroundColor: '#1C1C24', shadowOpacity: 0 },
   dealContext: {
     flexDirection: 'row',
@@ -257,31 +357,31 @@ const styles = StyleSheet.create({
     marginTop: 15,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0, 208, 132, 0.2)'
+    borderColor: 'rgba(0, 208, 132, 0.2)',
   },
   dealThumbnail: {
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#000'
+    backgroundColor: '#000',
   },
   dealInfo: {
     flex: 1,
-    marginLeft: 12
+    marginLeft: 12,
   },
   dealBadgeText: {
     color: '#00D084',
     fontSize: 9,
     fontWeight: '900',
-    letterSpacing: 1
+    letterSpacing: 1,
   },
   dealTitle: {
     color: '#fff',
     fontSize: 13,
     fontWeight: '600',
-    marginTop: 2
+    marginTop: 2,
   },
   dealAction: {
-    paddingLeft: 10
-  }
+    paddingLeft: 10,
+  },
 });
