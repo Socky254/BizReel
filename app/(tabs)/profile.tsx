@@ -8,7 +8,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { Colors } from '../../src/core/theme/colors';
-import { Post, Profile } from '../../src/domain/models';
+import { Post, Profile, Product } from '../../src/domain/models';
 import { container } from '../../src/di/Container';
 import { supabase } from '../../src/lib/supabase';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
