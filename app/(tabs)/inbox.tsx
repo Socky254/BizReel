@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/Context/AuthContext';
-import { VibrantBackground } from '../../src/components/VibrantBackground';
 
 export default function InboxScreen() {
   const { session } = useAuth();
@@ -195,7 +194,6 @@ export default function InboxScreen() {
   );
 
   return (
-    <VibrantBackground>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Inbox</Text>
@@ -233,7 +231,6 @@ export default function InboxScreen() {
           />
         )}
       </View>
-    </VibrantBackground>
   );
 }
 

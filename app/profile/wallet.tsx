@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, StatusBar, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { container } from '../../src/di/Container';
+import { supabase } from '../../src/lib/supabase';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { Wallet, Transaction } from '../../src/domain/models/Finance';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
@@ -18,7 +19,39 @@ export default function WalletScreen() {
 
   useEffect(() => {
     loadWalletData();
-  }, []);
+
+    if (session?.user?.id) {
+      // REAL-TIME WALLET & TRANSACTION SYNC
+      const walletChannel = supabase
+        .channel(`wallet_sync_${session.user.id}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'wallets',
+          filter: `user_id=eq.${session.user.id}`
+        }, () => {
+          loadWalletData();
+        })
+        .subscribe();
+
+      const txChannel = supabase
+        .channel(`tx_sync_${session.user.id}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+          filter: `user_id=eq.${session.user.id}`
+        }, () => {
+          loadWalletData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(walletChannel);
+        supabase.removeChannel(txChannel);
+      };
+    }
+  }, [session?.user?.id]);
 
   const loadWalletData = async () => {
     if (!session?.user?.id) return;

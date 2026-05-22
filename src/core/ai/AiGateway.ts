@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
  * to ensure security, cost control, and rate limiting.
  */
 
-export type AiTask = 'RECOMENDATION' | 'MODERATION' | 'CONTENT_GEN' | 'INSIGHTS';
+export type AiTask = 'RECOMMENDATION' | 'MODERATION' | 'CONTENT_GEN' | 'INSIGHTS';
 
 export class AiGateway {
     private static instance: AiGateway;

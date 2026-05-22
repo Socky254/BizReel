@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, ScrollView, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -16,6 +16,7 @@ export default function MarketScreen() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [trends, setTrends] = useState<MarketTrend[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -68,7 +69,7 @@ export default function MarketScreen() {
         key={item.label}
         style={styles.trendItem}
         onPress={() => {
-            if (item.trend_type === 'reel') router.push({ pathname: '/(tabs)', params: { initialPost: item.metadata?.id } });
+            if (item.trend_type === 'reel') router.push({ pathname: '/posts/[id]', params: { id: item.metadata?.id } });
             else setQuery(item.label);
         }}
       >
@@ -89,7 +90,7 @@ export default function MarketScreen() {
         if (item.entity_type === 'business') {
           router.push({ pathname: '/profile/[id]', params: { id: item.id } });
         } else if (item.entity_type === 'reel') {
-          router.push({ pathname: '/(tabs)', params: { initialPost: item.id } });
+          router.push({ pathname: '/posts/[id]', params: { id: item.id } });
         } else if (item.entity_type === 'product') {
           const businessId = item.metadata?.business_id;
           if (businessId) {
@@ -119,6 +120,15 @@ export default function MarketScreen() {
     </TouchableOpacity>
   );
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchTrends();
+    if (query.trim().length > 1) {
+        await performGlobalSearch();
+    }
+    setRefreshing(false);
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -139,7 +149,10 @@ export default function MarketScreen() {
       </View>
 
       {query.length <= 1 ? (
-        <ScrollView style={styles.trendsContainer}>
+        <ScrollView
+          style={styles.trendsContainer}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
+        >
           <View style={styles.trendsHeader}>
             <Text style={styles.trendsTitle}>Trends for you</Text>
             <Ionicons name="settings-outline" size={20} color={Colors.primary} />
@@ -152,7 +165,7 @@ export default function MarketScreen() {
           </View>
         </ScrollView>
       ) : (
-        loading ? (
+        loading && !refreshing ? (
           <View style={styles.center}><ActivityIndicator color={Colors.primary} /></View>
         ) : (
           <FlatList
@@ -160,6 +173,7 @@ export default function MarketScreen() {
             renderItem={renderResult}
             keyExtractor={(item, index) => item.id + index}
             contentContainerStyle={styles.list}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
           />
         )
       )}
@@ -168,7 +182,7 @@ export default function MarketScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { flexDirection: 'row', alignItems: 'center', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: Colors.surfaceElevated },
   backBtn: { marginRight: 15 },
   searchBar: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, paddingHorizontal: 12, height: 45, borderWidth: 1, borderColor: Colors.border },
@@ -176,7 +190,7 @@ const styles = StyleSheet.create({
   trendsContainer: { flex: 1 },
   trendsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: Colors.surfaceElevated },
   trendsTitle: { color: Colors.textPrimary, fontSize: 22, fontWeight: '900' },
-  trendsList: { borderBottomWidth: 10, borderBottomColor: Colors.background },
+  trendsList: { borderBottomWidth: 10, borderBottomColor: 'transparent' },
   trendItem: { padding: 22, borderBottomWidth: 1, borderBottomColor: Colors.surfaceElevated, backgroundColor: Colors.surface },
   trendHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   trendType: { color: Colors.primary, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },

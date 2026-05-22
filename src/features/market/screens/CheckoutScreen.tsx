@@ -163,7 +163,7 @@ export const CheckoutScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background },
+    container: { flex: 1, backgroundColor: 'transparent' },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: Colors.surfaceElevated },
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '900' },
     content: { padding: 20 },

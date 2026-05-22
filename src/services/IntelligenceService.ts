@@ -104,5 +104,22 @@ export class IntelligenceService {
         return 0;
     }
   }
+
+  /**
+   * Calls the AI Gateway Edge Function for RAG-based content generation or mentor responses.
+   */
+  static async getAIMentorResponse(userMessage: string): Promise<string> {
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-gateway', {
+        body: { task: 'CONTENT_GEN', payload: { userMessage } }
+      });
+      if (error) throw error;
+      return data.caption;
+    } catch (e) {
+      console.error('AI Mentor Error:', e);
+      return "I'm having trouble connecting to my central logic right now. Please try again.";
+    }
+  }
 }
+
 

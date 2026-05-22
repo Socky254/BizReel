@@ -37,6 +37,42 @@ export class UploadService {
         return postData;
     }
 
+    static async uploadStory(userId: string, videoUri: string) {
+        const filename = `${userId}/stories/${Date.now()}.mp4`;
+
+        // 1. Convert URI to Blob
+        const response = await fetch(videoUri);
+        const blob = await response.blob();
+        const arrayBuffer = await new Response(blob).arrayBuffer();
+
+        // 2. Upload to Storage (reusing 'reels' bucket or using 'stories' if defined)
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('reels')
+            .upload(filename, arrayBuffer, {
+                contentType: 'video/mp4',
+                upsert: false
+            });
+
+        if (uploadError) throw uploadError;
+
+        // 3. Get Public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('reels')
+            .getPublicUrl(filename);
+
+        // 4. Insert into DB
+        const { data: storyData, error: dbError } = await supabase.from('stories').insert({
+            user_id: userId,
+            media_url: publicUrl,
+            type: 'video',
+            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+        }).select().single();
+
+        if (dbError) throw dbError;
+
+        return storyData;
+    }
+
     static async startLiveSession(userId: string, title: string) {
         const { data: sessionId, error } = await supabase.rpc('start_live_session', {
             p_user_id: userId,

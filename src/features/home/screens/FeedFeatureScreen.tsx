@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, ViewToken, Text, StatusBar, TouchableOpacity, Platform } from 'react-native';
+import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, ViewToken, Text, StatusBar, TouchableOpacity, Platform, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { container } from '../../../di/Container';
@@ -7,7 +7,9 @@ import { Post } from '../../../domain/models';
 import { CommentsModal } from '../../../components/CommentsModal';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { ReelFeedItem } from '../components/ReelFeedItem';
+import { StoriesBar } from '../components/StoriesBar';
 import { Colors } from '../../../core/theme/colors';
+import { supabase } from '../../../lib/supabase';
 import Animated, { FadeIn, FadeInDown, useSharedValue, withRepeat, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 
 const { height, width } = Dimensions.get('window');
@@ -29,6 +31,7 @@ const PulseIndicator = () => {
 export const FeedFeatureScreen = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
     const { initialPost } = useLocalSearchParams();
@@ -44,12 +47,30 @@ export const FeedFeatureScreen = () => {
 
     const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
         if (viewableItems.length > 0) {
-            setActiveId(viewableItems[0].item.id);
+            const newActiveId = viewableItems[0].item.id;
+            setActiveId(newActiveId);
+            container.incrementViewUseCase.execute(newActiveId);
         }
     }).current;
 
     useEffect(() => {
         loadFeed();
+
+        // REAL-TIME FEED SYNC
+        const channel = supabase
+            .channel('market_feed_sync')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'posts'
+            }, () => {
+                loadFeed();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const loadFeed = async () => {
@@ -69,6 +90,12 @@ export const FeedFeatureScreen = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await loadFeed();
+        setRefreshing(false);
     };
 
     const handleOpenComments = useCallback((id: string) => {
@@ -106,65 +133,76 @@ export const FeedFeatureScreen = () => {
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+            <View style={styles.container}>
+                <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-            {/* PREMIUM ENTERPRISE HEADER */}
-            <Animated.View entering={FadeIn.duration(1000)} style={styles.header}>
-                <View>
-                    <Text style={styles.headerTitle}>BIZREEL</Text>
-                    <PulseIndicator />
+                {/* PREMIUM ENTERPRISE HEADER */}
+                <Animated.View entering={FadeIn.duration(1000)} style={styles.header}>
+                    <View>
+                        <Text style={styles.headerTitle}>BIZREEL</Text>
+                        <PulseIndicator />
+                    </View>
+                    <View style={styles.headerActions}>
+                        <TouchableOpacity
+                            style={styles.headerIconButton}
+                            onPress={() => router.push('/(tabs)/market')}
+                        >
+                            <Ionicons name="search-outline" size={22} color="#fff" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.headerIconButton}
+                            onPress={() => router.push('/profile')}
+                        >
+                            <Ionicons name="notifications-outline" size={22} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+
+                <View style={styles.storiesWrapper}>
+                    <StoriesBar />
                 </View>
-                <View style={styles.headerActions}>
-                    <TouchableOpacity
-                        style={styles.headerIconButton}
-                        onPress={() => router.push('/(tabs)/market')}
-                    >
-                        <Ionicons name="search-outline" size={22} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.headerIconButton}
-                        onPress={() => router.push('/profile')}
-                    >
-                        <Ionicons name="notifications-outline" size={22} color="#fff" />
-                    </TouchableOpacity>
-                </View>
-            </Animated.View>
 
-            <FlatList
-                data={posts}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                pagingEnabled
-                vertical
-                onViewableItemsChanged={onViewableItemsChanged}
-                viewabilityConfig={viewabilityConfig}
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={3}
-                windowSize={5}
-                showsVerticalScrollIndicator={false}
-                snapToInterval={height}
-                snapToAlignment="start"
-                decelerationRate="fast"
-                getItemLayout={(_, index) => ({
-                    length: height,
-                    offset: height * index,
-                    index,
-                })}
-            />
+                <FlatList
+                    data={posts}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item.id}
+                    pagingEnabled
+                    vertical
+                    onViewableItemsChanged={onViewableItemsChanged}
+                    viewabilityConfig={viewabilityConfig}
+                    removeClippedSubviews={true}
+                    maxToRenderPerBatch={3}
+                    windowSize={5}
+                    showsVerticalScrollIndicator={false}
+                    snapToInterval={height}
+                    snapToAlignment="start"
+                    decelerationRate="fast"
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={Colors.primary}
+                        />
+                    }
+                    getItemLayout={(_, index) => ({
+                        length: height,
+                        offset: height * index,
+                        index,
+                    })}
+                />
 
-            <CommentsModal
-                visible={commentModalVisible}
-                postId={selectedPostId}
-                session={session}
-                onClose={() => setCommentModalVisible(false)}
-            />
-        </View>
+                <CommentsModal
+                    visible={commentModalVisible}
+                    postId={selectedPostId}
+                    session={session}
+                    onClose={() => setCommentModalVisible(false)}
+                />
+            </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
+    container: { flex: 1, backgroundColor: 'transparent' },
     header: {
         position: 'absolute',
         top: Platform.OS === 'ios' ? 60 : 45,
@@ -175,6 +213,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 20,
+    },
+    storiesWrapper: {
+        position: 'absolute',
+        top: Platform.OS === 'ios' ? 120 : 105,
+        left: 0,
+        right: 0,
+        zIndex: 10,
     },
     headerTitle: {
         color: '#fff',

@@ -27,7 +27,7 @@ export class GetFeedUseCase {
 
       // 3. AI Ranking Layer (If user is authenticated)
       if (userId && posts.length > 0) {
-        const rankedReels = await this.aiGateway.executeTask<any[]>('RECOMENDATION', {
+        const rankedReels = await this.aiGateway.executeTask<any[]>('RECOMMENDATION', {
           userId,
           candidateIds: posts.map(p => p.id)
         });

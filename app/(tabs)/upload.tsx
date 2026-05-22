@@ -10,7 +10,7 @@ import { UploadService } from '../../src/features/upload/services/UploadService'
 
 const { width } = Dimensions.get('window');
 
-type UploadMode = 'SELECT' | 'POST_REEL' | 'START_LIVE';
+type UploadMode = 'SELECT' | 'POST_REEL' | 'POST_STORY' | 'START_LIVE';
 
 export default function UploadScreen() {
   const { user } = useAuthStore();
@@ -22,7 +22,7 @@ export default function UploadScreen() {
   const [uploading, setUploading] = useState(false);
   const [liveTitle, setLiveTitle] = useState('');
 
-  const pickVideo = async (useCamera: boolean = false) => {
+  const pickVideo = async (useCamera: boolean = false, isStory: boolean = false) => {
     const permission = useCamera
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -38,17 +38,42 @@ export default function UploadScreen() {
           allowsEditing: true,
           aspect: [9, 16],
           quality: 1,
+          videoMaxDuration: isStory ? 30 : 60,
         })
       : await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Videos,
           allowsEditing: true,
           aspect: [9, 16],
           quality: 1,
+          videoMaxDuration: isStory ? 30 : 60,
         });
 
     if (!result.canceled) {
       setVideo(result.assets[0].uri);
-      setMode('POST_REEL');
+      setMode(isStory ? 'POST_STORY' : 'POST_REEL');
+    }
+  };
+
+  const handlePostStory = async () => {
+    if (!video) return;
+
+    try {
+      setUploading(true);
+      if (!user?.id) throw new Error("Not authenticated");
+
+      await UploadService.uploadStory(user.id, video);
+
+      Alert.alert("Success", "Business Story Published!", [
+        { text: "OK", onPress: () => {
+          setVideo(null);
+          setMode('SELECT');
+          router.replace('/(tabs)');
+        }}
+      ]);
+    } catch (e: any) {
+      Alert.alert("Story Upload Failed", e.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -110,19 +135,27 @@ export default function UploadScreen() {
         </View>
 
         <View style={styles.optionsGrid}>
-            <TouchableOpacity style={styles.optionCard} onPress={() => pickVideo(true)}>
+            <TouchableOpacity style={styles.optionCard} onPress={() => pickVideo(true, false)}>
                 <View style={[styles.iconBox, { backgroundColor: 'rgba(0, 200, 83, 0.1)' }]}>
                     <Ionicons name="videocam" size={32} color={Colors.primary} />
                 </View>
-                <Text style={styles.optionLabel}>RECORD</Text>
+                <Text style={styles.optionLabel}>POST REEL</Text>
                 <Text style={styles.optionDesc}>Capture a fresh pitch</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.optionCard} onPress={() => pickVideo(false)}>
+            <TouchableOpacity style={styles.optionCard} onPress={() => pickVideo(false, true)}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 160, 0, 0.1)' }]}>
+                    <Ionicons name="flash" size={32} color="#FFA000" />
+                </View>
+                <Text style={styles.optionLabel}>BUSINESS STORY</Text>
+                <Text style={styles.optionDesc}>Quick 30s update</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.optionCard} onPress={() => pickVideo(false, false)}>
                 <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]}>
                     <Ionicons name="cloud-upload" size={32} color="#fff" />
                 </View>
-                <Text style={styles.optionLabel}>UPLOAD</Text>
+                <Text style={styles.optionLabel}>UPLOAD VIDEO</Text>
                 <Text style={styles.optionDesc}>Select from gallery</Text>
             </TouchableOpacity>
 
@@ -147,14 +180,18 @@ export default function UploadScreen() {
           </TouchableOpacity>
           <Text style={styles.title}>{mode === 'POST_REEL' ? 'New Reel' : 'Live Setup'}</Text>
           <TouchableOpacity
-            onPress={mode === 'POST_REEL' ? handlePostReel : handleStartLive}
+            onPress={
+                mode === 'POST_REEL' ? handlePostReel :
+                mode === 'POST_STORY' ? handlePostStory :
+                handleStartLive
+            }
             disabled={uploading}
           >
-             {uploading ? <ActivityIndicator color={Colors.primary} /> : <Text style={styles.postBtn}>{mode === 'POST_REEL' ? 'POST' : 'START'}</Text>}
+             {uploading ? <ActivityIndicator color={Colors.primary} /> : <Text style={styles.postBtn}>{mode === 'START_LIVE' ? 'START' : 'POST'}</Text>}
           </TouchableOpacity>
         </View>
 
-        {mode === 'POST_REEL' ? (
+        {(mode === 'POST_REEL' || mode === 'POST_STORY') ? (
           <>
             <View style={styles.videoPreviewContainer}>
                 {video && (
@@ -168,25 +205,33 @@ export default function UploadScreen() {
                     />
                 )}
             </View>
-            <View style={styles.inputArea}>
-                <Text style={styles.label}>Business Caption</Text>
-                <TextInput
-                    style={styles.captionInput}
-                    placeholder="Tell your partners about this..."
-                    placeholderTextColor={Colors.textTertiary}
-                    multiline
-                    value={caption}
-                    onChangeText={setCaption}
-                />
-                <Text style={styles.label}>Market Category</Text>
-                <TextInput
-                    style={styles.categoryInput}
-                    placeholder="e.g. Services, Manufacturing"
-                    placeholderTextColor={Colors.textTertiary}
-                    value={category}
-                    onChangeText={setCategory}
-                />
-            </View>
+            {mode === 'POST_REEL' && (
+                <View style={styles.inputArea}>
+                    <Text style={styles.label}>Business Caption</Text>
+                    <TextInput
+                        style={styles.captionInput}
+                        placeholder="Tell your partners about this..."
+                        placeholderTextColor={Colors.textTertiary}
+                        multiline
+                        value={caption}
+                        onChangeText={setCaption}
+                    />
+                    <Text style={styles.label}>Market Category</Text>
+                    <TextInput
+                        style={styles.categoryInput}
+                        placeholder="e.g. Services, Manufacturing"
+                        placeholderTextColor={Colors.textTertiary}
+                        value={category}
+                        onChangeText={setCategory}
+                    />
+                </View>
+            )}
+            {mode === 'POST_STORY' && (
+                <View style={styles.inputArea}>
+                    <Text style={[styles.label, {textAlign: 'center'}]}>Quick Business Update (Max 30s)</Text>
+                    <Text style={{color: Colors.textSecondary, textAlign: 'center', marginTop: 10}}>Stories expire after 24 hours.</Text>
+                </View>
+            )}
           </>
         ) : (
           <View style={styles.liveForm}>
@@ -211,7 +256,7 @@ export default function UploadScreen() {
 }
 
 const styles = StyleSheet.create({
-  selectionContainer: { flex: 1, backgroundColor: Colors.background, justifyContent: 'center', padding: 25 },
+  selectionContainer: { flex: 1, backgroundColor: 'transparent', justifyContent: 'center', padding: 25 },
   selHeader: { marginBottom: 40 },
   selTitle: { color: Colors.textPrimary, fontSize: 32, fontWeight: '900' },
   selSubtitle: { color: Colors.primary, fontSize: 14, fontWeight: '700', marginTop: 8 },
@@ -221,7 +266,7 @@ const styles = StyleSheet.create({
   iconBox: { width: 64, height: 64, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginRight: 20 },
   optionLabel: { color: Colors.textPrimary, fontSize: 18, fontWeight: '900', letterSpacing: 1 },
   optionDesc: { color: Colors.textSecondary, fontSize: 12, marginTop: 4, position: 'absolute', left: 104, bottom: 20 },
-  mainContainer: { flex: 1, backgroundColor: Colors.background },
+  mainContainer: { flex: 1, backgroundColor: 'transparent' },
   scrollContent: { paddingBottom: 50 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 60, paddingHorizontal: 20, marginBottom: 20 },
   title: { color: Colors.textPrimary, fontSize: 20, fontWeight: '900' },

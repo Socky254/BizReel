@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { View, StyleSheet, Dimensions, Text, TouchableOpacity, Pressable } from 'react-native';
+import { View, StyleSheet, Dimensions, Text, TouchableOpacity, Pressable, Vibration } from 'react-native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { Image } from 'expo-image';
 import { SafeLinearGradient } from '../../../components/SafeLinearGradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -15,7 +16,8 @@ import Animated, {
   withSequence,
   withTiming,
   useSharedValue,
-  FadeIn
+  FadeIn,
+  runOnJS
 } from 'react-native-reanimated';
 
 const { height, width } = Dimensions.get('window');
@@ -31,10 +33,14 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
     const { user } = useAuthStore();
     const [isPaused, setIsPaused] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [showLikeHeart, setShowLikeHeart] = useState(false);
+    const lastTap = useRef<number>(0);
     const videoRef = useRef<Video>(null);
 
     const pulse = useSharedValue(1);
+    const heartScale = useSharedValue(0);
     const videoSource = useMemo(() => ({ uri: item.video_url }), [item.video_url]);
 
     useEffect(() => {
@@ -73,6 +79,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
 
     const handleConnect = async () => {
         if (!user || item.user_id === user.id) return;
+        Vibration.vibrate(10);
         const newState = !isFollowing;
         setIsFollowing(newState);
 
@@ -80,6 +87,34 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
             await supabase.from('follows').insert({ follower_id: user.id, following_id: item.user_id });
         } else {
             await supabase.from('follows').delete().match({ follower_id: user.id, following_id: item.user_id });
+        }
+    };
+
+    const handleTap = () => {
+        const now = Date.now();
+        const DOUBLE_TAP_DELAY = 300;
+        if (lastTap.current && (now - lastTap.current) < DOUBLE_TAP_DELAY) {
+            handleDoubleTap();
+        } else {
+            setIsPaused(!isPaused);
+        }
+        lastTap.current = now;
+    };
+
+    const handleDoubleTap = async () => {
+        Vibration.vibrate(15);
+        setShowLikeHeart(true);
+        heartScale.value = withSequence(
+            withTiming(1.2, { duration: 150 }),
+            withTiming(1, { duration: 150 }),
+            withTiming(0, { duration: 500 }, () => {
+                runOnJS(setShowLikeHeart)(false);
+            })
+        );
+
+        // Trigger like via supabase
+        if (user) {
+            await supabase.from('likes').upsert({ post_id: item.id, user_id: user.id });
         }
     };
 
@@ -93,11 +128,16 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
         transform: [{ scale: pulse.value }],
     }));
 
+    const heartStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: heartScale.value }],
+        opacity: heartScale.value,
+    }));
+
     return (
         <View style={styles.postContainer}>
             <Pressable
                 style={styles.videoTouchable}
-                onPress={() => setIsPaused(!isPaused)}
+                onPress={handleTap}
             >
                 <Video
                     ref={videoRef}
@@ -106,7 +146,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                     resizeMode={ResizeMode.COVER}
                     shouldPlay={isVisible && !isPaused}
                     isLooping
-                    isMuted={false}
+                    isMuted={isMuted}
                     onPlaybackStatusUpdate={onPlaybackStatusUpdate}
                 />
 
@@ -117,6 +157,22 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                         </View>
                     </Animated.View>
                 )}
+
+                {showLikeHeart && (
+                    <Animated.View style={[styles.heartOverlay, heartStyle]}>
+                        <Ionicons name="heart" size={100} color="#00C853" />
+                    </Animated.View>
+                )}
+
+                <TouchableOpacity
+                    style={styles.muteBtn}
+                    onPress={() => {
+                        Vibration.vibrate(5);
+                        setIsMuted(!isMuted);
+                    }}
+                >
+                    <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={18} color="#fff" />
+                </TouchableOpacity>
             </Pressable>
 
             {/* GRADIENT OVERLAYS */}
@@ -126,6 +182,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                 style={styles.fullOverlay}
             />
 
+
             {/* FEED INFO & CAPTION */}
             <View style={styles.overlayBottom}>
                 <Animated.View entering={FadeIn.delay(300)} style={styles.businessRow}>
@@ -133,15 +190,35 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                         onPress={() => router.push({ pathname: '/profile/[id]', params: { id: item.user_id } })}
                         style={styles.profileInfo}
                     >
-                        <View style={styles.avatarPlaceholder}>
-                            <Text style={styles.avatarInitial}>
-                                {(item.profiles?.business_name || 'B').charAt(0).toUpperCase()}
-                            </Text>
+                        <View style={styles.avatarWrap}>
+                            {item.profiles?.avatar_url ? (
+                                <Image
+                                    source={{ uri: item.profiles.avatar_url }}
+                                    style={styles.avatarImg}
+                                    contentFit="cover"
+                                    transition={500}
+                                />
+                            ) : (
+                                <View style={styles.avatarPlaceholder}>
+                                    <Text style={styles.avatarInitial}>
+                                        {(item.profiles?.business_name || 'B').charAt(0).toUpperCase()}
+                                    </Text>
+                                </View>
+                            )}
+                            {item.profiles?.is_verified && (
+                                <View style={styles.verifiedBadgeMini}>
+                                    <Ionicons name="checkmark-circle" size={12} color={Colors.primary} />
+                                </View>
+                            )}
                         </View>
-                        <Text style={styles.businessName}>
-                            {item.profiles?.business_name || 'Premium Business'}
-                        </Text>
-                        <Ionicons name="checkmark-circle" size={16} color={Colors.primary} style={styles.verifiedIcon} />
+                        <View style={styles.businessTextInfo}>
+                            <Text style={styles.businessName}>
+                                {item.profiles?.business_name || 'Premium Business'}
+                            </Text>
+                            <View style={styles.sectorBadge}>
+                                <Text style={styles.sectorText}>{item.profiles?.category || 'Enterprise'}</Text>
+                            </View>
+                        </View>
                     </TouchableOpacity>
 
                     {user?.id !== item.user_id && (
@@ -215,6 +292,26 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.2)'
     },
+    heartOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    muteBtn: {
+        position: 'absolute',
+        top: 60,
+        right: 20,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)'
+    },
     overlayBottom: {
         position: 'absolute',
         bottom: 40,
@@ -229,21 +326,69 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1,
     },
+    avatarWrap: {
+        width: 44,
+        height: 44,
+        borderRadius: 15,
+        marginRight: 12,
+        position: 'relative',
+    },
+    avatarImg: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 15,
+        borderWidth: 1.5,
+        borderColor: 'rgba(255,255,255,0.2)',
+    },
     avatarPlaceholder: {
-        width: 36,
-        height: 36,
-        borderRadius: 12,
-        backgroundColor: 'rgba(0, 200, 83, 0.2)',
+        width: '100%',
+        height: '100%',
+        borderRadius: 15,
+        backgroundColor: 'rgba(0, 200, 83, 0.15)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 10,
-        borderWidth: 1,
+        borderWidth: 1.5,
         borderColor: 'rgba(0, 200, 83, 0.3)',
     },
     avatarInitial: {
         color: Colors.primary,
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '900',
+    },
+    verifiedBadgeMini: {
+        position: 'absolute',
+        bottom: -2,
+        right: -2,
+        backgroundColor: '#000',
+        borderRadius: 10,
+        padding: 1,
+    },
+    businessTextInfo: {
+        justifyContent: 'center',
+    },
+    businessName: {
+        color: Colors.textPrimary,
+        fontSize: 18,
+        fontWeight: '900',
+        letterSpacing: -0.5,
+        textShadowColor: 'rgba(0, 0, 0, 0.8)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
+    },
+    sectorBadge: {
+        backgroundColor: 'rgba(0, 200, 83, 0.1)',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginTop: 2,
+        alignSelf: 'flex-start',
+    },
+    sectorText: {
+        color: Colors.primary,
+        fontSize: 10,
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     businessRow: {
         flexDirection: 'row',
@@ -273,12 +418,6 @@ const styles = StyleSheet.create({
         fontWeight: '900',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
-    },
-    businessName: {
-        color: Colors.textPrimary,
-        fontSize: 17,
-        fontWeight: '900',
-        letterSpacing: -0.2,
     },
     caption: {
         color: 'rgba(255,255,255,0.9)',

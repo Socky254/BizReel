@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, Modal, TextInput, Alert, Linking, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { supabase } from '../../src/lib/supabase';
@@ -7,7 +7,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
 import { Image } from 'expo-image';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { VibrantBackground } from '../../src/components/VibrantBackground';
 
 export default function PublicProfileScreen() {
   const params = useLocalSearchParams();
@@ -38,6 +37,23 @@ export default function PublicProfileScreen() {
   useEffect(() => {
     if (id) {
       initPublicProfile();
+
+      // REAL-TIME RATINGS: Listen for review changes
+      const channel = supabase
+        .channel(`public_ratings_${id}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'reviews',
+          filter: `receiver_id=eq.${id}`
+        }, () => {
+          fetchRatings();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [id]);
 
@@ -188,14 +204,24 @@ export default function PublicProfileScreen() {
            <TouchableOpacity style={[styles.connectBtn, isFollowing && styles.connectedBtn]} onPress={toggleFollow}>
               <Text style={[styles.connectText, isFollowing && {color: '#fff'}]}>{isFollowing ? 'Connected' : 'Connect'}</Text>
            </TouchableOpacity>
-           <TouchableOpacity style={styles.catalogBtn} onPress={() => router.push({ pathname: '/profile/catalog', params: { id } })}>
-              <SafeLinearGradient colors={['#00D084', '#00A86B']} style={styles.catalogGradient}>
-                <Ionicons name="storefront" size={16} color="#000" />
-              </SafeLinearGradient>
-           </TouchableOpacity>
-           <TouchableOpacity style={styles.messageBtn} onPress={() => router.push({ pathname: '/chat/[id]', params: { id } })}>
-              <Ionicons name="chatbubble-outline" size={18} color="#fff" />
-           </TouchableOpacity>
+
+           <View style={styles.actionGroup}>
+               <TouchableOpacity style={styles.catalogBtn} onPress={() => router.push({ pathname: '/profile/catalog', params: { id } })}>
+                  <SafeLinearGradient colors={['#00D084', '#00A86B']} style={styles.catalogGradient}>
+                    <Ionicons name="storefront" size={18} color="#000" />
+                  </SafeLinearGradient>
+               </TouchableOpacity>
+
+               <TouchableOpacity style={styles.iconActionBtn} onPress={() => router.push({ pathname: '/chat/[id]', params: { id } })}>
+                  <Ionicons name="chatbubble-outline" size={20} color="#fff" />
+               </TouchableOpacity>
+
+               {profile?.phone && (
+                 <TouchableOpacity style={[styles.iconActionBtn, { backgroundColor: '#00D084' }]} onPress={() => Linking.openURL(`tel:${profile.phone}`)}>
+                    <Ionicons name="call" size={20} color="#000" />
+                 </TouchableOpacity>
+               )}
+           </View>
         </View>
 
         {profile?.bio && <Text style={styles.profileBio}>{profile.bio}</Text>}
@@ -225,8 +251,18 @@ export default function PublicProfileScreen() {
         )}
 
         <TouchableOpacity style={styles.trustBadge} onPress={() => !isOwnProfile && setShowReviewModal(true)}>
-           <Ionicons name="shield-checkmark" size={14} color="#FFCC00" />
-           <Text style={styles.trustText}>Trust Score: {averageRating > 0 ? averageRating.toFixed(1) : '5.0'}</Text>
+           <View style={styles.starsInline}>
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Ionicons
+                  key={s}
+                  name={s <= Math.round(averageRating) ? "star" : "star-outline"}
+                  size={16}
+                  color="#FFCC00"
+                />
+              ))}
+           </View>
+           <Text style={styles.trustText}>{averageRating > 0 ? averageRating.toFixed(1) : '5.0'} Trust Score</Text>
+           {!isOwnProfile && <Text style={styles.rateLink}>• Rate</Text>}
         </TouchableOpacity>
       </View>
 
@@ -258,7 +294,6 @@ export default function PublicProfileScreen() {
   }, [activeTab, reels, likedReels, referralReels, savedReels]);
 
   return (
-    <VibrantBackground>
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         <FlatList
@@ -267,7 +302,7 @@ export default function PublicProfileScreen() {
           ListHeaderComponent={renderHeader}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/(tabs)', params: { initialPost: item.id } })}>
+            <TouchableOpacity style={styles.gridItem} onPress={() => router.push({ pathname: '/posts/[id]', params: { id: item.id } })}>
                <Video source={{ uri: item.video_url }} style={styles.thumbnail} resizeMode={ResizeMode.COVER} shouldPlay={false} isMuted />
                <View style={styles.playOverlay}><Ionicons name="play" size={12} color="#fff" /></View>
             </TouchableOpacity>
@@ -326,12 +361,11 @@ export default function PublicProfileScreen() {
            </View>
         </Modal>
       </View>
-    </VibrantBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingTop: 60 },
   navBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
   navTitle: { color: '#fff', fontSize: 18, fontWeight: '800' },
@@ -349,13 +383,14 @@ const styles = StyleSheet.create({
   statValInline: { color: '#fff', fontSize: 18, fontWeight: '800' },
   statLabelInline: { color: '#777', fontSize: 12, fontWeight: '600', marginTop: 2 },
   statDivider: { width: 1, height: 15, backgroundColor: '#333' },
-  profileActionRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  connectBtn: { backgroundColor: '#00D084', paddingHorizontal: 40, paddingVertical: 12, borderRadius: 4, minWidth: 140, alignItems: 'center' },
+  profileActionRow: { flexDirection: 'row', gap: 8, marginBottom: 20, alignItems: 'center', width: '100%', paddingHorizontal: 10 },
+  connectBtn: { flex: 1, backgroundColor: '#00D084', height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   connectedBtn: { backgroundColor: '#1C1C24', borderWidth: 1, borderColor: '#2C2C34' },
-  connectText: { color: '#000', fontSize: 14, fontWeight: '900' },
-  catalogBtn: { width: 48, height: 48, borderRadius: 4, overflow: 'hidden' },
+  connectText: { color: '#000', fontSize: 14, fontWeight: '900', letterSpacing: 0.5 },
+  actionGroup: { flexDirection: 'row', gap: 8 },
+  catalogBtn: { width: 48, height: 48, borderRadius: 12, overflow: 'hidden' },
   catalogGradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  messageBtn: { width: 48, height: 48, borderRadius: 4, backgroundColor: '#1C1C24', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#2C2C34' },
+  iconActionBtn: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#1C1C24', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#2C2C34' },
   profileBio: { color: '#eee', fontSize: 14, textAlign: 'center', marginBottom: 15, paddingHorizontal: 20 },
   perfCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 16, padding: 15, width: '100%', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   perfRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 10 },
@@ -365,8 +400,10 @@ const styles = StyleSheet.create({
   perfDivider: { width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' },
   perfBadge: { alignSelf: 'center', backgroundColor: 'rgba(0,208,132,0.1)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: 'rgba(0,208,132,0.3)' },
   perfStatusText: { color: '#00D084', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
-  trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,204,0,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginBottom: 20 },
-  trustText: { color: '#FFCC00', fontSize: 11, fontWeight: '800' },
+  trustBadge: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,204,0,0.1)', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 24, marginBottom: 25, borderWidth: 1, borderColor: 'rgba(255,204,0,0.2)' },
+  starsInline: { flexDirection: 'row', gap: 2 },
+  trustText: { color: '#FFCC00', fontSize: 13, fontWeight: '900' },
+  rateLink: { color: '#FFCC00', fontSize: 12, fontWeight: '600', opacity: 0.8 },
   tabBar: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#1C1C24' },
   tab: { flex: 1, height: 50, justifyContent: 'center', alignItems: 'center' },
   activeTab: { borderBottomWidth: 2, borderBottomColor: '#fff' },

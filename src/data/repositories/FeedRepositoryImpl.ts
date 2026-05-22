@@ -1,5 +1,5 @@
 import { IFeedRepository } from '../../domain/repositories/IFeedRepository';
-import { Post } from '../../domain/models';
+import { Post, Story } from '../../domain/models';
 import { supabase } from '../../core/network/supabase';
 import { PostMapper } from '../mappers/PostMapper';
 
@@ -31,5 +31,21 @@ export class FeedRepositoryImpl implements IFeedRepository {
 
   async incrementView(postId: string): Promise<void> {
     await supabase.rpc('increment_view_count', { post_id: postId });
+  }
+
+  async getStories(userId?: string): Promise<Story[]> {
+    try {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*, profiles(*)')
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as Story[];
+    } catch (e) {
+      console.error("FeedRepo Error (getStories):", e);
+      return [];
+    }
   }
 }

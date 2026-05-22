@@ -7,6 +7,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../src/lib/queryClient';
 import * as SplashScreen from 'expo-splash-screen';
 import ErrorBoundary from 'react-native-error-boundary';
+import { VibrantBackground } from '../src/components/VibrantBackground';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -87,19 +88,21 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary FallbackComponent={CustomFallback}>
-      <View style={{ flex: 1, backgroundColor: '#000' }}>
-        <QueryClientProvider client={queryClient}>
-          <Stack screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#000' },
-            animation: 'fade'
-          }}>
-            <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
-            <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-            <Stack.Screen name="profile/follows" options={{ presentation: 'modal' }} />
-          </Stack>
-        </QueryClientProvider>
-      </View>
+      <VibrantBackground>
+        <View style={{ flex: 1, backgroundColor: 'transparent' }}>
+          <QueryClientProvider client={queryClient}>
+            <Stack screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: 'transparent' },
+              animation: 'fade'
+            }}>
+              <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
+              <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+              <Stack.Screen name="profile/follows" options={{ presentation: 'modal' }} />
+            </Stack>
+          </QueryClientProvider>
+        </View>
+      </VibrantBackground>
     </ErrorBoundary>
   );
 }

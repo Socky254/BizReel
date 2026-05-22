@@ -181,7 +181,51 @@ CREATE TABLE IF NOT EXISTS public.ai_memories (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Vector Similarity Search for AI Memories
+CREATE OR REPLACE FUNCTION match_memories (
+  query_embedding VECTOR(1536),
+  match_threshold FLOAT,
+  match_count INTEGER,
+  u_id UUID
+)
+RETURNS TABLE (
+  id UUID,
+  memory_key TEXT,
+  memory_value TEXT,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    ai_memories.id,
+    ai_memories.memory_key,
+    ai_memories.memory_value,
+    1 - (ai_memories.embedding <=> query_embedding) AS similarity
+  FROM ai_memories
+  WHERE ai_memories.user_id = u_id
+    AND 1 - (ai_memories.embedding <=> query_embedding) > match_threshold
+  ORDER BY ai_memories.embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
+
 -- 6. SYSTEM INFRASTRUCTURE
+CREATE TABLE IF NOT EXISTS public.transactions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    order_id UUID REFERENCES public.orders(id) ON DELETE SET NULL,
+    amount NUMERIC NOT NULL,
+    status TEXT DEFAULT 'pending', -- 'pending', 'completed', 'failed'
+    provider TEXT, -- 'intasend', 'internal'
+    provider_id TEXT UNIQUE,
+    fee_amount NUMERIC DEFAULT 0,
+    type TEXT, -- 'deposit', 'withdrawal', 'purchase', 'payout', 'sale'
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS public.system_events (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     event_type TEXT NOT NULL,
@@ -197,6 +241,15 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
   action TEXT NOT NULL,
   metadata JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.stories (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    media_url TEXT NOT NULL,
+    type TEXT DEFAULT 'video', -- 'video', 'image'
+    expires_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '24 hours'),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.live_sessions (
@@ -254,6 +307,21 @@ INSERT INTO public.system_config (key, value)
 VALUES ('app_parameters', '{"features": {"live_stream": true, "marketplace": true, "ai_mentor": true}, "limits": {"upload_max_mb": 50}, "rules": {"feed_ranking": "latest"}}')
 ON CONFLICT (key) DO NOTHING;
 
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  reviewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL NOT NULL,
+  receiver_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5) NOT NULL,
+  comment TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(reviewer_id, receiver_id)
+);
+
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read reviews" ON public.reviews FOR SELECT USING (true);
+CREATE POLICY "Users can review partners" ON public.reviews FOR INSERT WITH CHECK (auth.uid() = reviewer_id);
+CREATE POLICY "Users can update own review" ON public.reviews FOR UPDATE USING (auth.uid() = reviewer_id);
+
 -- Lead Credit Deduction
 CREATE OR REPLACE FUNCTION public.deduct_lead_credit(u_id UUID)
 RETURNS VOID AS $$
@@ -265,6 +333,37 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.deduct_lead_credit(UUID) TO authenticated;
+
+-- Increment Post Views
+CREATE OR REPLACE FUNCTION public.increment_view_count(post_id UUID)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE public.posts
+    SET views = views + 1
+    WHERE id = post_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.increment_view_count(UUID) TO authenticated, anon;
+
+-- Increment Post Shares
+CREATE OR REPLACE FUNCTION public.increment_shares(post_id_param UUID)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE public.posts
+    SET shares = shares + 1
+    WHERE id = post_id_param;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION match_memories(VECTOR(1536), FLOAT, INTEGER, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_shares(UUID) TO authenticated;
+
+-- SEED DATA: Example AI Memories (Run this manually in SQL Editor for your user_id)
+-- INSERT INTO public.ai_memories (user_id, memory_key, memory_value, importance_score)
+-- VALUES
+-- ('YOUR_USER_ID_HERE', 'Company Policy', 'Standard shipping time is 3-5 business days across East Africa.', 0.9),
+-- ('YOUR_USER_ID_HERE', 'Product Catalog Summary', 'We specialize in high-end office furniture and custom executive desks.', 0.8);
 
 -- 7. CORE SYSTEM FUNCTIONS (The "Engine")
 
@@ -547,9 +646,36 @@ CREATE POLICY "Users can update own avatars" ON storage.objects FOR UPDATE WITH 
 GRANT EXECUTE ON FUNCTION public.global_search(TEXT) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION public.process_checkout(UUID, UUID, JSONB, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.start_live_session(TEXT, UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_business_analytics(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_advanced_business_analytics(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_mutual_connections_count(UUID, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_partners_count(UUID) TO authenticated;
+
+-- AI-Driven Partner Recommendations
+CREATE OR REPLACE FUNCTION public.get_recommended_partners(u_id UUID)
+RETURNS TABLE (
+    id UUID,
+    business_name TEXT,
+    category TEXT,
+    avatar_url TEXT,
+    mutual_count INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.business_name,
+        p.category,
+        p.avatar_url,
+        public.get_mutual_connections_count(u_id, p.id) as mutual_count
+    FROM public.profiles p
+    WHERE p.id != u_id
+    AND NOT EXISTS (SELECT 1 FROM public.follows WHERE follower_id = u_id AND following_id = p.id)
+    ORDER BY mutual_count DESC, p.created_at DESC
+    LIMIT 10;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.get_recommended_partners(UUID) TO authenticated;
 
 -- H. Storage Bucket for Products
 -- Run this if the bucket doesn't exist
@@ -707,7 +833,7 @@ GRANT EXECUTE ON FUNCTION public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB) 
 -- Calculates business reliability based on reviews AND successful transaction cycles.
 
 CREATE OR REPLACE FUNCTION get_business_performance_index(target_user_id UUID)
-RETURNS JSONB AS 
+RETURNS JSONB AS $$
 DECLARE
     total_orders INTEGER;
     completed_orders INTEGER;
@@ -751,6 +877,6 @@ BEGIN
         END
     );
 END;
- LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.get_business_performance_index(UUID) TO authenticated, anon;

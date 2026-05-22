@@ -104,3 +104,13 @@ export interface LiveSession {
   ended_at?: string;
   profiles?: Profile;
 }
+
+export interface Story {
+  id: string;
+  user_id: string;
+  media_url: string;
+  type: 'video' | 'image';
+  expires_at: string;
+  created_at: string;
+  profiles?: Profile;
+}

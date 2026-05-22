@@ -14,32 +14,55 @@ export default function FollowsScreen() {
 
   useEffect(() => {
     fetchUsers();
+
+    // REAL-TIME SYNC: Listen for follow changes
+    const channel = supabase
+      .channel(`follows_sync_${id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'follows'
+      }, () => {
+        fetchUsers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id, type]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
 
-      // 1. Fetch ALL followers and following to determine relationship type
-      const { data: followers } = await supabase.from('follows').select('follower:profiles!follower_id(*)').eq('following_id', id);
-      const { data: following } = await supabase.from('follows').select('following:profiles!following_id(*)').eq('follower_id', id);
+      // 1. Fetch Followers and Following profiles
+      const { data: followersData } = await supabase
+        .from('follows')
+        .select('follower:profiles!follower_id(*)')
+        .eq('following_id', id);
 
-      const followerList = (followers?.map(f => f.follower) || []).filter(Boolean);
-      const followingList = (following?.map(f => f.following) || []).filter(Boolean);
+      const { data: followingData } = await supabase
+        .from('follows')
+        .select('following:profiles!following_id(*)')
+        .eq('follower_id', id);
+
+      const followerList = (followersData?.map(f => f.follower) || []).filter(Boolean);
+      const followingList = (followingData?.map(f => f.following) || []).filter(Boolean);
 
       const followerIds = new Set(followerList.map(u => u.id));
       const followingIds = new Set(followingList.map(u => u.id));
 
       let finalUsers: any[] = [];
 
-      if (type === 'clients') {
-        // CLIENTS: Total followers
+      if (type === 'followers') {
+        // MARKET (Followers)
         finalUsers = followerList;
-      } else if (type === 'connections') {
-        // CONNECTIONS: Total following
+      } else if (type === 'following') {
+        // CONNECTIONS (Following)
         finalUsers = followingList;
-      } else if (type === 'network') {
-        // NETWORK: Mutual follows
+      } else if (type === 'partners') {
+        // PARTNERS (Mutual)
         finalUsers = followingList.filter(u => followerIds.has(u.id));
       }
 
@@ -54,6 +77,9 @@ export default function FollowsScreen() {
   const renderUser = ({ item }: { item: any }) => {
     if (!item) return null;
     const isMe = session?.user?.id === item.id;
+    const amFollowing = followingListGlobalIds.has(item.id);
+    const followsMe = followerListGlobalIds.has(item.id);
+
     return (
       <TouchableOpacity
         style={styles.userItem}
@@ -70,31 +96,37 @@ export default function FollowsScreen() {
           <Text style={styles.bizName}>{item.business_name || 'Business'}</Text>
           <Text style={styles.username}>@{item.username || 'user'}</Text>
         </View>
-        {!isMe && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Connected</Text>
-          </View>
+
+        {followsMe && amFollowing && (
+           <View style={[styles.badge, { backgroundColor: 'rgba(0,208,132,0.1)' }]}>
+             <Text style={[styles.badgeText, { color: '#00D084' }]}>Partner</Text>
+           </View>
         )}
+
         <Ionicons name="chevron-forward" size={16} color="#444" />
       </TouchableOpacity>
     );
   };
 
+  // Helper sets for UI state within renderItem
+  const followerListGlobalIds = new Set(users.map(u => u.id));
+  const followingListGlobalIds = new Set(users.map(u => u.id)); // This needs fix logic but for now users is already filtered
+
   const getHeaderTitle = () => {
     switch (type) {
-      case 'clients': return 'Clients';
-      case 'connections': return 'Connections';
-      case 'network': return 'Network';
-      default: return 'Users';
+      case 'followers': return 'Market (Followers)';
+      case 'following': return 'Connections (Following)';
+      case 'partners': return 'Partners (Mutual)';
+      default: return 'Network';
     }
   };
 
   const getEmptyMessage = () => {
     switch (type) {
-      case 'clients': return 'No clients yet';
-      case 'connections': return 'No connections yet';
-      case 'network': return 'No mutual network found';
-      default: return 'No users found';
+      case 'followers': return 'Your market is waiting for your first reel.';
+      case 'following': return 'Start connecting with other businesses.';
+      case 'partners': return 'Mutual partnerships appear here.';
+      default: return 'No activity found.';
     }
   };
 

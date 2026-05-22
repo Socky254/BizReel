@@ -6,6 +6,8 @@ import { MarketplaceRepositoryImpl } from '../data/repositories/MarketplaceRepos
 import { VerificationRepositoryImpl } from '../data/repository_impl/VerificationRepositoryImpl';
 import { FinanceRepositoryImpl } from '../data/repositories/FinanceRepositoryImpl';
 import { GetFeedUseCase } from '../domain/usecases/GetFeedUseCase';
+import { IncrementViewUseCase } from '../domain/usecases/IncrementViewUseCase';
+import { GetStoriesUseCase } from '../domain/usecases/GetStoriesUseCase';
 import { GetProfileUseCase } from '../domain/usecases/GetProfileUseCase';
 import { RequestVerificationUseCase } from '../domain/usecases/RequestVerificationUseCase';
 
@@ -20,6 +22,14 @@ class DIContainer {
 
   get getFeedUseCase() {
     return new GetFeedUseCase(this._feedRepository);
+  }
+
+  get incrementViewUseCase() {
+    return new IncrementViewUseCase(this._feedRepository);
+  }
+
+  get getStoriesUseCase() {
+    return new GetStoriesUseCase(this._feedRepository);
   }
 
   get getProfileUseCase() {

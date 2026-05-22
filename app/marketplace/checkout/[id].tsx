@@ -7,6 +7,7 @@ import { container } from '../../../src/di/Container';
 import { useAuthStore } from '../../../src/store/useAuthStore';
 import { Product } from '../../../src/domain/models';
 import { ErrorHandler } from '../../../src/core/error_handler/ErrorHandler';
+import { SafeLinearGradient } from '../../../src/components/SafeLinearGradient';
 
 export default function CheckoutScreen() {
   const { id } = useLocalSearchParams();

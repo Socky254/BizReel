@@ -78,7 +78,6 @@ export const AiMentorScreen = () => {
     };
 
     const fetchMessages = async (sid: string) => {
-// ... existing code
         const { data } = await supabase
             .from('ai_mentor_messages')
             .select('*')
@@ -206,7 +205,7 @@ export const AiMentorScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#000' },
+    container: { flex: 1, backgroundColor: 'transparent' },
     header: { paddingTop: 60, paddingHorizontal: 25, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
     headerTitle: { color: '#fff', fontSize: 24, fontWeight: '900', letterSpacing: -1 },
     onlineStatus: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
