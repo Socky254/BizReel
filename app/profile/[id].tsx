@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, Modal, TextInput, Alert, Linking, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, Modal, TextInput, Alert, Linking, KeyboardAvoidingView, Platform, BackHandler } from 'react-native';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/Context/AuthContext';
@@ -35,6 +35,19 @@ export default function PublicProfileScreen() {
 
   const router = useRouter();
   const isOwnProfile = session?.user?.id === id;
+
+  useEffect(() => {
+    const backAction = () => {
+      if (activeTab !== 'PORTFOLIO') {
+        setActiveTab('PORTFOLIO');
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [activeTab]);
 
   useEffect(() => {
     if (id) {

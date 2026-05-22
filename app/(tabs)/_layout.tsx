@@ -27,6 +27,7 @@ export default function TabLayout() {
 
       <Tabs screenOptions={{
       headerShown: false,
+      backBehavior: 'history',
       tabBarStyle: {
         backgroundColor: 'rgba(5, 5, 8, 0.94)', // Obsidian glass
         borderTopWidth: 1,

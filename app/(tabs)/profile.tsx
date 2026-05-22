@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, ScrollView, RefreshControl, Dimensions, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, FlatList, ActivityIndicator, ScrollView, RefreshControl, Dimensions, Alert, Linking, BackHandler } from 'react-native';
 import { useAuth } from '../../src/Context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Video, ResizeMode } from 'expo-av';
@@ -128,6 +128,19 @@ export default function ProfileScreen() {
     await fetchData();
     setLoading(false);
   }, [fetchData]);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (activeTab !== 'PORTFOLIO') {
+        setActiveTab('PORTFOLIO');
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [activeTab]);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -324,7 +337,7 @@ export default function ProfileScreen() {
           <View style={styles.onlineBadge} />
         </View>
         <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/profile/settings')}>
-          <Ionicons name="settings-outline" size={22} color="#fff" />
+          <Ionicons name="reorder-four-outline" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
