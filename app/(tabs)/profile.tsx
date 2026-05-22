@@ -308,6 +308,10 @@ export default function ProfileScreen() {
 
   const renderHeader = () => (
     <View style={styles.header}>
+      <SafeLinearGradient
+        colors={['rgba(0, 200, 83, 0.15)', 'rgba(0,0,0,0)']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.navBar}>
         <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/cart')}>
           <Ionicons name="wallet-outline" size={20} color="#fff" />
@@ -316,8 +320,8 @@ export default function ProfileScreen() {
           <Text style={styles.navTitle}>{profile?.business_name?.toUpperCase() || 'ENTERPRISE PROFILE'}</Text>
           <View style={styles.onlineBadge} />
         </View>
-        <TouchableOpacity style={styles.iconCircle} onPress={showProfileMenu}>
-          <Ionicons name="menu-outline" size={24} color="#fff" />
+        <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/profile/settings')}>
+          <Ionicons name="settings-outline" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -361,17 +365,16 @@ export default function ProfileScreen() {
         {profile?.bio && <Text style={styles.bioText}>{profile.bio}</Text>}
 
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push('/profile/edit')}><Text style={styles.primaryBtnText}>MANAGE HQ</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.portfolioBtn} onPress={() => setActiveTab('REELS')}><Ionicons name="images-outline" size={18} color="#fff" /><Text style={styles.portfolioBtnText}>PORTFOLIO</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.primaryBtn} onPress={() => router.push('/profile/edit')}><Text style={styles.primaryBtnText}>EDIT PROFILE</Text></TouchableOpacity>
           <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.push({ pathname: '/profile/catalog', params: { id: session?.user?.id } })}><Ionicons name="grid-outline" size={18} color="#fff" /><Text style={styles.secondaryBtnText}>CATALOG</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setActiveTab('ANALYTICS')}><Ionicons name="analytics" size={20} color={activeTab === 'ANALYTICS' ? Colors.primary : "#fff"} /></TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.tabBar}>
-        <TabButton active={activeTab === 'REELS'} onPress={() => setActiveTab('REELS')} icon="apps-outline" label="PORTFOLIO" />
+        <TabButton active={activeTab === 'REELS'} onPress={() => setActiveTab('REELS')} icon="apps-outline" label="REELS" />
         <TabButton active={activeTab === 'REFER'} onPress={() => setActiveTab('REFER')} icon="trending-up-outline" label="EXPOSURE" />
-        <TabButton active={activeTab === 'ANALYTICS'} onPress={() => setActiveTab('ANALYTICS')} icon="podium-outline" label="INTEL" />
-        {(activeTab === 'LIKED' || activeTab === 'SAVED') && (<TabButton active={true} onPress={() => {}} icon="layers-outline" label={activeTab} />)}
+        <TabButton active={activeTab === 'SAVED'} onPress={() => setActiveTab('SAVED')} icon="bookmark-outline" label="SAVED" />
       </View>
     </View>
   );
@@ -452,13 +455,12 @@ const styles = StyleSheet.create({
   handle: { color: '#00D084', fontSize: 13, fontWeight: '700', marginTop: 4, opacity: 0.8 },
   bioText: { color: 'rgba(255,255,255,0.6)', fontSize: 14, lineHeight: 22, marginBottom: 20 },
   actionRow: { flexDirection: 'row', gap: 10, marginBottom: 15 },
-  primaryBtn: { flex: 3, backgroundColor: '#00D084', height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center', elevation: 5 },
-  primaryBtnText: { color: '#000', fontSize: 13, fontWeight: '900', letterSpacing: 1 },
-  portfolioBtn: { flex: 2, backgroundColor: 'rgba(255,255,255,0.08)', flexDirection: 'row', gap: 8, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  portfolioBtnText: { color: '#fff', fontSize: 11, fontWeight: '800' },
-  secondaryBtn: { flex: 2, backgroundColor: 'rgba(255,255,255,0.05)', flexDirection: 'row', gap: 8, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  primaryBtn: { flex: 2, backgroundColor: 'rgba(255,255,255,0.1)', height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  primaryBtnText: { color: '#fff', fontSize: 13, fontWeight: '800', letterSpacing: 0.5 },
+  secondaryBtn: { flex: 2, backgroundColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', gap: 8, height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
   secondaryBtnText: { color: '#fff', fontSize: 11, fontWeight: '800' },
-  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)', backgroundColor: 'rgba(0,0,0,0.3)' },
+  iconBtn: { width: 44, height: 44, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)', backgroundColor: 'rgba(0,0,0,0.3)', marginTop: 10 },
   tab: { flex: 1, height: 60, justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: 2 },
   activeTab: { borderBottomWidth: 2, borderBottomColor: '#00D084' },
   tabLabel: { color: '#00D084', fontSize: 8, fontWeight: '900', letterSpacing: 0.5 },

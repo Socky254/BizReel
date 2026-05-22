@@ -151,12 +151,6 @@ export const FeedFeatureScreen = () => {
                         >
                             <Ionicons name="search-outline" size={22} color="#fff" />
                         </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.headerIconButton}
-                            onPress={() => router.push('/profile')}
-                        >
-                            <Ionicons name="notifications-outline" size={22} color="#fff" />
-                        </TouchableOpacity>
                     </View>
                 </Animated.View>
 

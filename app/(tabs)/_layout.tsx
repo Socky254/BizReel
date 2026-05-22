@@ -28,9 +28,9 @@ export default function TabLayout() {
       <Tabs screenOptions={{
       headerShown: false,
       tabBarStyle: {
-        backgroundColor: 'rgba(0,0,0,0.85)',
+        backgroundColor: 'rgba(10, 10, 15, 0.95)',
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.08)',
+        borderTopColor: 'rgba(255,255,255,0.1)',
         height: 90,
         paddingBottom: 35,
         paddingTop: 12,
@@ -38,12 +38,16 @@ export default function TabLayout() {
         bottom: 0,
         left: 0,
         right: 0,
-        elevation: 0,
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
       },
       tabBarActiveTintColor: '#00C853',
-      tabBarInactiveTintColor: 'rgba(255,255,255,0.3)',
-      tabBarLabelStyle: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 },
-      sceneContainerStyle: { backgroundColor: 'transparent' },
+      tabBarInactiveTintColor: 'rgba(255,255,255,0.5)',
+      tabBarLabelStyle: { fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1.2, marginTop: 4 },
+      sceneContainerStyle: { backgroundColor: '#000' },
     }}>
       <Tabs.Screen
         name="index"

@@ -171,16 +171,6 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                         <Ionicons name="heart" size={100} color="#00C853" />
                     </Animated.View>
                 )}
-
-                <TouchableOpacity
-                    style={styles.muteBtn}
-                    onPress={() => {
-                        Vibration.vibrate(5);
-                        setIsMuted(!isMuted);
-                    }}
-                >
-                    <Ionicons name={isMuted ? "volume-mute" : "volume-high"} size={18} color="#fff" />
-                </TouchableOpacity>
             </Pressable>
 
             {/* GRADIENT OVERLAYS */}

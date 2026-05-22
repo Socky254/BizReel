@@ -104,7 +104,20 @@ export const CommentsModal = ({ visible, postId, onClose, session }: any) => {
                 const isEditing = editingId === item.id;
 
                 return (
-                  <View style={styles.commentItem}>
+                  <TouchableOpacity
+                    style={styles.commentItem}
+                    onLongPress={() => {
+                      if (isMine) {
+                        Alert.alert("Comment Options", "What would you like to do?", [
+                          { text: "Edit", onPress: () => { setEditingId(item.id); setEditText(item.content); } },
+                          { text: "Delete", style: 'destructive', onPress: () => deleteComment(item.id) },
+                          { text: "Cancel", style: "cancel" }
+                        ]);
+                      }
+                    }}
+                    delayLongPress={500}
+                    activeOpacity={0.7}
+                  >
                     <Image source={{ uri: item.profiles?.avatar_url }} style={styles.commentAvatar} />
                     <View style={{ flex: 1, marginLeft: 12 }}>
                       <Text style={styles.commentUser}>{item.profiles?.business_name || item.profiles?.username}</Text>
@@ -133,16 +146,6 @@ export const CommentsModal = ({ visible, postId, onClose, session }: any) => {
                               {new Date(item.created_at).toLocaleDateString()}
                               {item.edited_at && " (edited)"}
                             </Text>
-                            {isMine && (
-                              <View style={{flexDirection: 'row', gap: 15}}>
-                                <TouchableOpacity onPress={() => { setEditingId(item.id); setEditText(item.content); }}>
-                                  <Text style={styles.actionText}>Edit</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => deleteComment(item.id)}>
-                                  <Text style={[styles.actionText, {color: '#FF3B3B'}]}>Delete</Text>
-                                </TouchableOpacity>
-                              </View>
-                            )}
                           </View>
                         </>
                       )}
@@ -151,7 +154,7 @@ export const CommentsModal = ({ visible, postId, onClose, session }: any) => {
                       <Ionicons name={isLiked ? "heart" : "heart-outline"} size={16} color={isLiked ? "#FF3B30" : "#444"} />
                       <Text style={styles.likeCount}>{item.comment_likes?.length || 0}</Text>
                     </TouchableOpacity>
-                  </View>
+                  </TouchableOpacity>
                 );
               }}
               contentContainerStyle={{ padding: 20 }}
@@ -180,8 +183,27 @@ export const CommentsModal = ({ visible, postId, onClose, session }: any) => {
 
 const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  commentsSheet: { backgroundColor: '#16161E', height: '70%', borderTopLeftRadius: 25, borderTopRightRadius: 25, borderTopWidth: 1, borderTopColor: '#2C2C34' },
-  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 0.5, borderBottomColor: '#2C2C34' },
+  commentsSheet: {
+    backgroundColor: 'rgba(22, 22, 30, 0.98)',
+    height: '75%',
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 20
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255,255,255,0.1)'
+  },
   sheetTitle: { color: '#fff', fontSize: 13, fontWeight: '800' },
   commentItem: { flexDirection: 'row', marginBottom: 20 },
   commentAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#1C1C24' },
