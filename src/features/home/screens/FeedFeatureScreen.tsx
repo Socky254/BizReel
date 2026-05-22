@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, ViewToken, Text, StatusBar, TouchableOpacity, Platform, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, Dimensions, ActivityIndicator, ViewToken, Text, StatusBar, TouchableOpacity, Platform, RefreshControl, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,6 +43,25 @@ export const FeedFeatureScreen = () => {
     const [commentModalVisible, setCommentModalVisible] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
+    const loadFeed = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await container.getFeedUseCase.execute(session?.user?.id);
+            if (data.length === 0) {
+                setError("Your market is quiet. Be the first to disrupt the industry.");
+            }
+            setPosts(initialPost
+                ? [...data].sort((a, b) => a.id === initialPost ? -1 : 1)
+                : data);
+        } catch (err) {
+            setError("Global network synchronization interrupted.");
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    }, [container.getFeedUseCase, session?.user?.id, initialPost]);
+
     const viewabilityConfig = useRef({
         itemVisiblePercentThreshold: 80,
     }).current;
@@ -73,26 +92,7 @@ export const FeedFeatureScreen = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [loadFeed]); // Added loadFeed to deps for stability
-
-    const loadFeed = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const data = await container.getFeedUseCase.execute(session?.user?.id);
-            if (data.length === 0) {
-                setError("Your market is quiet. Be the first to disrupt the industry.");
-            }
-            setPosts(initialPost
-                ? [...data].sort((a, b) => a.id === initialPost ? -1 : 1)
-                : data);
-        } catch (err) {
-            setError("Global network synchronization interrupted.");
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [loadFeed]);
 
     const onRefresh = async () => {
         setRefreshing(true);

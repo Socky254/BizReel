@@ -17,7 +17,7 @@ interface ReelProps {
   onPartner?: (userId: string) => void;
 }
 
-const EnterpriseReel = memo(({ item, isVisible, onInquiry, onPartner }: ReelProps) => {
+export const EnterpriseReel = memo(({ item, isVisible, onInquiry, onPartner }: ReelProps) => {
   const videoRef = useRef<Video>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const likeScale = useSharedValue(1);
@@ -242,7 +242,5 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
 });
-
-export default EnterpriseReel;
 
 export default EnterpriseReel;

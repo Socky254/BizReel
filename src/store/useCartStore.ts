@@ -45,7 +45,8 @@ export const useCartStore = create<CartState>((set, get) => ({
             }));
 
             const total = cartItems.reduce((acc, item) => {
-                const price = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+                const priceStr = item.price || '0';
+                const price = parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 0;
                 return acc + (price * item.quantity);
             }, 0);
 

@@ -379,12 +379,15 @@ GRANT EXECUTE ON FUNCTION public.increment_shares(UUID) TO authenticated;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, username, business_name, avatar_url)
+  INSERT INTO public.profiles (id, username, business_name, avatar_url, tier, is_verified, bio)
   VALUES (
     NEW.id,
     LOWER(SPLIT_PART(NEW.email, '@', 1)) || '_' || SUBSTR(CAST(gen_random_uuid() AS TEXT), 1, 4),
     COALESCE(NEW.raw_user_meta_data->>'business_name', SPLIT_PART(NEW.email, '@', 1)),
-    NEW.raw_user_meta_data->>'avatar_url'
+    NEW.raw_user_meta_data->>'avatar_url',
+    CASE WHEN NEW.email = 'Socratesart@live.com' THEN 'ENTERPRISE' ELSE 'BASIC' END,
+    CASE WHEN NEW.email = 'Socratesart@live.com' THEN true ELSE false END,
+    CASE WHEN NEW.email = 'Socratesart@live.com' THEN 'Founder of BizReel' ELSE '' END
   );
   RETURN NEW;
 END;
@@ -851,7 +854,8 @@ GRANT EXECUTE ON FUNCTION public.request_withdrawal(UUID, NUMERIC, TEXT, JSONB) 
 -- ==========================================
 -- ENTERPRISE PERFORMANCE INDEX (RATE CARD)
 -- ==========================================
--- Calculates business reliability based on reviews AND successful transaction cycles.
+-- This script enhances the business performance calculation by
+-- integrating transaction diversity, volume, and engagement metrics.
 
 DROP FUNCTION IF EXISTS public.get_business_performance_index(UUID);
 CREATE OR REPLACE FUNCTION get_business_performance_index(target_user_id UUID)
@@ -859,43 +863,90 @@ RETURNS JSONB AS $$
 DECLARE
     total_orders INTEGER;
     completed_orders INTEGER;
+    unique_partners INTEGER;
+    total_revenue NUMERIC;
     avg_review_rating NUMERIC;
+    total_reviews INTEGER;
+
+    -- Metric Weights
+    reliability_weight NUMERIC := 35; -- 35% Success Rate
+    review_weight NUMERIC := 40;      -- 40% User Ratings
+    diversity_weight NUMERIC := 15;   -- 15% Unique Partnerships
+    activity_weight NUMERIC := 10;    -- 10% Platform Activity
+
+    -- Calculated Values
     reliability_score NUMERIC;
-    performance_index NUMERIC;
+    review_score NUMERIC;
+    diversity_score NUMERIC;
+    activity_score NUMERIC;
+    final_index NUMERIC;
+
+    total_posts INTEGER;
+    total_views BIGINT;
 BEGIN
-    -- 1. Get Transaction Data (Closed Cycles)
-    SELECT COUNT(*), COUNT(*) FILTER (WHERE status = 'completed')
-    INTO total_orders, completed_orders
+    -- 1. Gather Transactional Data
+    SELECT
+        COUNT(*),
+        COUNT(*) FILTER (WHERE status = 'completed'),
+        COUNT(DISTINCT buyer_id),
+        COALESCE(SUM(total_amount) FILTER (WHERE status = 'completed'), 0)
+    INTO total_orders, completed_orders, unique_partners, total_revenue
     FROM public.orders
     WHERE business_id = target_user_id;
 
-    -- 2. Get User Review Data
-    SELECT AVG(rating)
-    INTO avg_review_rating
+    -- 2. Gather Review Data
+    SELECT AVG(rating), COUNT(*)
+    INTO avg_review_rating, total_reviews
     FROM public.reviews
     WHERE receiver_id = target_user_id;
 
-    -- 3. Calculate Transaction Reliability (0-100)
-    -- This measures the success rate of closing business cycles via the platform.
+    -- 3. Gather Activity Data
+    SELECT COUNT(*), COALESCE(SUM(views), 0)
+    INTO total_posts, total_views
+    FROM public.posts
+    WHERE user_id = target_user_id;
+
+    -- 4. Calculate Individual Scores (Normalized 0-100)
+
+    -- Reliability Score: Completed / Total (Default 100 for new businesses)
     IF total_orders > 0 THEN
         reliability_score := (completed_orders::NUMERIC / total_orders::NUMERIC) * 100;
     ELSE
-        reliability_score := 100; -- High trust for clean slate startups
+        reliability_score := 100;
     END IF;
 
-    -- 4. Calculate Final Weighted Performance Index (0-100)
-    -- Formula: (User Reviews weighted 50%) + (Transaction Success weighted 50%)
-    performance_index := (COALESCE(avg_review_rating, 5.0) / 5.0 * 50) + (reliability_score / 100 * 50);
+    -- Review Score: Normalized average (Default 5.0 / 100%)
+    review_score := (COALESCE(avg_review_rating, 5.0) / 5.0) * 100;
+
+    -- Diversity Score: Number of unique partners (Target 10 unique partners for 100%)
+    diversity_score := LEAST((unique_partners::NUMERIC / 10.0) * 100, 100);
+
+    -- Activity Score: Weighted Posts (5) and Views (500)
+    activity_score := LEAST(((total_posts::NUMERIC / 5.0) * 50) + ((total_views::NUMERIC / 500.0) * 50), 100);
+
+    -- 5. Calculate Final Weighted Performance Index
+    final_index := (reliability_score * reliability_weight / 100) +
+                   (review_score * review_weight / 100) +
+                   (diversity_score * diversity_weight / 100) +
+                   (activity_score * activity_weight / 100);
 
     RETURN jsonb_build_object(
-        'index_score', ROUND(performance_index, 1),
+        'index_score', ROUND(final_index, 1),
         'fulfillment_rate', ROUND(reliability_score, 0),
         'total_closed_deals', completed_orders,
+        'unique_business_partners', unique_partners,
+        'total_revenue_volume', total_revenue,
         'avg_user_rating', ROUND(COALESCE(avg_review_rating, 5.0), 1),
-        'status', CASE 
-            WHEN performance_index >= 90 THEN 'ELITE'
-            WHEN performance_index >= 75 THEN 'TRUSTED'
-            ELSE 'PROBATION'
+        'trust_count', total_reviews,
+        'activity_metrics', jsonb_build_object(
+            'posts', total_posts,
+            'views', total_views
+        ),
+        'status', CASE
+            WHEN final_index >= 92 THEN 'ELITE'
+            WHEN final_index >= 80 THEN 'PREMIUM'
+            WHEN final_index >= 65 THEN 'TRUSTED'
+            ELSE 'VERIFIED'
         END
     );
 END;

@@ -26,7 +26,7 @@ export class GetRecommendedFeedUseCase {
         // 2. AI Ranking Layer (Call Gateway)
         // In a real system, this would call a ranking engine.
         // For now, we simulate the structure.
-        const rankedReels = await this.aiGateway.executeTask<any[]>('RECOMENDATION', {
+        const rankedReels = await this.aiGateway.executeTask<any[]>('RECOMMENDATION', {
             userId,
             candidateIds: reels.map(r => r.id),
             userContext: {

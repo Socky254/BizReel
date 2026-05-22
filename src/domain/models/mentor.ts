@@ -1,26 +1,26 @@
 export interface MentorSession {
     id: string;
-    userId: string;
+    user_id: string;
     topic: string;
-    status: 'active' | 'completed';
-    createdAt: Date;
+    status: 'active' | 'archived' | 'completed';
+    created_at: string;
 }
 
 export interface MentorMessage {
     id: string;
-    sessionId: string;
+    session_id: string;
     role: 'user' | 'assistant' | 'system';
     content: string;
-    createdAt: Date;
+    created_at: string;
 }
 
 export interface BusinessInsight {
     id: string;
-    userId: string;
+    user_id: string;
     title: string;
     description: string;
-    insightType: 'growth' | 'risk' | 'efficiency';
+    insight_type: 'growth' | 'risk' | 'efficiency';
     priority: 'low' | 'medium' | 'high';
-    isActioned: boolean;
-    createdAt: Date;
+    is_actioned: boolean;
+    created_at: string;
 }

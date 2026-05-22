@@ -95,10 +95,10 @@ export const AiMentorScreen = () => {
         // 1. Optimistic Update
         const newUserMessage: MentorMessage = {
             id: Date.now().toString(),
-            sessionId,
+            session_id: sessionId,
             role: 'user',
             content: userMsg,
-            createdAt: new Date()
+            created_at: new Date().toISOString()
         };
         setMessages(prev => [...prev, newUserMessage]);
 
