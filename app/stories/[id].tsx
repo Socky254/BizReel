@@ -9,6 +9,7 @@ import {
   Text,
   AppState,
   AppStateStatus,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';

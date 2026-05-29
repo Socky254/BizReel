@@ -27,10 +27,6 @@ export default function DepositScreen() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
 
-  useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
-
   const fetchUserData = React.useCallback(async () => {
     try {
       if (!session?.user.id) return;
@@ -47,6 +43,10 @@ export default function DepositScreen() {
       setLoading(false);
     }
   }, [session?.user.id]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   const handleDeposit = async () => {
     const numAmount = parseFloat(amount);

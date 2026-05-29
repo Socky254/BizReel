@@ -30,10 +30,6 @@ export default function WithdrawScreen() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const fetchData = React.useCallback(async () => {
     try {
       if (!session?.user.id) return;
@@ -50,6 +46,10 @@ export default function WithdrawScreen() {
       setLoading(false);
     }
   }, [session?.user.id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleWithdraw = async () => {
     const numAmount = parseFloat(amount);
