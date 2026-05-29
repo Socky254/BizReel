@@ -43,6 +43,22 @@ export const deletePost = async (postId: string, videoUrl: string) => {
   }
 };
 
+export const deleteStory = async (storyId: string, mediaUrl: string) => {
+  try {
+    const { error: dbError } = await supabase.from('stories').delete().eq('id', storyId);
+    if (dbError) throw dbError;
+
+    const urlParts = mediaUrl.split('/stories/');
+    if (urlParts.length > 1) {
+      const filePath = urlParts[1];
+      await supabase.storage.from('stories').remove([filePath]);
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+};
+
 export const updatePost = async (postId: string, updates: { caption?: string }) => {
   try {
     const { error } = await supabase.from('posts').update(updates).eq('id', postId);

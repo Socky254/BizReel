@@ -9,6 +9,8 @@ import {
   Vibration,
   AppState,
   AppStateStatus,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { Image } from 'expo-image';
@@ -21,6 +23,7 @@ import { Colors } from '../../../core/theme/colors';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { supabase } from '../../../lib/supabase';
 import { SyncService } from '../../../services/SyncService';
+import { deletePost } from '../../../services/postService';
 import Animated, {
   useAnimatedStyle,
   withRepeat,
@@ -48,6 +51,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
   const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
   const [progress, setProgress] = useState(0);
   const [showLikeHeart, setShowLikeHeart] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const lastTap = useRef<number>(0);
   const videoRef = useRef<Video>(null);
 
@@ -107,6 +111,30 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
       { follower_id: user.id, following_id: item.user_id },
       newState ? 'add' : 'remove',
     );
+  };
+
+  const handleDeletePost = () => {
+    Alert.alert('Delete Reel', 'Are you sure you want to permanently delete this reel?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          setIsDeleting(true);
+          const result = await deletePost(item.id, item.video_url);
+          setIsDeleting(false);
+          if (result.success) {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)');
+            }
+          } else {
+            Alert.alert('Error', result.error || 'Failed to delete reel');
+          }
+        },
+      },
+    ]);
   };
 
   const handleTap = () => {
@@ -180,6 +208,21 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
           </Animated.View>
         )}
       </Pressable>
+
+      {/* MORE OPTIONS (FOR OWNER) */}
+      {user?.id === item.user_id && (
+        <TouchableOpacity
+          style={styles.moreOptionsBtn}
+          onPress={handleDeletePost}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <ActivityIndicator size="small" color="#FF3B30" />
+          ) : (
+            <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+          )}
+        </TouchableOpacity>
+      )}
 
       {/* GRADIENT OVERLAYS */}
       <SafeLinearGradient
@@ -357,6 +400,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
     backdropFilter: 'blur(10px)', // For web/unsupported notice
+  },
+  moreOptionsBtn: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
   },
   overlayBottom: {
     position: 'absolute',

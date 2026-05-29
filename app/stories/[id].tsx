@@ -18,6 +18,8 @@ import { supabase } from '../../src/lib/supabase';
 import { Story } from '../../src/domain/models';
 import { Image } from 'expo-image';
 import { Colors } from '../../src/core/theme/colors';
+import { useAuthStore } from '../../src/store/useAuthStore';
+import { deleteStory } from '../../src/services/postService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,10 +27,12 @@ export default function StoryViewerScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const isFocused = useIsFocused();
+  const { user } = useAuthStore();
   const [story, setStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
+  const [isDeleting, setIsDeleting] = useState(false);
   const videoRef = useRef<Video>(null);
 
   useEffect(() => {
@@ -61,6 +65,28 @@ export default function StoryViewerScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = () => {
+    if (!story) return;
+
+    Alert.alert('Delete Story', 'Are you sure you want to permanently delete this story?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          setIsDeleting(true);
+          const result = await deleteStory(story.id, story.media_url);
+          setIsDeleting(false);
+          if (result.success) {
+            router.back();
+          } else {
+            Alert.alert('Error', result.error || 'Failed to delete story');
+          }
+        },
+      },
+    ]);
   };
 
   const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
@@ -122,9 +148,20 @@ export default function StoryViewerScreen() {
             <Text style={styles.time}>Business Update</Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="close" size={30} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+          {story.user_id === user?.id && (
+            <TouchableOpacity onPress={handleDelete} disabled={isDeleting}>
+              {isDeleting ? (
+                <ActivityIndicator size="small" color="#FF3B30" />
+              ) : (
+                <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+              )}
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="close" size={30} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Interactions (Optional for Story) */}

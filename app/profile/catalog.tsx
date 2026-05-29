@@ -97,6 +97,35 @@ export default function CatalogScreen() {
     }
   };
 
+  const handleDeleteProduct = (product: Product) => {
+    Alert.alert(
+      'Delete Product',
+      `Are you sure you want to remove ${product.name} from your catalog?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await container.marketplaceRepository.deleteProduct(
+                product.id,
+                product.image_url,
+              );
+              if (result.success) {
+                setProducts((prev) => prev.filter((p) => p.id !== product.id));
+              } else {
+                Alert.alert('Error', result.error || 'Failed to delete product');
+              }
+            } catch (e) {
+              ErrorHandler.handle(e, 'DeleteProduct');
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const renderProduct = ({ item }: { item: Product }) => (
     <View style={styles.item}>
       <Image source={{ uri: item.image_url }} style={styles.img} />
@@ -127,16 +156,21 @@ export default function CatalogScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity
-            style={styles.syndicateBtn}
-            onPress={() => {
-              setSelectedProduct(item);
-              setShowSyndicateModal(true);
-            }}
-          >
-            <Ionicons name="people" size={16} color="#00D084" />
-            <Text style={styles.syndicateBtnText}>Launch Group Buy</Text>
-          </TouchableOpacity>
+          <View style={styles.ownerActions}>
+            <TouchableOpacity
+              style={styles.syndicateBtn}
+              onPress={() => {
+                setSelectedProduct(item);
+                setShowSyndicateModal(true);
+              }}
+            >
+              <Ionicons name="people" size={16} color="#00D084" />
+              <Text style={styles.syndicateBtnText}>Launch Group Buy</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteProduct(item)}>
+              <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -293,7 +327,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  ownerActions: { flexDirection: 'row', gap: 10, marginTop: 15, alignItems: 'center' },
+  deleteBtn: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(255,59,48,0.1)',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   syndicateBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -302,7 +346,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 8,
-    marginTop: 15,
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(0, 208, 132, 0.05)',
   },

@@ -105,4 +105,22 @@ export class MarketplaceRepositoryImpl {
     if (error) throw error;
     return data;
   }
+
+  async deleteProduct(productId: string, imageUrl?: string) {
+    try {
+      const { error: dbError } = await supabase.from('products').delete().eq('id', productId);
+      if (dbError) throw dbError;
+
+      if (imageUrl) {
+        const urlParts = imageUrl.split('/products/');
+        if (urlParts.length > 1) {
+          const filePath = urlParts[1];
+          await supabase.storage.from('products').remove([filePath]);
+        }
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  }
 }
