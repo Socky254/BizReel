@@ -41,7 +41,7 @@ export default function EditProfileScreen() {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session?.user?.id)
@@ -82,30 +82,30 @@ export default function EditProfileScreen() {
     try {
       setUpdating(true);
       // Strip potential base64 prefix
-      const cleanBase64 = base64.includes("base64,") ? base64.split("base64,")[1] : base64;
+      const cleanBase64 = base64.includes('base64,') ? base64.split('base64,')[1] : base64;
       const filePath = `${session?.user?.id}/avatar_${Date.now()}.png`;
 
       const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, decode(cleanBase64), { contentType: "image/png" });
+        .from('avatars')
+        .upload(filePath, decode(cleanBase64), { contentType: 'image/png' });
 
       if (uploadError) throw uploadError;
 
       const {
         data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
       const { error: updateError } = await supabase
-        .from("profiles")
+        .from('profiles')
         .update({ avatar_url: publicUrl })
-        .eq("id", session?.user?.id);
+        .eq('id', session?.user?.id);
 
       if (updateError) throw updateError;
 
       setProfile({ ...profile, avatar_url: publicUrl });
-      Alert.alert("Success", "Avatar updated!");
+      Alert.alert('Success', 'Avatar updated!');
     } catch (e: any) {
-      Alert.alert("Error", e.message);
+      Alert.alert('Error', e.message);
     } finally {
       setUpdating(false);
     }

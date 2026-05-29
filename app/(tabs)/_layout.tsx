@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, StyleSheet, Text, Animated } from 'react-native';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 export default function TabLayout() {
   const isOffline = false;
