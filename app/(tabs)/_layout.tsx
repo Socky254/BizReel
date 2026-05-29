@@ -5,7 +5,7 @@ import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import React, { useState, useEffect, useRef } from 'react';
 
 export default function TabLayout() {
-  const [isOffline, setIsOffline] = useState(false);
+  const isOffline = false;
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function TabLayout() {
     } else {
       Animated.timing(slideAnim, { toValue: -100, duration: 500, useNativeDriver: true }).start();
     }
-  }, [isOffline]);
+  }, [isOffline, slideAnim]);
 
   return (
     <View style={{ flex: 1 }}>

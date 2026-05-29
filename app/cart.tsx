@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   ActivityIndicator,
   Image,
@@ -22,13 +21,7 @@ export default function CartScreen() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchCart();
-    }
-  }, [user?.id]);
-
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -43,7 +36,13 @@ export default function CartScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchCart();
+    }
+  }, [user?.id, fetchCart]);
 
   const removeItem = async (id: string) => {
     try {

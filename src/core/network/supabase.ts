@@ -28,7 +28,7 @@ export const supabase = createClient(finalUrl, finalKey, {
       let retries = 3;
       while (retries > 0) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for large uploads
 
         try {
           const response = await fetch(url, { ...options, signal: controller.signal });

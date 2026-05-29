@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
@@ -16,8 +17,6 @@ import { useAuth } from '../../src/Context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { VibrantBackground } from '../../src/components/VibrantBackground';
-import { Alert, ScrollView } from 'react-native';
-import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { Colors } from '../../src/core/theme/colors';
 
 export default function ChatScreen() {
@@ -34,21 +33,64 @@ export default function ChatScreen() {
 
   const flatListRef = useRef<FlatList>(null);
 
+  const partnerIdStr = Array.isArray(id) ? id[0] : id;
+
+  const fetchPartner = useCallback(async () => {
+    if (!partnerIdStr) return;
+    const { data } = await supabase.from('profiles').select('*').eq('id', partnerIdStr).single();
+    if (data) setPartner(data);
+  }, [partnerIdStr]);
+
+  const fetchPost = useCallback(async () => {
+    if (!postId) return;
+    const { data } = await supabase.from('posts').select('*').eq('id', postId).single();
+    if (data) setPost(data);
+  }, [postId]);
+
+  const fetchMessages = useCallback(async () => {
+    if (!partnerIdStr || !session?.user?.id) return;
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(
+          `and(sender_id.eq.${session.user.id},receiver_id.eq.${partnerIdStr}),and(sender_id.eq.${partnerIdStr},receiver_id.eq.${session.user.id})`,
+        )
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setMessages(data || []);
+
+      // Mark as read
+      await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('sender_id', partnerIdStr)
+        .eq('receiver_id', session.user.id)
+        .eq('is_read', false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [partnerIdStr, session?.user?.id]);
+
   useEffect(() => {
-    if (id && session?.user?.id) {
+    if (partnerIdStr && session?.user?.id) {
       fetchPartner();
       fetchMessages();
       if (postId) fetchPost();
 
       const subscription = supabase
-        .channel(`chat:${id}`)
+        .channel(`chat:${partnerIdStr}`)
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
             table: 'messages',
-            filter: `sender_id=eq.${id},receiver_id=eq.${session.user.id}`,
+            filter: `sender_id=eq.${partnerIdStr},receiver_id=eq.${session.user.id}`,
           },
           (payload) => {
             setMessages((prev) => [payload.new, ...prev]);
@@ -60,45 +102,7 @@ export default function ChatScreen() {
         supabase.removeChannel(subscription);
       };
     }
-  }, [id]);
-
-  const fetchPartner = async () => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', id).single();
-    if (data) setPartner(data);
-  };
-
-  const fetchPost = async () => {
-    const { data } = await supabase.from('posts').select('*').eq('id', postId).single();
-    if (data) setPost(data);
-  };
-
-  const fetchMessages = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .or(
-          `and(sender_id.eq.${session?.user?.id},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${session?.user?.id})`,
-        )
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setMessages(data || []);
-
-      // Mark as read
-      await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('sender_id', id)
-        .eq('receiver_id', session?.user?.id)
-        .eq('is_read', false);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [partnerIdStr, session?.user?.id, postId, fetchPartner, fetchMessages, fetchPost]);
 
   const handleSend = async () => {
     if (!text.trim() || sending) return;
@@ -134,7 +138,7 @@ export default function ChatScreen() {
         .from('messages')
         .insert({
           sender_id: session?.user?.id,
-          receiver_id: id,
+          receiver_id: partnerIdStr,
           text: messageText,
         })
         .select()

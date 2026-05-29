@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -36,27 +36,7 @@ export default function MarketScreen() {
     fetchTrends();
   }, []);
 
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (query.trim().length > 1) {
-        performGlobalSearch();
-      } else {
-        setResults([]);
-      }
-    }, 500);
-    return () => clearTimeout(delayDebounceFn);
-  }, [query]);
-
-  const fetchTrends = async () => {
-    try {
-      const data = await container.searchRepository.getTrends();
-      setTrends(data);
-    } catch (e) {
-      ErrorHandler.handle(e, 'FetchTrends');
-    }
-  };
-
-  const performGlobalSearch = async () => {
+  const performGlobalSearch = useCallback(async () => {
     setLoading(true);
     try {
       // LOG SEARCH FOR ANALYTICS (SQL-backed)
@@ -73,6 +53,26 @@ export default function MarketScreen() {
       ErrorHandler.handle(err, 'GlobalSearch');
     } finally {
       setLoading(false);
+    }
+  }, [query, session?.user?.id]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (query.trim().length > 1) {
+        performGlobalSearch();
+      } else {
+        setResults([]);
+      }
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [query, performGlobalSearch]);
+
+  const fetchTrends = async () => {
+    try {
+      const data = await container.searchRepository.getTrends();
+      setTrends(data);
+    } catch (err) {
+      ErrorHandler.handle(err, 'FetchTrends');
     }
   };
 

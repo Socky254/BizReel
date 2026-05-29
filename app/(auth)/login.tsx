@@ -13,7 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { supabase } from '../../src/lib/supabase';
-import { useRouter, Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';

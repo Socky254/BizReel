@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,6 @@ import { container } from '../../../src/di/Container';
 import { useAuthStore } from '../../../src/store/useAuthStore';
 import { Product } from '../../../src/domain/models';
 import { ErrorHandler } from '../../../src/core/error_handler/ErrorHandler';
-import { SafeLinearGradient } from '../../../src/components/SafeLinearGradient';
 
 export default function CheckoutScreen() {
   const { id } = useLocalSearchParams();
@@ -31,11 +30,7 @@ export default function CheckoutScreen() {
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
 
-  useEffect(() => {
-    loadProduct();
-  }, [id]);
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     try {
       setLoading(true);
       const found = await container.marketplaceRepository.getProductById(id as string);
@@ -48,7 +43,11 @@ export default function CheckoutScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
+
+  useEffect(() => {
+    loadProduct();
+  }, [id, loadProduct]);
 
   const handlePayment = async () => {
     if (!address || !phone) {

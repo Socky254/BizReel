@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,52 @@ export default function InboxScreen() {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const handleNewActivity = async (newNotification: any) => {
+    // Fetch sender profile for the new notification
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', newNotification.sender_id)
+      .single();
+
+    const notificationWithSender = { ...newNotification, sender: data };
+    setNotifications((prev) => [notificationWithSender, ...prev]);
+  };
+
+  const fetchMessages = useCallback(async () => {
+    try {
+      // Fetch latest messages for each conversation
+      const { data, error } = await supabase.rpc('get_conversation_list', {
+        u_id: session?.user?.id,
+      });
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [session?.user?.id]);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*, sender:profiles!notifications_sender_id_fkey(*)')
+        .eq('receiver_id', session?.user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setNotifications(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [session?.user?.id]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([fetchNotifications(), fetchMessages()]);
+    setLoading(false);
+  }, [fetchNotifications, fetchMessages]);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -65,53 +111,7 @@ export default function InboxScreen() {
         supabase.removeChannel(messagesSub);
       };
     }
-  }, [session?.user?.id]);
-
-  const handleNewActivity = async (newNotification: any) => {
-    // Fetch sender profile for the new notification
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', newNotification.sender_id)
-      .single();
-
-    const notificationWithSender = { ...newNotification, sender: data };
-    setNotifications((prev) => [notificationWithSender, ...prev]);
-  };
-
-  const fetchData = async () => {
-    setLoading(true);
-    await Promise.all([fetchNotifications(), fetchMessages()]);
-    setLoading(false);
-  };
-
-  const fetchNotifications = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*, sender:profiles!notifications_sender_id_fkey(*)')
-        .eq('receiver_id', session?.user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setNotifications(data || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const fetchMessages = async () => {
-    try {
-      // Fetch latest messages for each conversation
-      const { data, error } = await supabase.rpc('get_conversation_list', {
-        u_id: session?.user?.id,
-      });
-      if (error) throw error;
-      setMessages(data || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  }, [session?.user?.id, fetchData, fetchMessages]);
 
   const onRefresh = async () => {
     setRefreshing(true);

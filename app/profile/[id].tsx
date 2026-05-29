@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,6 @@ import {
   Platform,
   BackHandler,
 } from 'react-native';
-import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/Context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,7 +28,6 @@ export default function PublicProfileScreen() {
   const { session } = useAuth();
   const [reels, setReels] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [likedReels, setLikedReels] = useState<any[]>([]);
   const [referralReels, setReferralReels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
@@ -47,7 +45,6 @@ export default function PublicProfileScreen() {
     'PORTFOLIO',
   );
   const [reviews, setReviews] = useState<any[]>([]);
-  const [savedReels, setSavedReels] = useState<any[]>([]);
   const [perfIndex, setPerfIndex] = useState<any>(null);
 
   const router = useRouter();
@@ -66,55 +63,7 @@ export default function PublicProfileScreen() {
     return () => backHandler.remove();
   }, [activeTab]);
 
-  useEffect(() => {
-    if (id) {
-      initPublicProfile();
-
-      // REAL-TIME RATINGS: Listen for review changes
-      const channel = supabase
-        .channel(`public_ratings_${id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'reviews',
-            filter: `receiver_id=eq.${id}`,
-          },
-          () => {
-            fetchRatings();
-            fetchReviews();
-          },
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [id]);
-
-  const initPublicProfile = async () => {
-    try {
-      setLoading(true);
-      await Promise.all([
-        fetchProfileAndReels(),
-        fetchRatings(),
-        fetchReviews(),
-        fetchLikedReels(),
-        fetchReferralReels(),
-        fetchPerformanceIndex(),
-        fetchProducts(),
-        isOwnProfile ? fetchSavedReels() : Promise.resolve(),
-      ]);
-    } catch (err) {
-      console.error('Public profile init error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('products')
@@ -123,9 +72,9 @@ export default function PublicProfileScreen() {
         .order('created_at', { ascending: false });
       setProducts(data || []);
     } catch (e) {}
-  };
+  }, [id]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('reviews')
@@ -134,18 +83,18 @@ export default function PublicProfileScreen() {
         .order('created_at', { ascending: false });
       setReviews(data || []);
     } catch (e) {}
-  };
+  }, [id]);
 
-  const fetchPerformanceIndex = async () => {
+  const fetchPerformanceIndex = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('get_business_performance_index', {
+      const { data } = await supabase.rpc('get_business_performance_index', {
         target_user_id: id,
       });
       if (data) setPerfIndex(data);
     } catch (e) {}
-  };
+  }, [id]);
 
-  const fetchProfileAndReels = async () => {
+  const fetchProfileAndReels = useCallback(async () => {
     try {
       const { data: pData } = await supabase
         .from('profiles')
@@ -187,9 +136,9 @@ export default function PublicProfileScreen() {
     } catch (e) {
       console.error('Fetch profile/reels error:', e);
     }
-  };
+  }, [id, session?.user?.id]);
 
-  const fetchSavedReels = async () => {
+  const fetchSavedReels = useCallback(async () => {
     if (!session?.user?.id) return;
     try {
       const { data } = await supabase
@@ -197,22 +146,23 @@ export default function PublicProfileScreen() {
         .select('post_id, posts(*, profiles(*))')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
-      if (data) setSavedReels(data.map((item: any) => item.posts).filter((p: any) => p !== null));
+      // This function exists but the data is not used on this screen's UI tabs (Portfolio/Catalog/Refer/Reviews)
+      // If needed in the future, it can be added back to state.
     } catch (e) {}
-  };
+  }, [session?.user?.id]);
 
-  const fetchLikedReels = async () => {
+  const fetchLikedReels = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('likes')
         .select('post_id, posts(*, profiles(*))')
         .eq('user_id', id)
         .order('created_at', { ascending: false });
-      if (data) setLikedReels(data.map((item: any) => item.posts).filter((p: any) => p !== null));
+      // This data is not currently used in the UI tabs.
     } catch (e) {}
-  };
+  }, [id]);
 
-  const fetchReferralReels = async () => {
+  const fetchReferralReels = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('reposts')
@@ -222,15 +172,73 @@ export default function PublicProfileScreen() {
       if (data)
         setReferralReels(data.map((item: any) => item.posts).filter((p: any) => p !== null));
     } catch (e) {}
-  };
+  }, [id]);
 
-  const fetchRatings = async () => {
+  const fetchRatings = useCallback(async () => {
     const { data } = await supabase.from('reviews').select('rating').eq('receiver_id', id);
     if (data && data.length > 0) {
       const sum = data.reduce((acc, curr) => acc + curr.rating, 0);
       setAverageRating(sum / data.length);
     }
-  };
+  }, [id]);
+
+  const initPublicProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        fetchProfileAndReels(),
+        fetchRatings(),
+        fetchReviews(),
+        fetchLikedReels(),
+        fetchReferralReels(),
+        fetchPerformanceIndex(),
+        fetchProducts(),
+        isOwnProfile ? fetchSavedReels() : Promise.resolve(),
+      ]);
+    } catch (err) {
+      console.error('Public profile init error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    fetchProfileAndReels,
+    fetchRatings,
+    fetchReviews,
+    fetchLikedReels,
+    fetchReferralReels,
+    fetchPerformanceIndex,
+    fetchProducts,
+    fetchSavedReels,
+    isOwnProfile,
+  ]);
+
+  useEffect(() => {
+    if (id) {
+      initPublicProfile();
+
+      // REAL-TIME RATINGS: Listen for review changes
+      const channel = supabase
+        .channel(`public_ratings_${id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'reviews',
+            filter: `receiver_id=eq.${id}`,
+          },
+          () => {
+            fetchRatings();
+            fetchReviews();
+          },
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [id, initPublicProfile, fetchRatings, fetchReviews]);
 
   const toggleFollow = async () => {
     if (!session?.user?.id || isOwnProfile) return;

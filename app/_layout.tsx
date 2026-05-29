@@ -109,7 +109,7 @@ export default function RootLayout() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [setProfile, setSession, setUser]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -121,7 +121,7 @@ export default function RootLayout() {
     } else if (session && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [session, segments, isReady]);
+  }, [session, segments, isReady, router]);
 
   if (!isReady) {
     return (
