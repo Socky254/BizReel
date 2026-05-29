@@ -273,6 +273,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE TABLE IF NOT EXISTS public.comment_likes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  comment_id UUID REFERENCES public.comments(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(comment_id, user_id)
+);
+
+ALTER TABLE public.comment_likes ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public View Comment Likes" ON public.comment_likes;
+CREATE POLICY "Public View Comment Likes" ON public.comment_likes FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users Toggle Comment Likes" ON public.comment_likes;
+CREATE POLICY "Users Toggle Comment Likes" ON public.comment_likes FOR ALL USING (auth.uid() = user_id);
+
 -- 6. PERMISSIONS
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
