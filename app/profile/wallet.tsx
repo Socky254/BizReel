@@ -143,7 +143,7 @@ export default function WalletScreen() {
       </SafeLinearGradient>
 
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/profile/deposit')}>
           <Ionicons name="add-circle-outline" size={24} color="#fff" />
           <Text style={styles.actionText}>Add Funds</Text>
         </TouchableOpacity>
