@@ -307,6 +307,9 @@ export default function PublicProfileScreen() {
         <Text style={styles.username}>@{profile?.username || 'user'}</Text>
 
         <View style={styles.badgeRow}>
+          {profile?.is_verified && (
+            <Ionicons name="checkmark-circle" size={20} color="#00D084" />
+          )}
           {profile?.business_type && (
             <View
               style={[

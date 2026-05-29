@@ -424,11 +424,6 @@ export default function ProfileScreen() {
                 <Text style={styles.avatarText}>{(profile?.business_name || 'B').charAt(0)}</Text>
               </View>
             )}
-            {profile?.is_verified && (
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark-circle" size={22} color={Colors.primary} />
-              </View>
-            )}
           </View>
           <View style={styles.statsContainer}>
             <StatItem
@@ -467,6 +462,9 @@ export default function ProfileScreen() {
         <View style={styles.nameSection}>
           <View style={styles.displayNameRow}>
             <Text style={styles.displayName}>{profile?.business_name || 'Business Entity'}</Text>
+            {profile?.is_verified && (
+              <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
+            )}
             {profile?.business_type && (
               <View
                 style={[
