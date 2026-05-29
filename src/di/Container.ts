@@ -25,7 +25,9 @@ class DIContainer {
   private _incrementViewUseCase = new IncrementViewUseCase(this._feedRepository);
   private _getStoriesUseCase = new GetStoriesUseCase(this._feedRepository);
   private _getProfileUseCase = new GetProfileUseCase(this._profileRepository);
-  private _requestVerificationUseCase = new RequestVerificationUseCase(this._verificationRepository);
+  private _requestVerificationUseCase = new RequestVerificationUseCase(
+    this._verificationRepository,
+  );
 
   get getFeedUseCase() {
     return this._getFeedUseCase;
