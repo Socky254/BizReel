@@ -22,6 +22,7 @@ import { Post } from '../../../domain/models';
 import { CommentsModal } from '../../../components/CommentsModal';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { EnterpriseReel } from '../../../components/EnterpriseReel';
+import { ReelFeedItem } from '../components/ReelFeedItem';
 import { StoriesBar } from '../components/StoriesBar';
 import { Colors } from '../../../core/theme/colors';
 import { supabase } from '../../../lib/supabase';
@@ -64,22 +65,25 @@ export const FeedFeatureScreen = () => {
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-  const loadFeed = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await container.getFeedUseCase.execute(session?.user?.id);
-      if (data.length === 0) {
-        setError('Your market is quiet. Be the first to disrupt the industry.');
+  const loadFeed = useCallback(
+    async (isInitial = false) => {
+      try {
+        if (isInitial) setLoading(true);
+        setError(null);
+        const data = await container.getFeedUseCase.execute(session?.user?.id);
+        if (data.length === 0) {
+          setError('Your market is quiet. Be the first to disrupt the industry.');
+        }
+        setPosts(initialPost ? [...data].sort((a, b) => (a.id === initialPost ? -1 : 1)) : data);
+      } catch (err) {
+        setError('Global network synchronization interrupted.');
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-      setPosts(initialPost ? [...data].sort((a, b) => (a.id === initialPost ? -1 : 1)) : data);
-    } catch (err) {
-      setError('Global network synchronization interrupted.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [container.getFeedUseCase, session?.user?.id, initialPost]);
+    },
+    [container.getFeedUseCase, session?.user?.id, initialPost],
+  );
 
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 80,
@@ -94,7 +98,7 @@ export const FeedFeatureScreen = () => {
   }).current;
 
   useEffect(() => {
-    loadFeed();
+    loadFeed(true);
 
     // REAL-TIME FEED SYNC
     const channel = supabase
@@ -107,7 +111,7 @@ export const FeedFeatureScreen = () => {
           table: 'posts',
         },
         () => {
-          loadFeed();
+          loadFeed(false);
         },
       )
       .subscribe();
@@ -155,14 +159,13 @@ export const FeedFeatureScreen = () => {
 
   const renderItem = useCallback(
     ({ item }: { item: Post }) => (
-      <EnterpriseReel
+      <ReelFeedItem
         item={item}
         isVisible={isFocused && item.id === activeId}
-        onInquiry={handleInquiry}
-        onPartner={handlePartner}
+        onOpenComments={handleOpenComments}
       />
     ),
-    [activeId, isFocused, handleInquiry, handlePartner],
+    [activeId, isFocused, handleOpenComments],
   );
 
   if (loading)
