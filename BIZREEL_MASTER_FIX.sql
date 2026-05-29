@@ -263,6 +263,33 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE TABLE IF NOT EXISTS public.reposts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(post_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.saved_posts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, post_id)
+);
+
+ALTER TABLE public.reposts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.saved_posts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public View Reposts" ON public.reposts;
+CREATE POLICY "Public View Reposts" ON public.reposts FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users Manage Own Reposts" ON public.reposts;
+CREATE POLICY "Users Manage Own Reposts" ON public.reposts FOR ALL USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users Manage Own Saved Posts" ON public.saved_posts;
+CREATE POLICY "Users Manage Own Saved Posts" ON public.saved_posts FOR ALL USING (auth.uid() = user_id);
+
 -- View Counter RPC
 CREATE OR REPLACE FUNCTION public.increment_view_count(post_id UUID)
 RETURNS VOID AS $$
@@ -270,6 +297,16 @@ BEGIN
     UPDATE public.posts
     SET views = views + 1
     WHERE id = post_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Share Counter RPC
+CREATE OR REPLACE FUNCTION public.increment_shares(post_id_param UUID)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE public.posts
+    SET shares = shares + 1
+    WHERE id = post_id_param;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

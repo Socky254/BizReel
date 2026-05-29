@@ -82,8 +82,10 @@ export default function ChatScreen() {
       fetchMessages();
       if (postId) fetchPost();
 
-      const subscription = supabase
-        .channel(`chat:${partnerIdStr}`)
+      // CLEAN SUBSCRIPTION ENGINE: Ensure .on() is before .subscribe() and unique channel name
+      const channelId = [session.user.id, partnerIdStr].sort().join(':');
+      const channel = supabase
+        .channel(`chat_sync:${channelId}`)
         .on(
           'postgres_changes',
           {
@@ -96,10 +98,14 @@ export default function ChatScreen() {
             setMessages((prev) => [payload.new, ...prev]);
           },
         )
-        .subscribe();
+        .subscribe((status) => {
+          if (status !== 'SUBSCRIBED') {
+            console.log('Realtime Status:', status);
+          }
+        });
 
       return () => {
-        supabase.removeChannel(subscription);
+        supabase.removeChannel(channel);
       };
     }
   }, [partnerIdStr, session?.user?.id, postId, fetchPartner, fetchMessages, fetchPost]);
