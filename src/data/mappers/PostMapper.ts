@@ -18,6 +18,9 @@ export class PostMapper {
             username: raw.profiles.username,
             business_name: raw.profiles.business_name,
             avatar_url: raw.profiles.avatar_url,
+            is_verified: raw.profiles.is_verified,
+            category: raw.profiles.category,
+            tier: raw.profiles.tier,
           }
         : undefined,
       likes: raw.likes || [],

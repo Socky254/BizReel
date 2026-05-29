@@ -306,6 +306,21 @@ export default function PublicProfileScreen() {
         </View>
         <Text style={styles.username}>@{profile?.username || 'user'}</Text>
 
+        {profile?.username?.toLowerCase().startsWith('socratesart') && (
+          <View
+            style={[
+              styles.perfBadge,
+              {
+                backgroundColor: 'rgba(0, 208, 132, 0.15)',
+                borderColor: '#00D084',
+                marginBottom: 15,
+              },
+            ]}
+          >
+            <Text style={[styles.perfStatusText, { color: '#00D084' }]}>BIZREEL FOUNDER</Text>
+          </View>
+        )}
+
         <View style={styles.statsRowInline}>
           <TouchableOpacity
             style={styles.statBoxInline}

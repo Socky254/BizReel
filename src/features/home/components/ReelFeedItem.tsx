@@ -222,6 +222,20 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                   {item.profiles?.business_name || 'Premium Business'}
                 </Text>
                 {item.profiles?.is_verified && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={Colors.primary}
+                    style={styles.verifiedIcon}
+                  />
+                )}
+                {item.profiles?.username?.toLowerCase().startsWith('socratesart') && (
+                  <View style={[styles.platinumBadge, { backgroundColor: 'rgba(0, 208, 132, 0.15)', borderColor: Colors.primary }]}>
+                    <Ionicons name="star" size={10} color={Colors.primary} />
+                    <Text style={[styles.platinumText, { color: Colors.primary }]}>FOUNDER</Text>
+                  </View>
+                )}
+                {item.profiles?.is_verified && !item.profiles?.username?.toLowerCase().startsWith('socratesart') && (
                   <View style={styles.platinumBadge}>
                     <Ionicons name="shield-checkmark" size={10} color="#D4AF37" />
                     <Text style={styles.platinumText}>ELITE</Text>

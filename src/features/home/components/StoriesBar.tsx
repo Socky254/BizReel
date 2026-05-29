@@ -49,6 +49,11 @@ export const StoriesBar = () => {
             <Text style={styles.avatarText}>{(item.profiles?.business_name || 'B').charAt(0)}</Text>
           </View>
         )}
+        {item.profiles?.is_verified && (
+          <View style={styles.verifiedBadge}>
+            <Ionicons name="checkmark-circle" size={14} color={Colors.primary} />
+          </View>
+        )}
       </View>
       <Text style={styles.username} numberOfLines={1}>
         {item.profiles?.business_name || item.profiles?.username || 'Partner'}
@@ -122,6 +127,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#111',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#000',
+    borderRadius: 10,
+    padding: 1,
   },
   avatarText: {
     color: '#fff',

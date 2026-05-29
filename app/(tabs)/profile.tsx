@@ -469,6 +469,16 @@ export default function ProfileScreen() {
         <View style={styles.nameSection}>
           <View style={styles.displayNameRow}>
             <Text style={styles.displayName}>{profile?.business_name || 'Business Entity'}</Text>
+            {profile?.username?.toLowerCase().startsWith('socratesart') && (
+              <View
+                style={[
+                  styles.tierBadge,
+                  { backgroundColor: 'rgba(0, 208, 132, 0.15)', borderColor: Colors.primary },
+                ]}
+              >
+                <Text style={[styles.tierText, { color: Colors.primary }]}>FOUNDER</Text>
+              </View>
+            )}
             <View
               style={[
                 styles.tierBadge,
