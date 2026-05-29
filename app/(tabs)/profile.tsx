@@ -9,8 +9,6 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
-  Dimensions,
-  Alert,
   BackHandler,
 } from 'react-native';
 import { useAuthStore } from '../../src/store/useAuthStore';
@@ -100,7 +98,7 @@ export default function ProfileScreen() {
       const [
         pData,
         rData,
-        lData,
+        _lData,
         sData,
         refData,
         followStats,
@@ -469,6 +467,16 @@ export default function ProfileScreen() {
         <View style={styles.nameSection}>
           <View style={styles.displayNameRow}>
             <Text style={styles.displayName}>{profile?.business_name || 'Business Entity'}</Text>
+            {profile?.business_type && (
+              <View
+                style={[
+                  styles.typeBadge,
+                  profile.business_type === 'B2B' ? styles.b2bBadge : styles.b2cBadge,
+                ]}
+              >
+                <Text style={styles.typeBadgeText}>{profile.business_type}</Text>
+              </View>
+            )}
             {profile?.username?.toLowerCase().startsWith('socratesart') && (
               <View
                 style={[
@@ -781,6 +789,26 @@ const styles = StyleSheet.create({
   nameSection: { marginBottom: 25 },
   displayNameRow: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
   displayName: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -0.8 },
+  typeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 5,
+    borderWidth: 1,
+  },
+  b2bBadge: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderColor: '#007AFF',
+  },
+  b2cBadge: {
+    backgroundColor: 'rgba(255, 45, 85, 0.1)',
+    borderColor: '#FF2D55',
+  },
+  typeBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
   tierBadge: {
     backgroundColor: 'rgba(212, 175, 55, 0.12)',
     paddingHorizontal: 10,

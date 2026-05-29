@@ -306,20 +306,32 @@ export default function PublicProfileScreen() {
         </View>
         <Text style={styles.username}>@{profile?.username || 'user'}</Text>
 
-        {profile?.username?.toLowerCase().startsWith('socratesart') && (
-          <View
-            style={[
-              styles.perfBadge,
-              {
-                backgroundColor: 'rgba(0, 208, 132, 0.15)',
-                borderColor: '#00D084',
-                marginBottom: 15,
-              },
-            ]}
-          >
-            <Text style={[styles.perfStatusText, { color: '#00D084' }]}>BIZREEL FOUNDER</Text>
-          </View>
-        )}
+        <View style={styles.badgeRow}>
+          {profile?.business_type && (
+            <View
+              style={[
+                styles.typeBadge,
+                profile.business_type === 'B2B' ? styles.b2bBadge : styles.b2cBadge,
+              ]}
+            >
+              <Text style={styles.typeBadgeText}>{profile.business_type}</Text>
+            </View>
+          )}
+
+          {profile?.username?.toLowerCase().startsWith('socratesart') && (
+            <View
+              style={[
+                styles.perfBadge,
+                {
+                  backgroundColor: 'rgba(0, 208, 132, 0.15)',
+                  borderColor: '#00D084',
+                },
+              ]}
+            >
+              <Text style={[styles.perfStatusText, { color: '#00D084' }]}>BIZREEL FOUNDER</Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.statsRowInline}>
           <TouchableOpacity
@@ -663,6 +675,32 @@ const styles = StyleSheet.create({
   },
   avatarText: { color: '#fff', fontSize: 40, fontWeight: 'bold' },
   username: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 20 },
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  typeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  b2bBadge: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+    borderColor: '#007AFF',
+  },
+  b2cBadge: {
+    backgroundColor: 'rgba(255, 45, 85, 0.1)',
+    borderColor: '#FF2D55',
+  },
+  typeBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
   statsRowInline: {
     flexDirection: 'row',
     alignItems: 'center',

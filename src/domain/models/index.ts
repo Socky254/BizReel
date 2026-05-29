@@ -17,6 +17,7 @@ export interface Profile {
   allow_downloads?: boolean;
   show_active_status?: boolean;
   dm_setting?: string;
+  business_type?: 'B2B' | 'B2C' | 'BOTH';
   updated_at?: string;
   created_at?: string;
   tier?: 'BASIC' | 'PRO' | 'ENTERPRISE';

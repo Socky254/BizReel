@@ -32,9 +32,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   mfa_enabled BOOLEAN DEFAULT false,
   show_active_status BOOLEAN DEFAULT true,
   dm_setting TEXT DEFAULT 'everyone',
+  business_type TEXT DEFAULT 'B2C', -- 'B2B', 'B2C', 'BOTH'
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- CREATE INDEXES FOR PERFORMANCE
+CREATE INDEX IF NOT EXISTS idx_profiles_business_type ON public.profiles(business_type);
+CREATE INDEX IF NOT EXISTS idx_profiles_category ON public.profiles(category);
 
 CREATE TABLE IF NOT EXISTS public.posts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -375,13 +380,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 3. GLOBAL SEARCH & TRENDS
 CREATE OR REPLACE FUNCTION public.global_search(search_term TEXT)
-RETURNS TABLE (id UUID, title TEXT, subtitle TEXT, image_url TEXT, entity_type TEXT) AS $$
+RETURNS TABLE (id UUID, title TEXT, subtitle TEXT, image_url TEXT, entity_type TEXT, business_type TEXT) AS $$
 BEGIN
     RETURN QUERY
-    SELECT p.id, p.business_name AS title, '@' || p.username AS subtitle, p.avatar_url AS image_url, 'business'::TEXT AS entity_type
+    SELECT p.id, p.business_name AS title, '@' || p.username AS subtitle, p.avatar_url AS image_url, 'business'::TEXT AS entity_type, p.business_type
     FROM public.profiles p WHERE p.business_name ILIKE '%' || search_term || '%' OR p.username ILIKE '%' || search_term || '%';
     RETURN QUERY
-    SELECT r.id, r.caption AS title, p.business_name AS subtitle, p.avatar_url AS image_url, 'reel'::TEXT AS entity_type
+    SELECT r.id, r.caption AS title, p.business_name AS subtitle, p.avatar_url AS image_url, 'reel'::TEXT AS entity_type, p.business_type
     FROM public.posts r JOIN public.profiles p ON r.user_id = p.id WHERE r.caption ILIKE '%' || search_term || '%';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -434,13 +439,14 @@ $$;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, username, business_name, avatar_url, tier)
+  INSERT INTO public.profiles (id, username, business_name, avatar_url, tier, business_type)
   VALUES (
     NEW.id,
     LOWER(SPLIT_PART(NEW.email, '@', 1)) || '_' || SUBSTR(CAST(gen_random_uuid() AS TEXT), 1, 4),
     COALESCE(NEW.raw_user_meta_data->>'business_name', SPLIT_PART(NEW.email, '@', 1)),
     NEW.raw_user_meta_data->>'avatar_url',
-    'BASIC'
+    'BASIC',
+    COALESCE(NEW.raw_user_meta_data->>'business_type', 'B2C')
   );
   INSERT INTO public.wallets (user_id, balance) VALUES (NEW.id, 0);
   RETURN NEW;

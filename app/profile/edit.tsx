@@ -31,6 +31,7 @@ export default function EditProfileScreen() {
     location: '',
     working_hours: '',
     avatar_url: '',
+    business_type: 'B2C',
   });
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function EditProfileScreen() {
           location: data.location || '',
           working_hours: data.working_hours || '',
           avatar_url: data.avatar_url || '',
+          business_type: data.business_type || 'B2C',
         });
       }
     } catch (e) {
@@ -122,6 +124,7 @@ export default function EditProfileScreen() {
         bio: profile.bio,
         location: profile.location,
         working_hours: profile.working_hours,
+        business_type: profile.business_type,
         updated_at: new Date().toISOString(),
       };
 
@@ -194,6 +197,31 @@ export default function EditProfileScreen() {
               placeholder="Your Business Name"
               placeholderTextColor="#555"
             />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Business Type</Text>
+            <View style={styles.typeSelector}>
+              {['B2B', 'B2C', 'BOTH'].map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.typeOption,
+                    profile.business_type === type && styles.typeOptionActive,
+                  ]}
+                  onPress={() => setProfile({ ...profile, business_type: type })}
+                >
+                  <Text
+                    style={[
+                      styles.typeOptionText,
+                      profile.business_type === type && styles.typeOptionTextActive,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
@@ -321,6 +349,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     fontWeight: '500',
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  typeOption: {
+    flex: 1,
+    backgroundColor: '#0E0E14',
+    borderRadius: 16,
+    paddingVertical: 15,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  typeOptionActive: {
+    backgroundColor: 'rgba(0, 208, 132, 0.1)',
+    borderColor: '#00D084',
+  },
+  typeOptionText: {
+    color: '#555',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  typeOptionTextActive: {
+    color: '#00D084',
   },
   textArea: { height: 120, textAlignVertical: 'top' },
 });

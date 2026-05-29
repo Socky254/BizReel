@@ -13,6 +13,7 @@
       "backgroundColor": "#000000"
     },
     "newArchEnabled": false,
+    "jsEngine": "hermes",
     "scheme": "bizreel",
     "ios": {
       "supportsTablet": true,

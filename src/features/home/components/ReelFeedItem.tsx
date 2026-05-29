@@ -55,6 +55,17 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
   const heartScale = useSharedValue(0);
   const videoSource = useMemo(() => ({ uri: item.video_url }), [item.video_url]);
 
+  const checkFollowStatus = React.useCallback(async () => {
+    if (!user || !item.user_id) return;
+    const { data } = await supabase
+      .from('follows')
+      .select('*')
+      .eq('follower_id', user.id)
+      .eq('following_id', item.user_id)
+      .maybeSingle();
+    setIsFollowing(!!data);
+  }, [user, item.user_id]);
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       setAppState(nextAppState);
@@ -71,7 +82,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
       setProgress(0);
     }
     checkFollowStatus();
-  }, [isVisible]);
+  }, [isVisible, checkFollowStatus]);
 
   useEffect(() => {
     if (!isFollowing) {
@@ -83,18 +94,7 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
     } else {
       pulse.value = withTiming(1);
     }
-  }, [isFollowing]);
-
-  const checkFollowStatus = async () => {
-    if (!user || !item.user_id) return;
-    const { data } = await supabase
-      .from('follows')
-      .select('*')
-      .eq('follower_id', user.id)
-      .eq('following_id', item.user_id)
-      .maybeSingle();
-    setIsFollowing(!!data);
-  };
+  }, [isFollowing, pulse]);
 
   const handleConnect = async () => {
     if (!user || item.user_id === user.id) return;
@@ -230,17 +230,23 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
                   />
                 )}
                 {item.profiles?.username?.toLowerCase().startsWith('socratesart') && (
-                  <View style={[styles.platinumBadge, { backgroundColor: 'rgba(0, 208, 132, 0.15)', borderColor: Colors.primary }]}>
+                  <View
+                    style={[
+                      styles.platinumBadge,
+                      { backgroundColor: 'rgba(0, 208, 132, 0.15)', borderColor: Colors.primary },
+                    ]}
+                  >
                     <Ionicons name="star" size={10} color={Colors.primary} />
                     <Text style={[styles.platinumText, { color: Colors.primary }]}>FOUNDER</Text>
                   </View>
                 )}
-                {item.profiles?.is_verified && !item.profiles?.username?.toLowerCase().startsWith('socratesart') && (
-                  <View style={styles.platinumBadge}>
-                    <Ionicons name="shield-checkmark" size={10} color="#D4AF37" />
-                    <Text style={styles.platinumText}>ELITE</Text>
-                  </View>
-                )}
+                {item.profiles?.is_verified &&
+                  !item.profiles?.username?.toLowerCase().startsWith('socratesart') && (
+                    <View style={styles.platinumBadge}>
+                      <Ionicons name="shield-checkmark" size={10} color="#D4AF37" />
+                      <Text style={styles.platinumText}>ELITE</Text>
+                    </View>
+                  )}
               </View>
               <View style={styles.sectorBadge}>
                 <Ionicons

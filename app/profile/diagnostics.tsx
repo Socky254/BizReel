@@ -25,9 +25,9 @@ export default function DiagnosticsScreen() {
 
   useEffect(() => {
     runDiagnostics();
-  }, []);
+  }, [runDiagnostics]);
 
-  const runDiagnostics = async () => {
+  const runDiagnostics = React.useCallback(async () => {
     setLoading(true);
     try {
       const result = await AutonomousMaintenanceService.generateSystemAnalysis(user?.id);
@@ -37,7 +37,7 @@ export default function DiagnosticsScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   const handleApplyFix = async (fixId: string) => {
     setLoading(true);

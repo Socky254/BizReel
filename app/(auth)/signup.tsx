@@ -30,6 +30,7 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [businessName, setBusinessName] = useState('');
+  const [businessType, setBusinessType] = useState<'B2B' | 'B2C' | 'BOTH'>('B2C');
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function SignUpScreen() {
         options: {
           data: {
             business_name: businessName,
+            business_type: businessType,
           },
         },
       });
@@ -115,6 +117,7 @@ export default function SignUpScreen() {
         options: {
           data: {
             business_name: businessName,
+            business_type: businessType,
           },
         },
       });
@@ -203,6 +206,31 @@ export default function SignUpScreen() {
                       onChangeText={setBusinessName}
                       style={styles.input}
                     />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>BUSINESS TYPE</Text>
+                  <View style={styles.typeSelector}>
+                    {['B2B', 'B2C', 'BOTH'].map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        style={[
+                          styles.typeOption,
+                          businessType === type && styles.typeOptionActive,
+                        ]}
+                        onPress={() => setBusinessType(type as any)}
+                      >
+                        <Text
+                          style={[
+                            styles.typeOptionText,
+                            businessType === type && styles.typeOptionTextActive,
+                          ]}
+                        >
+                          {type}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
                   </View>
                 </View>
 
@@ -444,6 +472,32 @@ const styles = StyleSheet.create({
   },
   inputIcon: { marginLeft: 15 },
   input: { flex: 1, padding: 18, color: '#fff', fontSize: 16 },
+  typeSelector: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 5,
+  },
+  typeOption: {
+    flex: 1,
+    backgroundColor: '#0E0E14',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  typeOptionActive: {
+    backgroundColor: 'rgba(0, 208, 132, 0.1)',
+    borderColor: '#00D084',
+  },
+  typeOptionText: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  typeOptionTextActive: {
+    color: '#00D084',
+  },
   eyeIcon: { paddingRight: 15 },
   button: {
     backgroundColor: '#00D084',

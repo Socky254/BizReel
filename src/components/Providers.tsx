@@ -48,7 +48,7 @@ export const Providers: React.FC<{ children: React.ReactNode }> = ({ children })
       mounted = false;
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [setLoading, setSession]);
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 };

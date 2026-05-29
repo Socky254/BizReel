@@ -329,7 +329,13 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   avatarContainer: { position: 'relative' },
-  avatar: { width: 60, height: 60, borderRadius: 22, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)' },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
   placeholderAvatar: {
     width: 60,
     height: 60,
