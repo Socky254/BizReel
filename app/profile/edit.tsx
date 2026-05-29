@@ -81,11 +81,13 @@ export default function EditProfileScreen() {
   const uploadAvatar = async (base64: string) => {
     try {
       setUpdating(true);
+      // Strip potential base64 prefix
+      const cleanBase64 = base64.includes(\u0027base64,\u0027) ? base64.split(\u0027base64,\u0027)[1] : base64;
       const filePath = `${session?.user?.id}/avatar_${Date.now()}.png`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, decode(base64), { contentType: 'image/png' });
+        .from(\u0027avatars\u0027)
+        .upload(filePath, decode(cleanBase64), { contentType: \u0027image/png\u0027 });
 
       if (uploadError) throw uploadError;
 
