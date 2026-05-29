@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 12,
   },
   trendType: {
     color: '#00D084',
@@ -356,13 +356,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 20,
     fontWeight: '900',
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
   },
   trendCount: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 13,
     marginTop: 8,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   list: { padding: 15, paddingBottom: 100 },
   resultItem: {

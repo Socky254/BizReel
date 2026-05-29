@@ -146,7 +146,7 @@ export default function ChatScreen() {
 
       if (error) throw error;
       setMessages((prev) => [data, ...prev]);
-    } catch (e) {
+    } catch {
       Alert.alert('Error', 'Failed to send message');
     } finally {
       setSending(false);

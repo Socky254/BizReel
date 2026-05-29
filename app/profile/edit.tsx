@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.05)',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   title: { color: '#fff', fontSize: 20, fontWeight: '900', letterSpacing: -0.5 },
   saveBtnText: { color: '#00D084', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
@@ -295,7 +295,13 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#050508',
   },
-  changeAvatarText: { color: '#00D084', fontSize: 14, fontWeight: '800', marginTop: 18, letterSpacing: 0.5 },
+  changeAvatarText: {
+    color: '#00D084',
+    fontSize: 14,
+    fontWeight: '800',
+    marginTop: 18,
+    letterSpacing: 0.5,
+  },
   inputGroup: { marginBottom: 30 },
   label: {
     color: 'rgba(255,255,255,0.3)',

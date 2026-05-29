@@ -11,7 +11,6 @@ import {
   RefreshControl,
   Dimensions,
   Alert,
-  Linking,
   BackHandler,
 } from 'react-native';
 import { useAuthStore } from '../../src/store/useAuthStore';
@@ -28,8 +27,6 @@ import { supabase } from '../../src/lib/supabase';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
 import { IntelligenceService, StrategyInsight } from '../../src/services/IntelligenceService';
 import { SkeletonLoader } from '../../src/components/SkeletonLoader';
-
-const { width } = Dimensions.get('window');
 
 const ProfileSkeleton = () => (
   <View style={styles.container}>
@@ -77,12 +74,11 @@ const TabButton = ({ active, onPress, icon, label }: any) => (
 
 export default function ProfileScreen() {
   const { session } = useAuthStore();
-  const { profile: storeProfile, setProfile: setStoreProfile, isPremium } = useUserStore();
+  const { setProfile: setStoreProfile } = useUserStore();
   const router = useRouter();
 
   const [reels, setReels] = useState<Post[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [likedReels, setLikedReels] = useState<Post[]>([]);
   const [savedReels, setSavedReels] = useState<Post[]>([]);
   const [referralReels, setReferralReels] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,7 +128,6 @@ export default function ProfileScreen() {
       setProfile(pData);
       setStoreProfile(pData); // Sync to global store
       setReels(rData);
-      setLikedReels(lData);
       setSavedReels(sData);
       setReferralReels(refData);
       setAnalytics(aData);
@@ -150,7 +145,7 @@ export default function ProfileScreen() {
     } catch (err) {
       ErrorHandler.handle(err, 'ProfileFetchData');
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, setStoreProfile]);
 
   const initProfile = useCallback(async () => {
     setLoading(true);
@@ -231,7 +226,7 @@ export default function ProfileScreen() {
         supabase.removeChannel(reviewsChannel);
       };
     }
-  }, [session?.user?.id, initProfile]);
+  }, [session?.user?.id, initProfile, fetchData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -386,26 +381,6 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
     );
-  };
-
-  const showProfileMenu = () => {
-    Alert.alert('Enterprise Command Center', 'Manage your professional presence', [
-      { text: 'View Portfolio (Reels)', onPress: () => setActiveTab('REELS') },
-      { text: 'Business Intelligence', onPress: () => setActiveTab('ANALYTICS') },
-      {
-        text: 'Collections',
-        onPress: () => {
-          Alert.alert('Collections', 'Select content to view', [
-            { text: 'Saved Reels', onPress: () => setActiveTab('SAVED') },
-            { text: 'Liked Reels', onPress: () => setActiveTab('LIKED') },
-            { text: 'Cancel', style: 'cancel' },
-          ]);
-        },
-      },
-      { text: 'Settings & Privacy', onPress: () => router.push('/profile/settings') },
-      { text: 'Executive Dashboard', onPress: () => router.push('/profile/dashboard') },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
   };
 
   const renderHeader = () => (

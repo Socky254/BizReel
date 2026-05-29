@@ -39,11 +39,7 @@ export default function CatalogScreen() {
   const router = useRouter();
   const isOwnProfile = session?.user?.id === id;
 
-  useEffect(() => {
-    fetchProducts();
-  }, [id]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       const data = await container.marketplaceRepository.getProducts(id as string);
@@ -53,7 +49,11 @@ export default function CatalogScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleAddToCart = async (product: Product) => {
     if (!session?.user?.id) {
@@ -64,7 +64,7 @@ export default function CatalogScreen() {
     try {
       await container.marketplaceRepository.addToCart(session.user.id, product.id);
       Alert.alert('Success', `${product.name} added to cart.`);
-    } catch (e) {
+    } catch {
       ErrorHandler.showError('Failed to add item to cart.');
     }
   };

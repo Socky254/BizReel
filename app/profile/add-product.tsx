@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 44,
     justifyContent: 'center',
-    alignItems: 'flex-end'
+    alignItems: 'flex-end',
   },
   saveBtnText: { color: '#00D084', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
   imageArea: {

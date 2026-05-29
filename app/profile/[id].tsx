@@ -71,7 +71,9 @@ export default function PublicProfileScreen() {
         .eq('business_id', id)
         .order('created_at', { ascending: false });
       setProducts(data || []);
-    } catch (e) {}
+    } catch {
+      // Handle error quietly
+    }
   }, [id]);
 
   const fetchReviews = useCallback(async () => {
@@ -82,7 +84,9 @@ export default function PublicProfileScreen() {
         .eq('receiver_id', id)
         .order('created_at', { ascending: false });
       setReviews(data || []);
-    } catch (e) {}
+    } catch {
+      // Handle error quietly
+    }
   }, [id]);
 
   const fetchPerformanceIndex = useCallback(async () => {
@@ -91,7 +95,9 @@ export default function PublicProfileScreen() {
         target_user_id: id,
       });
       if (data) setPerfIndex(data);
-    } catch (e) {}
+    } catch {
+      // Handle error quietly
+    }
   }, [id]);
 
   const fetchProfileAndReels = useCallback(async () => {
@@ -141,25 +147,29 @@ export default function PublicProfileScreen() {
   const fetchSavedReels = useCallback(async () => {
     if (!session?.user?.id) return;
     try {
-      const { data } = await supabase
+      await supabase
         .from('saved_posts')
         .select('post_id, posts(*, profiles(*))')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
       // This function exists but the data is not used on this screen's UI tabs (Portfolio/Catalog/Refer/Reviews)
       // If needed in the future, it can be added back to state.
-    } catch (e) {}
+    } catch {
+      // Handle error quietly
+    }
   }, [session?.user?.id]);
 
   const fetchLikedReels = useCallback(async () => {
     try {
-      const { data } = await supabase
+      await supabase
         .from('likes')
         .select('post_id, posts(*, profiles(*))')
         .eq('user_id', id)
         .order('created_at', { ascending: false });
       // This data is not currently used in the UI tabs.
-    } catch (e) {}
+    } catch {
+      // Handle error quietly
+    }
   }, [id]);
 
   const fetchReferralReels = useCallback(async () => {
@@ -171,7 +181,9 @@ export default function PublicProfileScreen() {
         .order('created_at', { ascending: false });
       if (data)
         setReferralReels(data.map((item: any) => item.posts).filter((p: any) => p !== null));
-    } catch (e) {}
+    } catch {
+      // Handle error quietly
+    }
   }, [id]);
 
   const fetchRatings = useCallback(async () => {
