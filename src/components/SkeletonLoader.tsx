@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, Animated } from 'react-native';
 
 interface Props {
   width?: number | string;
@@ -9,10 +9,10 @@ interface Props {
 }
 
 export const SkeletonLoader = ({ width, height, borderRadius = 8, style }: Props) => {
-  const animatedValue = new Animated.Value(0);
+  const animatedValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(animatedValue, {
           toValue: 1,
@@ -25,8 +25,11 @@ export const SkeletonLoader = ({ width, height, borderRadius = 8, style }: Props
           useNativeDriver: true,
         }),
       ]),
-    ).start();
-  }, []);
+    );
+    animation.start();
+
+    return () => animation.stop();
+  }, [animatedValue]);
 
   const opacity = animatedValue.interpolate({
     inputRange: [0, 1],

@@ -7,6 +7,8 @@ import { useUserStore } from '../src/store/useUserStore';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../src/lib/queryClient';
 import * as SplashScreen from 'expo-splash-screen';
+import * as NavigationBar from 'expo-navigation-bar';
+import { Platform } from 'react-native';
 import ErrorBoundary from 'react-native-error-boundary';
 import { VibrantBackground } from '../src/components/VibrantBackground';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
@@ -68,6 +70,11 @@ export default function RootLayout() {
     // 1. Initial Session Check
     const init = async () => {
       try {
+        if (Platform.OS === 'android') {
+          await NavigationBar.setBackgroundColorAsync('#050508');
+          await NavigationBar.setButtonStyleAsync('light');
+        }
+
         const {
           data: { session },
         } = await supabase.auth.getSession();
