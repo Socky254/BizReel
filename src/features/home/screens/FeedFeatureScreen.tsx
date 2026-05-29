@@ -123,8 +123,12 @@ export const FeedFeatureScreen = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadFeed();
+    await loadFeed(false);
     setRefreshing(false);
+  };
+
+  const handleManualRetry = () => {
+    loadFeed(true);
   };
 
   const handleOpenComments = useCallback((id: string) => {
@@ -197,7 +201,7 @@ export const FeedFeatureScreen = () => {
             <Text style={styles.primaryActionBtnText}>Launch First Reel</Text>
             <Ionicons name="add" size={20} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={loadFeed} style={styles.ghostBtn}>
+          <TouchableOpacity onPress={handleManualRetry} style={styles.ghostBtn}>
             <Text style={styles.ghostBtnText}>Refresh Network</Text>
           </TouchableOpacity>
         </Animated.View>

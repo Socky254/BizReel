@@ -61,6 +61,19 @@ export const ExecutiveDashboard = () => {
     );
 
   const stats = analytics?.stats || {};
+  const hasData = analytics || wallet;
+
+  if (!hasData && !loading) {
+    return (
+      <View style={styles.center}>
+        <Ionicons name="cloud-offline-outline" size={50} color="rgba(255,255,255,0.1)" />
+        <Text style={styles.errorText}>Market Intelligence Offline</Text>
+        <TouchableOpacity style={styles.retryBtn} onPress={onRefresh}>
+          <Text style={styles.retryBtnText}>Reconnect to Ledger</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <ScrollView

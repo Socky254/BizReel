@@ -23,6 +23,37 @@ export const supabase = createClient(finalUrl, finalKey, {
     persistSession: true,
     detectSessionInUrl: false,
   },
+  global: {
+    fetch: async (url, options) => {
+      let retries = 3;
+      while (retries > 0) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+        try {
+          const response = await fetch(url, { ...options, signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (response.status >= 500 && retries > 1) {
+            console.log(`Supabase Fetch: Server error ${response.status}. Retrying...`);
+            retries--;
+            await new Promise((res) => setTimeout(res, 1000));
+            continue;
+          }
+          return response;
+        } catch (err: any) {
+          clearTimeout(timeoutId);
+          if (retries > 1 && (err.name === 'AbortError' || err.message.includes('upstream'))) {
+            retries--;
+            await new Promise((res) => setTimeout(res, 1000));
+            continue;
+          }
+          throw err;
+        }
+      }
+      return fetch(url, options);
+    },
+  },
 });
 
 // Diagnostic helper to verify connectivity

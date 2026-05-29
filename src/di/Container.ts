@@ -20,24 +20,31 @@ class DIContainer {
   private _verificationRepository = new VerificationRepositoryImpl();
   private _financeRepository = new FinanceRepositoryImpl();
 
+  // SINGLETON USE CASES
+  private _getFeedUseCase = new GetFeedUseCase(this._feedRepository);
+  private _incrementViewUseCase = new IncrementViewUseCase(this._feedRepository);
+  private _getStoriesUseCase = new GetStoriesUseCase(this._feedRepository);
+  private _getProfileUseCase = new GetProfileUseCase(this._profileRepository);
+  private _requestVerificationUseCase = new RequestVerificationUseCase(this._verificationRepository);
+
   get getFeedUseCase() {
-    return new GetFeedUseCase(this._feedRepository);
+    return this._getFeedUseCase;
   }
 
   get incrementViewUseCase() {
-    return new IncrementViewUseCase(this._feedRepository);
+    return this._incrementViewUseCase;
   }
 
   get getStoriesUseCase() {
-    return new GetStoriesUseCase(this._feedRepository);
+    return this._getStoriesUseCase;
   }
 
   get getProfileUseCase() {
-    return new GetProfileUseCase(this._profileRepository);
+    return this._getProfileUseCase;
   }
 
   get requestVerificationUseCase() {
-    return new RequestVerificationUseCase(this._verificationRepository);
+    return this._requestVerificationUseCase;
   }
 
   get profileRepository() {
