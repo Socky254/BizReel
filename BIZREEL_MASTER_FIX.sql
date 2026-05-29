@@ -100,6 +100,10 @@ CREATE TABLE IF NOT EXISTS public.stories (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Story Column Enforcement
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'video';
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '24 hours');
+
 CREATE TABLE IF NOT EXISTS public.live_sessions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
@@ -197,6 +201,11 @@ DROP POLICY IF EXISTS "Public View Live Comments" ON public.live_comments;
 CREATE POLICY "Public View Live Comments" ON public.live_comments FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Users Post Live Comments" ON public.live_comments;
 CREATE POLICY "Users Post Live Comments" ON public.live_comments FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Public View Stories" ON public.stories;
+CREATE POLICY "Public View Stories" ON public.stories FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users Manage Own Stories" ON public.stories;
+CREATE POLICY "Users Manage Own Stories" ON public.stories FOR ALL USING (auth.uid() = user_id);
 
 -- Storage Policies
 DROP POLICY IF EXISTS "Avatars are public" ON storage.objects;
