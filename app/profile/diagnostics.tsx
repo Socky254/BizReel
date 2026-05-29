@@ -23,10 +23,6 @@ export default function DiagnosticsScreen() {
   const [loading, setLoading] = useState(true);
   const [analysis, setAnalysis] = useState<SecurityAnalysis | null>(null);
 
-  useEffect(() => {
-    runDiagnostics();
-  }, [runDiagnostics]);
-
   const runDiagnostics = React.useCallback(async () => {
     setLoading(true);
     try {
@@ -38,6 +34,10 @@ export default function DiagnosticsScreen() {
       setLoading(false);
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    runDiagnostics();
+  }, [runDiagnostics]);
 
   const handleApplyFix = async (fixId: string) => {
     setLoading(true);
