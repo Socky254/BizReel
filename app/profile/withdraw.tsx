@@ -32,9 +32,9 @@ export default function WithdrawScreen() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = React.useCallback(async () => {
     try {
       if (!session?.user.id) return;
       const [wData, pData] = await Promise.all([
@@ -49,7 +49,7 @@ export default function WithdrawScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user.id]);
 
   const handleWithdraw = async () => {
     const numAmount = parseFloat(amount);
@@ -83,7 +83,10 @@ export default function WithdrawScreen() {
       }
     } catch (e: any) {
       ErrorHandler.handle(e, 'WithdrawalRequest');
-      Alert.alert('Withdrawal Failed', e.message || 'Could not process withdrawal. Please try again.');
+      Alert.alert(
+        'Withdrawal Failed',
+        e.message || 'Could not process withdrawal. Please try again.',
+      );
     } finally {
       setProcessing(false);
     }
@@ -122,7 +125,8 @@ export default function WithdrawScreen() {
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={20} color="#00D084" />
           <Text style={styles.infoText}>
-            Withdrawals are processed instantly to your M-Pesa number. Standard transaction fees may apply.
+            Withdrawals are processed instantly to your M-Pesa number. Standard transaction fees may
+            apply.
           </Text>
         </View>
 
@@ -186,7 +190,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.05)',
     alignItems: 'center',
   },
-  balanceLabel: { color: 'rgba(255,255,255,0.3)', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
+  balanceLabel: {
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
   balanceValue: { color: '#fff', fontSize: 32, fontWeight: '900', marginTop: 10 },
   infoBox: {
     flexDirection: 'row',

@@ -29,12 +29,12 @@ export default function DepositScreen() {
 
   useEffect(() => {
     fetchUserData();
-  }, []);
+  }, [fetchUserData]);
 
-  const fetchUserData = async () => {
+  const fetchUserData = React.useCallback(async () => {
     try {
       if (!session?.user.id) return;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('phone')
         .eq('id', session.user.id)
@@ -46,7 +46,7 @@ export default function DepositScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user.id]);
 
   const handleDeposit = async () => {
     const numAmount = parseFloat(amount);
