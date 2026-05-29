@@ -154,16 +154,20 @@ export default function UploadScreen() {
             <View style={[styles.iconBox, { backgroundColor: 'rgba(0, 200, 83, 0.1)' }]}>
               <Ionicons name="videocam" size={32} color={Colors.primary} />
             </View>
-            <Text style={styles.optionLabel}>POST REEL</Text>
-            <Text style={styles.optionDesc}>Capture a fresh pitch</Text>
+            <View style={styles.optionTextContent}>
+              <Text style={styles.optionLabel}>POST REEL</Text>
+              <Text style={styles.optionDesc}>Capture a fresh pitch</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.optionCard} onPress={() => pickVideo(false, true)}>
             <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 160, 0, 0.1)' }]}>
               <Ionicons name="flash" size={32} color="#FFA000" />
             </View>
-            <Text style={styles.optionLabel}>BUSINESS STORY</Text>
-            <Text style={styles.optionDesc}>Quick 30s update</Text>
+            <View style={styles.optionTextContent}>
+              <Text style={styles.optionLabel}>BUSINESS STORY</Text>
+              <Text style={styles.optionDesc}>Quick 30s update</Text>
+            </View>
           </TouchableOpacity>
 
           <View style={styles.templateSection}>
@@ -195,8 +199,10 @@ export default function UploadScreen() {
             <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]}>
               <Ionicons name="cloud-upload" size={32} color="#fff" />
             </View>
-            <Text style={styles.optionLabel}>UPLOAD VIDEO</Text>
-            <Text style={styles.optionDesc}>Select from gallery</Text>
+            <View style={styles.optionTextContent}>
+              <Text style={styles.optionLabel}>UPLOAD VIDEO</Text>
+              <Text style={styles.optionDesc}>Select from gallery</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -206,8 +212,23 @@ export default function UploadScreen() {
             <View style={[styles.iconBox, { backgroundColor: 'rgba(255, 59, 48, 0.1)' }]}>
               <Ionicons name="radio" size={32} color="#FF3B30" />
             </View>
-            <Text style={styles.optionLabel}>GO LIVE</Text>
-            <Text style={styles.optionDesc}>Start live commerce</Text>
+            <View style={styles.optionTextContent}>
+              <Text style={styles.optionLabel}>GO LIVE</Text>
+              <Text style={styles.optionDesc}>Start live commerce</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.optionCard, { borderColor: 'rgba(0, 208, 132, 0.2)' }]}
+            onPress={() => router.push('/profile/add-product')}
+          >
+            <View style={[styles.iconBox, { backgroundColor: 'rgba(0, 208, 132, 0.1)' }]}>
+              <Ionicons name="cart" size={32} color={Colors.primary} />
+            </View>
+            <View style={styles.optionTextContent}>
+              <Text style={styles.optionLabel}>LIST PRODUCT</Text>
+              <Text style={styles.optionDesc}>Add to your marketplace</Text>
+            </View>
           </TouchableOpacity>
         </View>
       </View>
@@ -319,44 +340,53 @@ const styles = StyleSheet.create({
   selectionContainer: {
     flex: 1,
     backgroundColor: '#050508',
-    justifyContent: 'center',
     padding: 25,
+    paddingTop: 80,
   },
   selHeader: { marginBottom: 40 },
-  selTitle: { color: '#fff', fontSize: 32, fontWeight: '900', letterSpacing: -1 },
-  selSubtitle: {
-    color: '#00D084',
-    fontSize: 14,
-    fontWeight: '700',
-    marginTop: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+  selTitle: {
+    color: '#fff',
+    fontSize: 34,
+    fontWeight: '900',
+    letterSpacing: -1.5,
+    marginBottom: 10,
   },
-  optionsGrid: { gap: 15 },
+  selSubtitle: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
+  },
+  optionsGrid: { gap: 16 },
   optionCard: {
     backgroundColor: '#0E0E14',
-    padding: 22,
-    borderRadius: 24,
+    padding: 24,
+    borderRadius: 28,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.06)',
     flexDirection: 'row',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 8,
   },
-  templateSection: { marginVertical: 15 },
+  templateSection: { marginVertical: 20 },
   templateHeader: {
     color: 'rgba(255,255,255,0.3)',
     fontSize: 10,
     fontWeight: '900',
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     marginBottom: 15,
     textTransform: 'uppercase',
   },
   templateScroll: { paddingLeft: 5 },
   templateItem: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: '#15151E',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.03)',
     marginRight: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -364,24 +394,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
   },
-  templateLabel: { color: '#fff', fontSize: 12, fontWeight: '800' },
-  liveCard: { borderColor: 'rgba(255, 59, 48, 0.2)' },
+  templateLabel: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  liveCard: { borderColor: 'rgba(255, 59, 48, 0.15)' },
   iconBox: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 20,
   },
-  optionLabel: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: 0.5 },
+  optionLabel: { color: '#fff', fontSize: 18, fontWeight: '900', letterSpacing: 0.2 },
   optionDesc: {
-    color: 'rgba(255,255,255,0.4)',
+    color: 'rgba(255,255,255,0.35)',
     fontSize: 12,
+    fontWeight: '500',
     marginTop: 4,
-    position: 'absolute',
-    left: 98,
-    bottom: 22,
+  },
+  optionTextContent: {
+    flex: 1,
   },
   mainContainer: { flex: 1, backgroundColor: '#050508' },
   scrollContent: { paddingBottom: 50 },
