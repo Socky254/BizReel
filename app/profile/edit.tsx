@@ -114,21 +114,29 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     try {
       setUpdating(true);
+      if (!session?.user?.id) throw new Error('No active session');
+
+      const updateData = {
+        business_name: profile.business_name,
+        category: profile.category,
+        bio: profile.bio,
+        location: profile.location,
+        working_hours: profile.working_hours,
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log('Updating profile with:', updateData);
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          business_name: profile.business_name,
-          category: profile.category,
-          bio: profile.bio,
-          location: profile.location,
-          working_hours: profile.working_hours,
-        })
-        .eq('id', session?.user?.id);
+        .update(updateData)
+        .eq('id', session.user.id);
 
       if (error) throw error;
       Alert.alert('Success', 'Profile updated!');
       router.back();
     } catch (e: any) {
+      console.error('Profile Update Error:', e);
       Alert.alert('Error', e.message);
     } finally {
       setUpdating(false);
