@@ -1,6 +1,8 @@
 name: iOS Build (EAS)
 on:
-  workflow_dispatch: # Allows manual trigger
+  workflow_dispatch:
+  push:
+    branches: [main, master] # Added this to trigger on push
 
 jobs:
   build:
