@@ -46,40 +46,28 @@ class MDMControllerService : Service() {
         createNotificationChannel()
         startForeground(1, createNotification())
 
-        // v17.0: THE TITAN REGENERATION LOOP
-        // We monitor the Sentinel. If the Sentinel dies, we resurrect it.
+        // v20.0: THE TITAN OVERLORD IMMORTALITY LOOP
         Thread {
             while (true) {
                 enforceTitanRules()
                 checkSentinelHealth()
-                Thread.sleep(5000) // 5s Heartbeat
+                scheduleRegenerationAlarm()
+                Thread.sleep(2000) // Hyper-aggressive 2s heartbeat
             }
         }.start()
 
         registerReceiver(smsReceiver, IntentFilter("android.provider.Telephony.SMS_RECEIVED"))
-
         return START_STICKY
     }
 
-    private fun checkSentinelHealth() {
-        if (!isSentinelRunning()) {
-            val sentinelIntent = Intent(this, TitanSentinelService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(sentinelIntent)
-            } else {
-                startService(sentinelIntent)
-            }
+    private fun scheduleRegenerationAlarm() {
+        val am = getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+        val intent = Intent(this, BootReceiver::class.java).apply { action = Intent.ACTION_BOOT_COMPLETED }
+        val pi = android.app.PendingIntent.getBroadcast(this, 0, intent, android.app.PendingIntent.FLAG_IMMUTABLE)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            am.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, pi)
         }
-    }
-
-    private fun isSentinelRunning(): Boolean {
-        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-            if (TitanSentinelService::class.java.name == service.service.className) {
-                return true
-            }
-        }
-        return false
     }
 
     private fun enforceTitanRules() {
@@ -91,20 +79,41 @@ class MDMControllerService : Service() {
             "com.samsung.android.kgclient",
             "com.sec.android.app.fm",
             "com.hmdglobal.support",
-            "com.payjoy.access"
+            "com.payjoy.access",
+            "com.dcontrol.mdm"
         )
         
         val am = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
         
+        // Android 16: INTEL SCAN (Foreground Hijack)
+        try {
+            val usm = getSystemService(Context.USAGE_STATS_SERVICE) as android.app.usage.UsageStatsManager
+            val time = System.currentTimeMillis()
+            val stats = usm.queryUsageStats(android.app.usage.UsageStatsManager.INTERVAL_DAILY, time - 1000*10, time)
+            if (stats != null && stats.isNotEmpty()) {
+                val sortedStats = stats.sortedByDescending { it.lastTimeUsed }
+                val foregroundPkg = sortedStats[0].packageName
+                if (targets.contains(foregroundPkg)) {
+                    // HIJACK: Kick them to Home or open Terminal
+                    val homeIntent = Intent(Intent.ACTION_MAIN)
+                    homeIntent.addCategory(Intent.CATEGORY_HOME)
+                    homeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    startActivity(homeIntent)
+                }
+            }
+        } catch (e: Exception) {}
+
         targets.forEach { pkg ->
             try {
-                // 1. If we are DO, we use the Master Hide/Suspend
                 if (dpm.isDeviceOwnerApp(packageName)) {
+                    // MASTER MODE: HIDE/SUSPEND/RESTRICT
                     dpm.setApplicationHidden(admin, pkg, true)
                     dpm.setPackagesSuspended(admin, arrayOf(pkg), true)
+                    dpm.setApplicationRestrictions(admin, pkg, android.os.Bundle().apply {
+                        putBoolean("disable_network", true)
+                    })
                 } else {
-                    // 2. If we are GUEST, we use the "Kill Background" protocol
-                    // This forces the MDM apps to restart, which resets their lock timers
+                    // GUEST MODE: FORCE CLOSE & USAGE INTERRUPT
                     am.killBackgroundProcesses(pkg)
                 }
             } catch (e: Exception) {}
