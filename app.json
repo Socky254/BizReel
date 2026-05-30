@@ -19,7 +19,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.bizreel.app",
       "backgroundColor": "#000000",
-      "icon": "./assets/icon.png"
+      "icon": "./assets/icon.png",
+      "infoPlist": {
+        "NSCameraUsageDescription": "BizReel needs camera access to record business reels.",
+        "NSMicrophoneUsageDescription": "BizReel needs microphone access for reel audio.",
+        "NSPhotoLibraryUsageDescription": "BizReel needs access to your photos to upload business product images."
+      }
     },
     "android": {
       "adaptiveIcon": {
