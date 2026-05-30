@@ -139,11 +139,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         addButton("2. GHOST MODE", "Bypasses grayed-out buttons.", "#333333") {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            if (isAdmin) startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            else refreshStatus("Must Activate Shield 1 First")
         }
 
         addButton("3. ALERT SHIELD", "Blocks all MDM popups/alerts.", "#333333") {
-            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            if (isAdmin) startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            else refreshStatus("Must Activate Shield 1 First")
         }
 
         addButton("4. SINKHOLE VPN", "Severs server links permanently.", "#0055AA") {

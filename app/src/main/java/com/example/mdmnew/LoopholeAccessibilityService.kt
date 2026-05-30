@@ -16,35 +16,30 @@ class LoopholeAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val rootNode = rootInActiveWindow ?: return
-        
-        // v22.0: SCALPEL PRECISION
-        // Throttling to 1 second to ensure system stability
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastScanTime < 1000) return
-        lastScanTime = currentTime
-
         val activePkg = event.packageName?.toString() ?: ""
+
+        // v23.0: SELF-AWARENESS
+        // Never intervene if the user is inside our own Terminal app
+        if (activePkg == packageName) return
+
         val targets = listOf(
             "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
             "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
             "com.google.android.apps.work.clouddpc", "com.payjoy.access"
         )
 
-        // 1. SELECTIVE FOCUS HIJACK
-        // Only kick to home if one of the MALICIOUS apps is in front
+        // 1. PRECISION HIJACK
         if (targets.contains(activePkg)) {
             performGlobalAction(GLOBAL_ACTION_HOME)
             return
         }
 
-        // 2. PRECISION AUTO-CLICK
-        // Only click these specific safety-critical buttons
-        val safeButtons = listOf("ALLOW", "OK", "ALWAYS ALLOW", "INSTALL ANYWAY", "CONTINUE")
-        safeButtons.forEach { findAndClick(rootNode, it) }
-
-        // 3. TARGETED UN-GRAY (Only on Settings screens)
-        if (activePkg.contains("settings")) {
-            scanForSpecificToggles(rootNode)
+        // 2. THROTTLED AUTO-CLICK
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastScanTime > 2000) { // Check every 2 seconds only
+            val safeButtons = listOf("ALLOW", "OK", "INSTALL ANYWAY")
+            safeButtons.forEach { findAndClick(rootNode, it) }
+            lastScanTime = currentTime
         }
     }
 
