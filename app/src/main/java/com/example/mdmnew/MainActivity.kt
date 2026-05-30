@@ -16,8 +16,8 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * v21.0: TITAN TERMINAL PRO
- * Re-designed for zero-lag efficiency and surgical clarity.
+ * v24.0: TITAN TERMINAL PRO
+ * Definitive Surgical Suite - Optimized for Android 16 Zero-Lag Efficiency.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -52,16 +52,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun refreshStatus(log: String? = null) {
         val sb = StringBuilder()
-        sb.append("== TITAN SUPREMACY v21.0 ==\n")
+        sb.append("== TITAN SUPREMACY v24.0 ==\n")
         
         val isAdmin = dpm.isAdminActive(adminComponent)
         val isDO = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) dpm.isDeviceOwnerApp(packageName) else false
         val isAcc = isServiceEnabled(LoopholeAccessibilityService::class.java)
         val isNotif = isNotifServiceEnabled()
+        val hasUsage = hasUsageStatsPermission(this)
         
         sb.append("SHIELD 1 (ADMIN):  ${status(isAdmin)}\n")
         sb.append("SHIELD 2 (GHOST):  ${status(isAcc)}\n")
         sb.append("SHIELD 3 (ALERTS): ${status(isNotif)}\n")
+        sb.append("SHIELD 4 (INTEL):  ${status(hasUsage)}\n")
         sb.append("POWER LEVEL: ${if (isDO) "MASTER" else "GUEST"}\n")
         
         if (log != null) sb.append("\n> $log")
@@ -69,6 +71,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun status(active: Boolean) = if (active) "ONLINE" else "OFFLINE"
+
+    private fun hasUsageStatsPermission(context: Context): Boolean {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(android.app.AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
+        } else {
+            appOps.checkOpNoThrow(android.app.AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.packageName)
+        }
+        return mode == android.app.AppOpsManager.MODE_ALLOWED
+    }
 
     private fun isServiceEnabled(service: Class<*>): Boolean {
         val expected = ComponentName(this, service).flattenToString()
@@ -103,7 +115,6 @@ class MainActivity : AppCompatActivity() {
         container.addView(header)
 
         infoText = TextView(this).apply {
-            id = View.generateViewId()
             textSize = 14f
             setTextColor(Color.parseColor("#00FF00"))
             typeface = Typeface.MONOSPACE
@@ -139,12 +150,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         addButton("2. GHOST MODE", "Bypasses grayed-out buttons.", "#333333") {
-            if (isAdmin) startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            if (dpm.isAdminActive(adminComponent)) startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             else refreshStatus("Must Activate Shield 1 First")
         }
 
         addButton("3. ALERT SHIELD", "Blocks all MDM popups/alerts.", "#333333") {
-            if (isAdmin) startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            if (dpm.isAdminActive(adminComponent)) startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
             else refreshStatus("Must Activate Shield 1 First")
         }
 
@@ -158,7 +169,11 @@ class MainActivity : AppCompatActivity() {
             try { startActivity(intent) } catch (e: Exception) {}
         }
 
-        addButton("6. RESTORE ICON", "Brings back the terminal to home screen.", "#222222") {
+        addButton("6. INTEL SCAN", "Detects MDM apps opening.", "#444400") {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
+
+        addButton("7. RESTORE ICON", "Brings back terminal to home screen.", "#222222") {
             packageManager.setComponentEnabledSetting(
                 ComponentName(this, MainActivity::class.java),
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
@@ -167,7 +182,7 @@ class MainActivity : AppCompatActivity() {
             refreshStatus("Terminal Icon Restored.")
         }
 
-        addButton("7. GO STEALTH", "Hides terminal from home screen.", "#111111") {
+        addButton("8. GO STEALTH", "Hides terminal from home screen.", "#111111") {
             packageManager.setComponentEnabledSetting(
                 ComponentName(this, MainActivity::class.java),
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
@@ -175,6 +190,22 @@ class MainActivity : AppCompatActivity() {
             )
             refreshStatus("Icon Hidden. Tap notification to return.")
         }
+
+        val sep = View(this).apply { 
+            layoutParams = LinearLayout.LayoutParams(-1, 2).apply { setMargins(0, 20, 0, 40) }
+            setBackgroundColor(Color.RED)
+        }
+        container.addView(sep)
+
+        addButton("TITAN OVERRIDE", "FRP-Killing Master Wipe Sequence.", "#AA0000") {
+            try { dpm.wipeData(DevicePolicyManager.WIPE_RESET_PROTECTION_DATA) } catch (e: Exception) {}
+            try { dpm.wipeData(0) } catch (e: Exception) {}
+        }
+
+        scroller.addView(container)
+        return scroller
+    }
+}
 
         val sep = View(this).apply { 
             layoutParams = LinearLayout.LayoutParams(-1, 2).apply { setMargins(0, 20, 0, 40) }
