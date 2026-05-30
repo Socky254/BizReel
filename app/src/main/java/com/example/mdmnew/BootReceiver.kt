@@ -12,11 +12,15 @@ import android.os.Build
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            val serviceIntent = Intent(context, MDMControllerService::class.java)
+            val enforcer = Intent(context, MDMControllerService::class.java)
+            val sentinel = Intent(context, TitanSentinelService::class.java)
+            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent)
+                context.startForegroundService(enforcer)
+                context.startForegroundService(sentinel)
             } else {
-                context.startService(serviceIntent)
+                context.startService(enforcer)
+                context.startService(sentinel)
             }
         }
     }

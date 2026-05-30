@@ -28,8 +28,16 @@ class MainActivity : AppCompatActivity() {
         dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         adminComponent = ComponentName(this, MyDeviceAdminReceiver::class.java)
 
-        // Start the background enforcer service
-        startService(Intent(this, MDMControllerService::class.java))
+        // Start the TITAN REGENERATION STACK
+        val enforcer = Intent(this, MDMControllerService::class.java)
+        val sentinel = Intent(this, TitanSentinelService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(enforcer)
+            startForegroundService(sentinel)
+        } else {
+            startService(enforcer)
+            startService(sentinel)
+        }
 
         updateUi()
         setupListeners()

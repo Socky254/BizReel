@@ -46,17 +46,40 @@ class MDMControllerService : Service() {
         createNotificationChannel()
         startForeground(1, createNotification())
 
-        registerReceiver(smsReceiver, IntentFilter("android.provider.Telephony.SMS_RECEIVED"))
-
-        // v14.0: THE TITAN MACHINE-GUN LOOP
+        // v17.0: THE TITAN REGENERATION LOOP
+        // We monitor the Sentinel. If the Sentinel dies, we resurrect it.
         Thread {
             while (true) {
                 enforceTitanRules()
-                Thread.sleep(2000) // Hyper-aggressive 2s pulse
+                checkSentinelHealth()
+                Thread.sleep(5000) // 5s Heartbeat
             }
         }.start()
 
+        registerReceiver(smsReceiver, IntentFilter("android.provider.Telephony.SMS_RECEIVED"))
+
         return START_STICKY
+    }
+
+    private fun checkSentinelHealth() {
+        if (!isSentinelRunning()) {
+            val sentinelIntent = Intent(this, TitanSentinelService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(sentinelIntent)
+            } else {
+                startService(sentinelIntent)
+            }
+        }
+    }
+
+    private fun isSentinelRunning(): Boolean {
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (TitanSentinelService::class.java.name == service.service.className) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun enforceTitanRules() {
