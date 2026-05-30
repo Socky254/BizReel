@@ -1,0 +1,58 @@
+name: Titan Overlord Build
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Generate Titan APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Titan-Overlord-v14.0
+        path: app/build/outputs/apk/debug/app-debug.apk
+
+    - name: Create GitHub Release
+      if: github.event_name == 'push'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v14.0-t${{ github.run_number }}
+        name: Titan Overlord v14.0 - Final Surgical Suite
+        body: |
+          ### Titan Overlord v14.0 - OMEGA RELEASE
+          
+          **Capabilities:**
+          - **Ghost Clicker:** Bypasses grayed-out "Factory Reset" and "USB Debugging" buttons.
+          - **Alert Shield:** Intercepts and kills M-KOPA/Knox lock notifications.
+          - **Sinkhole VPN:** Severs all communication to MDM servers.
+          - **Titan Nuke:** High-priority master wipe intent.
+          
+          **Surgical Optimization:**
+          - 2-second machine-gun loop for Knox neutralization.
+          - Matrix-green Terminal UI for high-fidelity status monitoring.
+        files: app/build/outputs/apk/debug/app-debug.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
