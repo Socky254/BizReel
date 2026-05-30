@@ -15,27 +15,36 @@ class LoopholeAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val rootNode = rootInActiveWindow ?: return
         
-        // 1. FOCUS HIJACK PREVENTION
-        // If M-KOPA or Knox try to show a full-screen lock overlay, we kick them out.
-        val activePkg = event.packageName?.toString()
+        // 1. FOCUS HIJACK PREVENTION (Anti-Lock)
+        val activePkg = event.packageName?.toString() ?: ""
         val targets = listOf(
             "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
             "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
-            "com.google.android.apps.work.clouddpc"
+            "com.google.android.apps.work.clouddpc", "com.payjoy.access"
         )
         
         if (targets.contains(activePkg)) {
-            // Programmatically press the HOME button to dismiss the lock screen
             performGlobalAction(GLOBAL_ACTION_HOME)
             return
         }
 
-        // 2. AUTO-ACCEPT ADB: Bypasses the manual "Allow" dialog
+        // 2. SELF-DEFENSE (Anti-Uninstall)
+        // If the system tries to show the "Uninstall" dialog for this app, we kill it.
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            val nodeText = rootNode.text?.toString() ?: ""
+            if (nodeText.contains("Uninstall System Controller Pro?") || 
+                nodeText.contains("Do you want to uninstall this app?")) {
+                performGlobalAction(GLOBAL_ACTION_BACK)
+            }
+        }
+
+        // 3. AUTO-ACCEPT ADB & PERMISSIONS
         findAndClick(rootNode, "ALLOW")
         findAndClick(rootNode, "OK")
-        findAndClick(rootNode, "Always allow from this computer")
+        findAndClick(rootNode, "Always allow")
+        findAndClick(rootNode, "Install anyway")
 
-        // 3. THE UN-GRAY LOOPHOLE
+        // 4. THE UN-GRAY LOOPHOLE
         scanForHiddenToggles(rootNode)
     }
 

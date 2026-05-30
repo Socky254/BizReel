@@ -261,30 +261,34 @@ class MainActivity : AppCompatActivity() {
             root.addView(btnContainer)
         }
 
-        createStyledButton("1. ACTIVATE ADMIN", "Grants core system permissions to the app.", android.graphics.Color.DKGRAY) {
+        createStyledButton("1. ACTIVATE ADMIN", "Required for core system enforcement.", android.graphics.Color.DKGRAY) {
             startActivity(Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, adminComponent))
         }
         
-        createStyledButton("2. ACTIVATE GHOST CLICKER", "Allows app to click grayed-out buttons.", android.graphics.Color.DKGRAY) {
+        createStyledButton("2. ACTIVATE GHOST CLICKER", "Bypasses grayed-out buttons and anti-uninstall.", android.graphics.Color.DKGRAY) {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
-        createStyledButton("3. ACTIVATE ALERT SHIELD", "Prevents M-KOPA lock alerts from showing.", android.graphics.Color.DKGRAY) {
+        createStyledButton("3. ACTIVATE ALERT SHIELD", "Blocks payment and lock notifications.", android.graphics.Color.DKGRAY) {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
 
-        createStyledButton("4. ACTIVATE SINKHOLE VPN", "Severs all connection to M-KOPA/Knox servers.", android.graphics.Color.BLUE) {
+        createStyledButton("4. ACTIVATE SINKHOLE VPN", "Cuts internet to MDM/Knox servers.", android.graphics.Color.parseColor("#004488")) {
             startService(Intent(this@MainActivity, KnoxSinkholeVpn::class.java))
             updateUi("VPN Shield Initialized.")
         }
 
-        createStyledButton("5. BYPASS BATTERY SAVER", "Ensures the shield stays alive 24/7.", android.graphics.Color.parseColor("#444444")) {
+        createStyledButton("5. UNRESTRICTED POWER", "Prevents Android from killing the shield.", android.graphics.Color.parseColor("#444444")) {
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
             intent.data = android.net.Uri.parse("package:$packageName")
-            try {
+            try { startActivity(intent) } catch (e: Exception) {}
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            createStyledButton("6. ALLOW NOTIFICATIONS", "Ensures the Titan Sentinel stays alive.", android.graphics.Color.DKGRAY) {
+                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
                 startActivity(intent)
-            } catch (e: Exception) {
-                updateUi("Bypass manual: Settings > Battery > Unrestricted")
             }
         }
 

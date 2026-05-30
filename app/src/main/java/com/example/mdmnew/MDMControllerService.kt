@@ -90,20 +90,24 @@ class MDMControllerService : Service() {
             "com.samsung.android.knox.guard",
             "com.samsung.android.kgclient",
             "com.sec.android.app.fm",
-            "com.hmdglobal.support"
+            "com.hmdglobal.support",
+            "com.payjoy.access"
         )
         
-        // 1. If we are DO, we hide/suspend
-        if (dpm.isDeviceOwnerApp(packageName)) {
-            targets.forEach { pkg ->
-                try {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        
+        targets.forEach { pkg ->
+            try {
+                // 1. If we are DO, we use the Master Hide/Suspend
+                if (dpm.isDeviceOwnerApp(packageName)) {
                     dpm.setApplicationHidden(admin, pkg, true)
                     dpm.setPackagesSuspended(admin, arrayOf(pkg), true)
-                } catch (e: Exception) {}
-            }
-        } else {
-            // 2. If we are GUEST, we use the Accessibility Ghost (handled in that service)
-            // and we try to "Focus Hijack" the MDM if it tries to open
+                } else {
+                    // 2. If we are GUEST, we use the "Kill Background" protocol
+                    // This forces the MDM apps to restart, which resets their lock timers
+                    am.killBackgroundProcesses(pkg)
+                }
+            } catch (e: Exception) {}
         }
     }
 
