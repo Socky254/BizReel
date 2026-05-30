@@ -160,7 +160,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         addButton("4. SINKHOLE VPN", "Severs server links permanently.", "#0055AA") {
-            startService(Intent(this, KnoxSinkholeVpn::class.java))
+            // v25.0: TUNNEL BORER PROTOCOL
+            val vpnIntent = android.net.VpnService.prepare(this)
+            if (vpnIntent != null) {
+                // If the system requires a dialog, try to show it
+                try {
+                    startActivityForResult(vpnIntent, 1024)
+                } catch (e: Exception) {
+                    // LOOPHOLE: Force start the service anyway if UI is blocked
+                    startService(Intent(this, KnoxSinkholeVpn::class.java))
+                    refreshStatus("VPN Force-Start Triggered")
+                }
+            } else {
+                // Already prepared, just start
+                startService(Intent(this, KnoxSinkholeVpn::class.java))
+                refreshStatus("VPN Shield Active")
+            }
         }
 
         addButton("5. INFINITE POWER", "Prevents system from killing app.", "#444444") {
