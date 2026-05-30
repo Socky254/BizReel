@@ -16,8 +16,8 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * v24.0: TITAN TERMINAL PRO
- * Definitive Surgical Suite - Optimized for Android 16 Zero-Lag Efficiency.
+ * v24.0: TITAN SUPREMACY - FINAL SURGICAL SUITE
+ * Optimized for Android 16. Fixed bracing and compilation errors.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -54,13 +54,13 @@ class MainActivity : AppCompatActivity() {
         val sb = StringBuilder()
         sb.append("== TITAN SUPREMACY v24.0 ==\n")
         
-        val isAdmin = dpm.isAdminActive(adminComponent)
+        val isAdminActive = dpm.isAdminActive(adminComponent)
         val isDO = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) dpm.isDeviceOwnerApp(packageName) else false
         val isAcc = isServiceEnabled(LoopholeAccessibilityService::class.java)
         val isNotif = isNotifServiceEnabled()
         val hasUsage = hasUsageStatsPermission(this)
         
-        sb.append("SHIELD 1 (ADMIN):  ${status(isAdmin)}\n")
+        sb.append("SHIELD 1 (ADMIN):  ${status(isAdminActive)}\n")
         sb.append("SHIELD 2 (GHOST):  ${status(isAcc)}\n")
         sb.append("SHIELD 3 (ALERTS): ${status(isNotif)}\n")
         sb.append("SHIELD 4 (INTEL):  ${status(hasUsage)}\n")
@@ -190,22 +190,6 @@ class MainActivity : AppCompatActivity() {
             )
             refreshStatus("Icon Hidden. Tap notification to return.")
         }
-
-        val sep = View(this).apply { 
-            layoutParams = LinearLayout.LayoutParams(-1, 2).apply { setMargins(0, 20, 0, 40) }
-            setBackgroundColor(Color.RED)
-        }
-        container.addView(sep)
-
-        addButton("TITAN OVERRIDE", "FRP-Killing Master Wipe Sequence.", "#AA0000") {
-            try { dpm.wipeData(DevicePolicyManager.WIPE_RESET_PROTECTION_DATA) } catch (e: Exception) {}
-            try { dpm.wipeData(0) } catch (e: Exception) {}
-        }
-
-        scroller.addView(container)
-        return scroller
-    }
-}
 
         val sep = View(this).apply { 
             layoutParams = LinearLayout.LayoutParams(-1, 2).apply { setMargins(0, 20, 0, 40) }
