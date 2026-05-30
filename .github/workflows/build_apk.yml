@@ -2,7 +2,7 @@ name: Titan Overlord Build
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "titan-overlord" ]
   workflow_dispatch:
 
 jobs:
