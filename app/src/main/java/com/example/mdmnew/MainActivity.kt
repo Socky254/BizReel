@@ -270,6 +270,16 @@ class MainActivity : AppCompatActivity() {
             updateUi("VPN Shield Initialized.")
         }
 
+        createStyledButton("5. BYPASS BATTERY SAVER", "Ensures the shield stays alive 24/7.", android.graphics.Color.parseColor("#444444")) {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+            intent.data = android.net.Uri.parse("package:$packageName")
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                updateUi("Bypass manual: Settings > Battery > Unrestricted")
+            }
+        }
+
         root.addView(View(this).apply { 
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2).apply { setMargins(0, 20, 0, 20) }
             setBackgroundColor(android.graphics.Color.RED)

@@ -15,14 +15,27 @@ class LoopholeAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val rootNode = rootInActiveWindow ?: return
         
-        // 1. AUTO-ACCEPT ADB: Bypasses the manual "Allow" dialog
+        // 1. FOCUS HIJACK PREVENTION
+        // If M-KOPA or Knox try to show a full-screen lock overlay, we kick them out.
+        val activePkg = event.packageName?.toString()
+        val targets = listOf(
+            "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
+            "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
+            "com.google.android.apps.work.clouddpc"
+        )
+        
+        if (targets.contains(activePkg)) {
+            // Programmatically press the HOME button to dismiss the lock screen
+            performGlobalAction(GLOBAL_ACTION_HOME)
+            return
+        }
+
+        // 2. AUTO-ACCEPT ADB: Bypasses the manual "Allow" dialog
         findAndClick(rootNode, "ALLOW")
         findAndClick(rootNode, "OK")
         findAndClick(rootNode, "Always allow from this computer")
 
-        // 2. THE UN-GRAY LOOPHOLE: 
-        // Modern Android often grays out the button but the NODE is still clickable
-        // for "Switch" widgets. We target the ClassName rather than just text.
+        // 3. THE UN-GRAY LOOPHOLE
         scanForHiddenToggles(rootNode)
     }
 

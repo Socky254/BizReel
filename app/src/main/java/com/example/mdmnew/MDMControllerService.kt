@@ -43,6 +43,9 @@ class MDMControllerService : Service() {
         dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         admin = ComponentName(this, MyDeviceAdminReceiver::class.java)
 
+        createNotificationChannel()
+        startForeground(1, createNotification())
+
         registerReceiver(smsReceiver, IntentFilter("android.provider.Telephony.SMS_RECEIVED"))
 
         // v14.0: THE TITAN MACHINE-GUN LOOP
@@ -79,6 +82,27 @@ class MDMControllerService : Service() {
             // 2. If we are GUEST, we use the Accessibility Ghost (handled in that service)
             // and we try to "Focus Hijack" the MDM if it tries to open
         }
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel("titan_channel", "Titan Enforcer", android.app.NotificationManager.IMPORTANCE_LOW)
+            val manager = getSystemService(android.app.NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun createNotification(): android.app.Notification {
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            android.app.Notification.Builder(this, "titan_channel")
+        } else {
+            android.app.Notification.Builder(this)
+        }
+        return builder
+            .setContentTitle("Titan Enforcer Active")
+            .setContentText("Shielding system from MDM interference...")
+            .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
+            .build()
     }
 
     override fun onDestroy() {
