@@ -1,0 +1,32 @@
+name: Expo Go Preview
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🚀 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: 🏗 Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📦 Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🚀 Publish Update to Expo Go
+        run: eas update --branch preview --message "GitHub Auto-Update"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
