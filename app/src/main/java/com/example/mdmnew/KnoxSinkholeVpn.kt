@@ -31,24 +31,26 @@ class KnoxSinkholeVpn : VpnService() {
         builder.setSession("Titan Override")
         builder.addAddress("10.0.0.2", 24)
         
-        // v14.5: SELECTIVE BYPASS (Split-Tunneling)
-        // We tell the VPN to IGNORE common apps so you can use them normally.
-        val bypassApps = listOf(
-            "com.android.chrome", 
-            "com.whatsapp", 
-            "com.google.android.youtube",
-            "com.facebook.katana",
-            "com.instagram.android"
+        // v15.0: SURGICAL BLACKLIST (Precision Targeting)
+        // Instead of Whitelisting apps we want to save, we BLACKLIST only the targets.
+        // This means the VPN will ONLY touch traffic from these specific apps.
+        // Every other app (Chrome, WhatsApp, Bank apps, etc.) will work 100% normally.
+        val targetApps = listOf(
+            "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
+            "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
+            "com.samsung.android.knox.containercore", "com.sec.android.app.fm",
+            "com.google.android.apps.work.clouddpc", "com.hmdglobal.support",
+            "com.payjoy.access", "com.dcontrol.mdm", "com.samsung.android.mdm"
         )
         
-        bypassApps.forEach { pkg ->
+        targetApps.forEach { pkg ->
             try {
-                builder.addDisallowedApplication(pkg)
+                // Only capture traffic from these malicious apps
+                builder.addAllowedApplication(pkg)
             } catch (e: Exception) {}
         }
 
-        // The rest of the system (including M-KOPA and Knox) 
-        // remains trapped in the Sinkhole.
+        // Send all traffic from the allowed apps into our Black Hole
         builder.addRoute("0.0.0.0", 0) 
         
         try {
