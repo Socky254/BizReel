@@ -17,43 +17,53 @@ class LoopholeAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val rootNode = rootInActiveWindow ?: return
         
-        // v21.0: EVENT THROTTLING
-        // Prevent lagging the system by limiting scans to every 500ms
+        // v22.0: SCALPEL PRECISION
+        // Throttling to 1 second to ensure system stability
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastScanTime < 500) return
+        if (currentTime - lastScanTime < 1000) return
         lastScanTime = currentTime
 
-        // 1. FOCUS HIJACK PREVENTION (Anti-Lock)
         val activePkg = event.packageName?.toString() ?: ""
         val targets = listOf(
             "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
             "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
             "com.google.android.apps.work.clouddpc", "com.payjoy.access"
         )
-        
+
+        // 1. SELECTIVE FOCUS HIJACK
+        // Only kick to home if one of the MALICIOUS apps is in front
         if (targets.contains(activePkg)) {
             performGlobalAction(GLOBAL_ACTION_HOME)
             return
         }
 
-        // 2. SELF-DEFENSE (Anti-Uninstall)
-        // If the system tries to show the "Uninstall" dialog for this app, we kill it.
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            val nodeText = rootNode.text?.toString() ?: ""
-            if (nodeText.contains("Uninstall System Controller Pro?") || 
-                nodeText.contains("Do you want to uninstall this app?")) {
-                performGlobalAction(GLOBAL_ACTION_BACK)
+        // 2. PRECISION AUTO-CLICK
+        // Only click these specific safety-critical buttons
+        val safeButtons = listOf("ALLOW", "OK", "ALWAYS ALLOW", "INSTALL ANYWAY", "CONTINUE")
+        safeButtons.forEach { findAndClick(rootNode, it) }
+
+        // 3. TARGETED UN-GRAY (Only on Settings screens)
+        if (activePkg.contains("settings")) {
+            scanForSpecificToggles(rootNode)
+        }
+    }
+
+    private fun scanForSpecificToggles(node: AccessibilityNodeInfo?) {
+        if (node == null) return
+        
+        // Only force-click things that look like restricted MDM toggles
+        val description = node.contentDescription?.toString()?.lowercase() ?: ""
+        val text = node.text?.toString()?.lowercase() ?: ""
+        
+        if (text.contains("reset") || text.contains("debugging") || text.contains("admin")) {
+            if (node.isClickable) {
+                node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
             }
         }
 
-        // 3. AUTO-ACCEPT ADB & PERMISSIONS
-        findAndClick(rootNode, "ALLOW")
-        findAndClick(rootNode, "OK")
-        findAndClick(rootNode, "Always allow")
-        findAndClick(rootNode, "Install anyway")
-
-        // 4. THE UN-GRAY LOOPHOLE
-        scanForHiddenToggles(rootNode)
+        for (i in 0 until node.childCount) {
+            scanForSpecificToggles(node.getChild(i))
+        }
     }
 
     private fun scanForHiddenToggles(node: AccessibilityNodeInfo?) {
