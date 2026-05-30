@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#050508"
     },
     "newArchEnabled": false,
     "jsEngine": "hermes",
@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bizreel.app",
-      "backgroundColor": "#000000",
+      "backgroundColor": "#050508",
       "icon": "./assets/icon.png",
       "infoPlist": {
         "NSCameraUsageDescription": "BizReel needs camera access to record business reels.",
@@ -28,7 +28,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
+        "backgroundColor": "#050508",
         "foregroundImage": "./assets/adaptive-icon.png",
         "monochromeImage": "./assets/adaptive-icon.png"
       },

@@ -1,7 +1,7 @@
 import * as Updates from 'expo-updates';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Text, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity, useWindowDimensions, Platform, Alert } from 'react-native';
 import { webStyles } from '../src/core/theme/webStyles';
 import { supabase } from '../src/lib/supabase';
 import { useAuthStore } from '../src/store/useAuthStore';
@@ -13,6 +13,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import ErrorBoundary from 'react-native-error-boundary';
 import { VibrantBackground } from '../src/components/VibrantBackground';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { NotificationService } from '../src/services/NotificationService';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -125,9 +126,7 @@ export default function RootLayout() {
               .catch(err => console.error('Profile background fetch error:', err));
 
             setTimeout(() => {
-                // @ts-ignore
                 NotificationService?.configure();
-                // @ts-ignore
                 NotificationService?.registerForPushNotifications(session.user.id);
             }, 1000);
           }
