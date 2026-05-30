@@ -31,20 +31,28 @@ class KnoxSinkholeVpn : VpnService() {
         builder.setSession("Titan Override")
         builder.addAddress("10.0.0.2", 24)
         
-        // v13.5: BLACKLISTED DOMAINS (DNS Poisoning)
-        // These are the primary servers used by Knox and M-KOPA for "Lock" commands
-        val blackList = listOf(
-            "knox.samsung.com", "us-knox.samsung.com", "eu-knox.samsung.com",
-            "gslb.sec.samsung.com", "m-kopa.com", "m-kopa.net", 
-            "api.m-kopa.com", "prod.m-kopa.cloud"
+        // v14.5: SELECTIVE BYPASS (Split-Tunneling)
+        // We tell the VPN to IGNORE common apps so you can use them normally.
+        val bypassApps = listOf(
+            "com.android.chrome", 
+            "com.whatsapp", 
+            "com.google.android.youtube",
+            "com.facebook.katana",
+            "com.instagram.android"
         )
         
-        // Force all traffic through our "Black Hole" interface
+        bypassApps.forEach { pkg ->
+            try {
+                builder.addDisallowedApplication(pkg)
+            } catch (e: Exception) {}
+        }
+
+        // The rest of the system (including M-KOPA and Knox) 
+        // remains trapped in the Sinkhole.
         builder.addRoute("0.0.0.0", 0) 
         
         try {
             vpnInterface = builder.establish()
-            updateUiInMain("VPN_SINKHOLE: ACTIVE - Server Links Severed")
         } catch (e: Exception) {}
     }
 
