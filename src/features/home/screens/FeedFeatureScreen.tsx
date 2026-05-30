@@ -26,6 +26,10 @@ import { ReelFeedItem } from '../components/ReelFeedItem';
 import { StoriesBar } from '../components/StoriesBar';
 import { Colors } from '../../../core/theme/colors';
 import { supabase } from '../../../lib/supabase';
+import { VideoService } from '../../../services/VideoService';
+import { SkeletonLoader } from '../../../components/SkeletonLoader';
+import * as Haptics from 'expo-haptics';
+import { MarketTicker } from '../../../components/MarketTicker';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -35,7 +39,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 
-const { height, width } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const PulseIndicator = () => {
   const opacity = useSharedValue(0.4);
@@ -61,6 +65,7 @@ export const FeedFeatureScreen = () => {
   const { session } = useAuthStore();
   const router = useRouter();
   const isFocused = useIsFocused();
+  const flatListRef = useRef<FlatList>(null);
 
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
@@ -91,29 +96,31 @@ export const FeedFeatureScreen = () => {
 
   const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems.length > 0) {
+      const index = viewableItems[0].index ?? 0;
       const newActiveId = viewableItems[0].item.id;
-      setActiveId(newActiveId);
-      container.incrementViewUseCase.execute(newActiveId);
+
+      if (newActiveId !== activeId) {
+        setActiveId(newActiveId);
+        container.incrementViewUseCase.execute(newActiveId);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+
+      // PREMIUM POLISH: PREFETCH NEXT VIDEOS
+      const nextUrls = posts.slice(index + 1, index + 3).map(p => p.video_url);
+      if (nextUrls.length > 0) {
+        VideoService.prefetchVideos(nextUrls);
+      }
     }
   }).current;
 
   useEffect(() => {
     loadFeed(true);
 
-    // REAL-TIME FEED SYNC
     const channel = supabase
       .channel('market_feed_sync')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'posts',
-        },
-        () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
           loadFeed(false);
-        },
-      )
+      })
       .subscribe();
 
     return () => {
@@ -121,45 +128,33 @@ export const FeedFeatureScreen = () => {
     };
   }, [loadFeed]);
 
+  // DESKTOP KEYBOARD SHORTCUTS
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const currentIndex = posts.findIndex(p => p.id === activeId);
+      if (e.key === 'ArrowDown' || e.key === 'j') {
+        if (currentIndex < posts.length - 1) flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
+      } else if (e.key === 'ArrowUp' || e.key === 'k') {
+        if (currentIndex > 0) flatListRef.current?.scrollToIndex({ index: currentIndex - 1, animated: true });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeId, posts]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadFeed(false);
     setRefreshing(false);
   };
 
-  const handleManualRetry = () => {
-    loadFeed(true);
-  };
+  const handleManualRetry = () => loadFeed(true);
 
   const handleOpenComments = useCallback((id: string) => {
     setSelectedPostId(id);
     setCommentModalVisible(true);
   }, []);
-
-  const handleInquiry = useCallback(
-    (userId: string) => {
-      router.push({
-        pathname: '/chat/[id]',
-        params: { id: userId },
-      });
-    },
-    [router],
-  );
-
-  const handlePartner = useCallback(
-    (userId: string) => {
-      if (!session?.user?.id) {
-        Alert.alert('Authentication Required', 'Please sign in to connect with partners.');
-        return;
-      }
-      SyncService.enqueue('follow', {
-        follower_id: session.user.id,
-        following_id: userId,
-      });
-      Alert.alert('Success', 'Partner connection requested.');
-    },
-    [session?.user?.id],
-  );
 
   const renderItem = useCallback(
     ({ item }: { item: Post }) => (
@@ -175,8 +170,17 @@ export const FeedFeatureScreen = () => {
   if (loading)
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="small" color={Colors.primary} />
-        <Animated.Text entering={FadeIn.delay(300)} style={styles.loadingText}>
+        <View style={{ width: '100%', height: '100%', padding: 20 }}>
+            <SkeletonLoader width="100%" height={height * 0.7} borderRadius={20} style={{ marginBottom: 20 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+                <SkeletonLoader width={50} height={50} borderRadius={25} />
+                <View style={{ flex: 1, gap: 8 }}>
+                    <SkeletonLoader width="60%" height={15} />
+                    <SkeletonLoader width="40%" height={10} />
+                </View>
+            </View>
+        </View>
+        <Animated.Text entering={FadeIn.delay(300)} style={[styles.loadingText, { position: 'absolute' }]}>
           Accessing Enterprise Ledger...
         </Animated.Text>
       </View>
@@ -186,20 +190,11 @@ export const FeedFeatureScreen = () => {
     return (
       <View style={styles.center}>
         <Animated.View entering={FadeInDown.duration(800)} style={styles.emptyContent}>
-          <View style={styles.emptyIconCircle}>
-            <Ionicons name="rocket-outline" size={40} color={Colors.primary} />
-          </View>
+          <View style={styles.emptyIconCircle}><Ionicons name="rocket-outline" size={40} color={Colors.primary} /></View>
           <Text style={styles.emptyTitle}>THE MARKET IS WAITING</Text>
-          <Text style={styles.emptyText}>
-            Be the first to disrupt the industry with your business reels. Your elite networking
-            journey starts here.
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.push('/(tabs)/upload')}
-            style={styles.primaryActionBtn}
-          >
+          <Text style={styles.emptyText}>Be the first to disrupt the industry with your business reels.</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/upload')} style={styles.primaryActionBtn}>
             <Text style={styles.primaryActionBtnText}>Launch First Reel</Text>
-            <Ionicons name="add" size={20} color="#000" />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleManualRetry} style={styles.ghostBtn}>
             <Text style={styles.ghostBtnText}>Refresh Network</Text>
@@ -212,222 +207,64 @@ export const FeedFeatureScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* PREMIUM ENTERPRISE HEADER */}
       <Animated.View entering={FadeIn.duration(1000)} style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>BIZREEL</Text>
-          <PulseIndicator />
-        </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerIconButton}
-            onPress={() => router.push('/(tabs)/market')}
-          >
+        <View><Text style={styles.headerTitle}>BIZREEL</Text><PulseIndicator /></View>
+        <TouchableOpacity style={styles.headerIconButton} onPress={() => router.push('/(tabs)/market')}>
             <Ionicons name="search-outline" size={22} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
       </Animated.View>
 
-      <View style={styles.storiesWrapper}>
-        <StoriesBar />
+      <View style={styles.tickerContainer}>
+        <MarketTicker />
       </View>
 
+      <View style={styles.storiesWrapper}><StoriesBar /></View>
+
       <FlatList
+        ref={flatListRef}
         data={posts}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         pagingEnabled
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={3}
-        windowSize={5}
+        removeClippedSubviews={Platform.OS === 'android'}
+        initialNumToRender={1}
+        maxToRenderPerBatch={1}
+        windowSize={Platform.OS === 'android' ? 2 : 3}
+        updateCellsBatchingPeriod={Platform.OS === 'android' ? 150 : 100}
+        listKey="main_feed"
         showsVerticalScrollIndicator={false}
         snapToInterval={height}
         snapToAlignment="start"
         decelerationRate="fast"
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Colors.primary}
-          />
-        }
-        getItemLayout={(_, index) => ({
-          length: height,
-          offset: height * index,
-          index,
-        })}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
+        getItemLayout={(_, index) => ({ length: height, offset: height * index, index })}
       />
 
-      <CommentsModal
-        visible={commentModalVisible}
-        postId={selectedPostId}
-        session={session}
-        onClose={() => setCommentModalVisible(false)}
-      />
+      <CommentsModal visible={commentModalVisible} postId={selectedPostId} session={session} onClose={() => setCommentModalVisible(false)} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'transparent' },
-  header: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 45,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 25,
-  },
-  storiesWrapper: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 120 : 105,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 26,
-    fontWeight: '900',
-    letterSpacing: -1,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  headerIconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: 'rgba(5, 5, 8, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-  },
-  pulseContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  pulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.primary,
-    marginRight: 6,
-  },
-  pulseText: {
-    color: Colors.primary,
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#050508',
-    padding: 40,
-  },
-  loadingText: {
-    color: 'rgba(255,255,255,0.4)',
-    marginTop: 20,
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  emptyContent: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  emptyIconCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 35,
-    backgroundColor: 'rgba(0, 200, 83, 0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 30,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 200, 83, 0.15)',
-  },
-  emptyTitle: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: -0.5,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  emptyText: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 35,
-    paddingHorizontal: 20,
-  },
-  primaryActionBtn: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 35,
-    paddingVertical: 20,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 15 },
-    shadowOpacity: 0.4,
-    shadowRadius: 25,
-    elevation: 10,
-  },
-  primaryActionBtnText: {
-    color: '#000',
-    fontWeight: '900',
-    fontSize: 15,
-    textTransform: 'uppercase',
-  },
-  ghostBtn: {
-    marginTop: 20,
-    padding: 10,
-  },
-  ghostBtnText: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  errorText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 20,
-    marginBottom: 30,
-    fontWeight: '500',
-    lineHeight: 24,
-  },
-  retryBtn: {
-    paddingHorizontal: 25,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    alignSelf: 'center',
-  },
-  retryBtnText: {
-    color: '#fff',
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    fontSize: 11,
-    letterSpacing: 1,
-  },
+  container: { flex: 1, backgroundColor: '#000' },
+  header: { position: 'absolute', top: Platform.OS === 'ios' ? 60 : 45, left: 0, right: 0, zIndex: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25 },
+  tickerContainer: { position: 'absolute', top: Platform.OS === 'ios' ? 115 : 100, left: 0, right: 0, zIndex: 9 },
+  storiesWrapper: { position: 'absolute', top: Platform.OS === 'ios' ? 145 : 130, left: 0, right: 0, zIndex: 10 },
+  headerTitle: { color: '#fff', fontSize: 26, fontWeight: '900', letterSpacing: -1 },
+  headerIconButton: { width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(5, 5, 8, 0.5)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  pulseContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.primary, marginRight: 6 },
+  pulseText: { color: Colors.primary, fontSize: 9, fontWeight: '800', letterSpacing: 1 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#050508', padding: 40 },
+  loadingText: { color: 'rgba(255,255,255,0.4)', marginTop: 20, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2 },
+  emptyContent: { alignItems: 'center', width: '100%' },
+  emptyIconCircle: { width: 100, height: 100, borderRadius: 35, backgroundColor: 'rgba(0, 200, 83, 0.05)', justifyContent: 'center', alignItems: 'center', marginBottom: 30, borderWidth: 1, borderColor: 'rgba(0, 200, 83, 0.15)' },
+  emptyTitle: { color: '#fff', fontSize: 24, fontWeight: '900', textAlign: 'center' },
+  emptyText: { color: 'rgba(255,255,255,0.5)', fontSize: 14, textAlign: 'center', marginBottom: 35 },
+  primaryActionBtn: { backgroundColor: Colors.primary, paddingHorizontal: 35, paddingVertical: 20, borderRadius: 20 },
+  primaryActionBtnText: { color: '#000', fontWeight: '900', fontSize: 15 },
+  ghostBtn: { marginTop: 20, padding: 10 },
+  ghostBtnText: { color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '700' },
 });

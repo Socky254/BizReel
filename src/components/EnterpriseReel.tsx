@@ -18,7 +18,8 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { Colors } from '../core/theme/colors';
-
+import { Watermark } from './Watermark';
+import { MarketingService } from '../services/MarketingService';
 import { Post } from '../domain/models';
 
 const { width, height } = Dimensions.get('window');
@@ -78,6 +79,9 @@ export const EnterpriseReel = memo(({ item, isVisible, onInquiry, onPartner }: R
         isMuted={false}
       />
 
+      {/* Premium Watermark - TikTok Style */}
+      {isLoaded && <Watermark businessName={item.profiles?.business_name} />}
+
       {!isLoaded && (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -103,7 +107,7 @@ export const EnterpriseReel = memo(({ item, isVisible, onInquiry, onPartner }: R
                     name="shield-checkmark"
                     size={14}
                     color={Colors.primary}
-                    style={{ marginLeft: 6 }}
+                    style={{ marginLeft: 4 }}
                   />
                 )}
               </View>
@@ -138,7 +142,7 @@ export const EnterpriseReel = memo(({ item, isVisible, onInquiry, onPartner }: R
           <Text style={styles.actionLabel}>Inquiry</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => MarketingService.shareReel(item)}>
           <View style={styles.iconCircle}>
             <Ionicons name="share-social" size={26} color="#fff" />
           </View>

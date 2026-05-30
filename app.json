@@ -34,6 +34,47 @@
       },
       "package": "com.bizreel.app",
       "googleServicesFile": "./google-services.json",
+      "shortcuts": [
+        {
+          "id": "launch-reel",
+          "shortLabel": "Launch Reel",
+          "longLabel": "Launch New Business Reel",
+          "icon": "./assets/adaptive-icon.png",
+          "intent": {
+            "targetPackage": "com.bizreel.app",
+            "targetClass": "com.bizreel.app.MainActivity",
+            "action": "android.intent.action.VIEW",
+            "data": "bizreel://upload"
+          }
+        },
+        {
+          "id": "view-insights",
+          "shortLabel": "Insights",
+          "longLabel": "View Market Insights",
+          "icon": "./assets/adaptive-icon.png",
+          "intent": {
+            "targetPackage": "com.bizreel.app",
+            "targetClass": "com.bizreel.app.MainActivity",
+            "action": "android.intent.action.VIEW",
+            "data": "bizreel://index"
+          }
+        }
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "bizreel"
+            },
+            {
+              "scheme": "https",
+              "host": "dist-tau-five-42.vercel.app"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "permissions": [
         "INTERNET",
         "CAMERA",
@@ -45,7 +86,8 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png",
+      "baseUrl": ""
     },
     "plugins": [
       "expo-router",

@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(15, 15, 20, 0.85)',
   },
   actionBtn: {
     alignItems: 'center',

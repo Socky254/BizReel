@@ -388,8 +388,8 @@ export default function ProfileScreen() {
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.navBar}>
-        <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/cart')}>
-          <Ionicons name="wallet-outline" size={20} color="#fff" />
+        <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/profile/diagnostics')}>
+          <Ionicons name="pulse" size={20} color={Colors.primary} />
         </TouchableOpacity>
         <View style={styles.navTitleContainer}>
           <Text style={styles.navTitle}>
@@ -461,10 +461,12 @@ export default function ProfileScreen() {
 
         <View style={styles.nameSection}>
           <View style={styles.displayNameRow}>
-            <Text style={styles.displayName}>{profile?.business_name || 'Business Entity'}</Text>
-            {profile?.is_verified && (
-              <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
-            )}
+            <View style={styles.nameWithBadge}>
+              <Text style={styles.displayName}>{profile?.business_name || 'Business Entity'}</Text>
+              {profile?.is_verified && (
+                <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
+              )}
+            </View>
             {profile?.business_type && (
               <View
                 style={[
@@ -785,7 +787,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   nameSection: { marginBottom: 25 },
-  displayNameRow: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
+  displayNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  nameWithBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   displayName: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -0.8 },
   typeBadge: {
     paddingHorizontal: 8,

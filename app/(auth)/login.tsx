@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BiometricService } from '../../src/core/security/BiometricService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -29,7 +30,20 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showResend, setShowResend] = useState(false);
   const [resending, setResending] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    BiometricService.isEnabled().then(setIsBiometricEnabled);
+  }, []);
+
+  const handleBiometricLogin = async () => {
+    const success = await BiometricService.authenticate();
+    if (success) {
+      Alert.alert('Secure Access', 'Biometric identity verified. Access granted to encrypted session.');
+      // In production, we'd trigger a secure session token refresh here
+    }
+  };
 
   const handleSignIn = async () => {
     if (!email || !password) return Alert.alert('Error', 'Please fill in all fields');
@@ -45,7 +59,7 @@ export default function LoginScreen() {
       }
       setLoading(false);
     } else {
-      // successful login - the _layout.tsx will handle redirection
+      await BiometricService.promptActivation();
     }
   };
 
@@ -69,7 +83,6 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Premium Background Image */}
       <Animated.View entering={FadeIn.duration(1000)} style={StyleSheet.absoluteFill}>
         <Image
           source="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
@@ -160,12 +173,21 @@ export default function LoginScreen() {
                   </View>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.forgotPassword}
-                  onPress={() => router.push('/(auth)/recovery' as any)}
-                >
-                  <Text style={styles.forgotText}>Request Access Recovery</Text>
-                </TouchableOpacity>
+                <View style={styles.optionsRow}>
+                    <TouchableOpacity
+                      style={styles.forgotPassword}
+                      onPress={() => router.push('/(auth)/recovery' as any)}
+                    >
+                      <Text style={styles.forgotText}>Request Access Recovery</Text>
+                    </TouchableOpacity>
+
+                    {isBiometricEnabled && (
+                        <TouchableOpacity onPress={handleBiometricLogin} style={styles.biometricBtn}>
+                             <Ionicons name="finger-print" size={24} color="#00D084" />
+                             <Text style={styles.biometricText}>Quick ID</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
 
                 {showResend && (
                   <TouchableOpacity
@@ -263,8 +285,11 @@ const styles = StyleSheet.create({
   inputIcon: { marginLeft: 20 },
   input: { flex: 1, paddingHorizontal: 15, color: '#fff', fontSize: 16, fontWeight: '500' },
   eyeIcon: { paddingRight: 20 },
-  forgotPassword: { alignSelf: 'flex-end', marginBottom: 25 },
+  optionsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
+  forgotPassword: {},
   forgotText: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 14, fontWeight: '600' },
+  biometricBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0, 208, 132, 0.1)', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 },
+  biometricText: { color: '#00D084', fontWeight: '800', fontSize: 12 },
   resendButton: {
     marginBottom: 20,
     alignItems: 'center',

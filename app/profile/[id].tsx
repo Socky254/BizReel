@@ -304,10 +304,13 @@ export default function PublicProfileScreen() {
             </View>
           )}
         </View>
+        <View style={styles.nameWithBadge}>
+          <Text style={styles.businessName}>{profile?.business_name || 'Business Entity'}</Text>
+          {profile?.is_verified && <Ionicons name="checkmark-circle" size={22} color="#00D084" />}
+        </View>
         <Text style={styles.username}>@{profile?.username || 'user'}</Text>
 
         <View style={styles.badgeRow}>
-          {profile?.is_verified && <Ionicons name="checkmark-circle" size={20} color="#00D084" />}
           {profile?.business_type && (
             <View
               style={[
@@ -398,21 +401,21 @@ export default function PublicProfileScreen() {
         {profile?.bio && <Text style={styles.profileBio}>{profile.bio}</Text>}
 
         {perfIndex && (
-          <View style={styles.perfCard}>
+          <View style={[styles.perfCard, { borderColor: perfIndex.index_score >= 85 ? '#00D084' : 'rgba(255,255,255,0.05)' }]}>
             <View style={styles.perfRow}>
               <View style={styles.perfItem}>
-                <Text style={styles.perfVal}>{perfIndex.index_score}</Text>
-                <Text style={styles.perfLabel}>SCORE</Text>
+                <Text style={[styles.perfVal, { color: perfIndex.index_score >= 85 ? '#00D084' : '#fff' }]}>{perfIndex.index_score}</Text>
+                <Text style={styles.perfLabel}>TRUST INDEX</Text>
               </View>
               <View style={styles.perfDivider} />
               <View style={styles.perfItem}>
-                <Text style={styles.perfVal}>{perfIndex.fulfillment_rate}%</Text>
-                <Text style={styles.perfLabel}>SUCCESS</Text>
+                <Text style={styles.perfVal}>{perfIndex.reliability}%</Text>
+                <Text style={styles.perfLabel}>RELIABILITY</Text>
               </View>
               <View style={styles.perfDivider} />
               <View style={styles.perfItem}>
-                <Text style={styles.perfVal}>{perfIndex.unique_business_partners || 0}</Text>
-                <Text style={styles.perfLabel}>PARTNERS</Text>
+                <Text style={styles.perfVal}>{perfIndex.unique_partners || 0}</Text>
+                <Text style={styles.perfLabel}>ALLIES</Text>
               </View>
               <View style={styles.perfDivider} />
               <View style={styles.perfItem}>
@@ -420,8 +423,10 @@ export default function PublicProfileScreen() {
                 <Text style={styles.perfLabel}>DEALS</Text>
               </View>
             </View>
-            <View style={styles.perfBadge}>
-              <Text style={styles.perfStatusText}>{perfIndex.status} ENTERPRISE</Text>
+            <View style={[styles.perfBadge, { backgroundColor: perfIndex.index_score >= 85 ? 'rgba(0,208,132,0.2)' : 'rgba(255,255,255,0.05)' }]}>
+              <Text style={[styles.perfStatusText, { color: perfIndex.index_score >= 85 ? '#00D084' : '#aaa' }]}>
+                {perfIndex.status}
+              </Text>
             </View>
           </View>
         )}
@@ -675,7 +680,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarText: { color: '#fff', fontSize: 40, fontWeight: 'bold' },
-  username: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 20 },
+  businessName: { color: '#fff', fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
+  nameWithBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  username: { color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: '600', marginBottom: 20 },
   badgeRow: {
     flexDirection: 'row',
     gap: 8,

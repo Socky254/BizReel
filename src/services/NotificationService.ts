@@ -1,63 +1,51 @@
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 
-export interface Notification {
-  id: string;
-  receiver_id: string;
-  sender_id: string;
-  type:
-    | 'like'
-    | 'comment'
-    | 'follow'
-    | 'save'
-    | 'order_paid'
-    | 'live_started'
-    | 'partner_connection';
-  post_id?: string;
-  is_read: boolean;
-  created_at: string;
-  sender?: {
-    username: string;
-    business_name: string;
-    avatar_url: string;
-  };
-}
-
 export class NotificationService {
-  static async getNotifications(userId: string): Promise<Notification[]> {
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*, sender:profiles!sender_id(username, business_name, avatar_url)')
-      .eq('receiver_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) {
-      console.error('Error fetching notifications:', error);
-      return [];
-    }
-    return data as Notification[];
+  /**
+   * Configures how notifications are handled when the app is foregrounded.
+   */
+  static configure() {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
   }
 
-  static async markAsRead(notificationId: string) {
+  /**
+   * Registers for push notifications and saves the token to the user profile.
+   */
+  static async registerForPushNotifications(userId: string) {
+    if (Platform.OS === 'web') return;
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.log('Failed to get push token for push notification!');
+      return;
+    }
+
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log('[NotificationService] Expo Push Token:', token);
+
+    // Save token to Supabase profiles table
     const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('id', notificationId);
-
-    if (error) console.error('Error marking notification as read:', error);
-  }
-
-  static async getUnreadCount(userId: string): Promise<number> {
-    const { count, error } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('receiver_id', userId)
-      .eq('is_read', false);
+      .from('profiles')
+      .update({ push_token: token })
+      .eq('id', userId);
 
     if (error) {
-      console.error('Error getting unread count:', error);
-      return 0;
+      console.error('[NotificationService] Error saving token to DB:', error.message);
     }
-    return count || 0;
   }
 }

@@ -1,6 +1,8 @@
 {
   "name": "bizreel",
   "version": "1.0.1",
+  "description": "BizReel Enterprise Desktop Client",
+  "author": "BizReel Team",
   "main": "expo-router/entry",
   "private": true,
   "scripts": {
@@ -12,7 +14,27 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
-    "build:android": "npx expo prebuild --platform android && cd android && ./gradlew assembleRelease"
+    "build:android": "npx expo prebuild --platform android && cd android && ./gradlew assembleRelease",
+    "build:windows": "npx expo export --platform web && node fix-paths.js && npx electron-builder"
+  },
+  "build": {
+    "appId": "com.bizreel.desktop",
+    "productName": "BizReel",
+    "extraMetadata": {
+      "main": "electron-main.js"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron-main.js",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "assets/icon.png"
+    }
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
@@ -32,17 +54,22 @@
     "expo-dev-client": "~5.0.20",
     "expo-file-system": "~18.0.7",
     "expo-font": "~13.0.2",
+    "expo-haptics": "^56.0.3",
     "expo-image": "~2.0.7",
     "expo-image-picker": "~16.0.3",
     "expo-linear-gradient": "~14.0.2",
     "expo-linking": "~7.0.3",
+    "expo-local-authentication": "~15.0.2",
+    "expo-media-library": "~17.0.6",
     "expo-navigation-bar": "~4.0.9",
     "expo-notifications": "~0.29.14",
     "expo-router": "~4.0.17",
+    "expo-sharing": "~13.0.1",
     "expo-splash-screen": "~0.29.13",
     "expo-status-bar": "~2.0.0",
     "expo-system-ui": "~4.0.9",
     "expo-updates": "~0.27.5",
+    "expo-video-thumbnails": "~9.0.3",
     "fs-extra": "^11.3.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -62,6 +89,9 @@
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.4.3",
     "@types/react": "~18.3.3",
+    "eas-cli": "^14.1.0",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~8.0.1",
     "eslint-config-prettier": "^9.1.0",
@@ -70,7 +100,6 @@
     "jest-expo": "~52.0.0",
     "prettier": "^3.2.5",
     "react-test-renderer": "18.3.1",
-    "typescript": "~5.5.4",
-    "eas-cli": "^14.1.0"
+    "typescript": "~5.5.4"
   }
 }

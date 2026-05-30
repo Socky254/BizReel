@@ -1,29 +1,46 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, Text, Animated } from 'react-native';
+import { View, StyleSheet, Text, Animated as RNAnimated } from 'react-native';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import React, { useEffect, useRef } from 'react';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+
+const AnimatedIcon = ({ name, color, focused }: { name: any, color: string, focused: boolean }) => {
+    const scale = useSharedValue(1);
+
+    useEffect(() => {
+        scale.value = withSpring(focused ? 1.2 : 1);
+    }, [focused]);
+
+    const style = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }]
+    }));
+
+    return (
+        <Animated.View style={style}>
+            <Ionicons name={name} size={focused ? 24 : 22} color={color} />
+        </Animated.View>
+    );
+};
 
 export default function TabLayout() {
   const isOffline = false;
-  const slideAnim = useRef(new Animated.Value(-100)).current;
+  const slideAnim = useRef(new RNAnimated.Value(-100)).current;
 
   useEffect(() => {
-    // In a real app, use @react-native-community/netinfo
-    // Simulating a check or listener
     if (isOffline) {
-      Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start();
+      RNAnimated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start();
     } else {
-      Animated.timing(slideAnim, { toValue: -100, duration: 500, useNativeDriver: true }).start();
+      RNAnimated.timing(slideAnim, { toValue: -100, duration: 500, useNativeDriver: true }).start();
     }
   }, [isOffline, slideAnim]);
 
   return (
     <View style={{ flex: 1 }}>
-      <Animated.View style={[styles.offlineBanner, { transform: [{ translateY: slideAnim }] }]}>
+      <RNAnimated.View style={[styles.offlineBanner, { transform: [{ translateY: slideAnim }] }]}>
         <Ionicons name="cloud-offline" size={16} color="#000" />
         <Text style={styles.offlineText}>NETWORK SYNCHRONIZATION PAUSED</Text>
-      </Animated.View>
+      </RNAnimated.View>
 
       <Tabs
         backBehavior="history"
@@ -31,7 +48,7 @@ export default function TabLayout() {
           sceneStyle: { backgroundColor: '#050508' },
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: 'rgba(5, 5, 8, 0.94)', // Obsidian glass
+            backgroundColor: 'rgba(5, 5, 8, 0.94)',
             borderTopWidth: 1,
             borderTopColor: 'rgba(255,255,255,0.08)',
             height: 95,
@@ -59,11 +76,7 @@ export default function TabLayout() {
           options={{
             title: 'Insights',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? 'stats-chart' : 'stats-chart-outline'}
-                size={22}
-                color={color}
-              />
+              <AnimatedIcon name={focused ? 'stats-chart' : 'stats-chart-outline'} color={color} focused={focused} />
             ),
           }}
         />
@@ -72,11 +85,7 @@ export default function TabLayout() {
           options={{
             title: 'Exchange',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? 'swap-horizontal' : 'swap-horizontal-outline'}
-                size={24}
-                color={color}
-              />
+              <AnimatedIcon name={focused ? 'swap-horizontal' : 'swap-horizontal-outline'} color={color} focused={focused} />
             ),
           }}
         />
@@ -87,11 +96,7 @@ export default function TabLayout() {
             tabBarIcon: ({ color, focused }) => (
               <View style={styles.uploadBtn}>
                 <SafeLinearGradient
-                  colors={
-                    focused
-                      ? ['#00D084', '#009661']
-                      : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']
-                  }
+                  colors={focused ? ['#00D084', '#009661'] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
                   style={styles.uploadGradient}
                 >
                   <Ionicons name="add" size={28} color={focused ? '#000' : '#fff'} />
@@ -106,11 +111,7 @@ export default function TabLayout() {
           options={{
             title: 'Signals',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons
-                name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
-                size={22}
-                color={color}
-              />
+              <AnimatedIcon name={focused ? 'chatbubbles' : 'chatbubbles-outline'} color={color} focused={focused} />
             ),
           }}
         />
@@ -119,7 +120,7 @@ export default function TabLayout() {
           options={{
             title: 'HQ',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'business' : 'business-outline'} size={22} color={color} />
+              <AnimatedIcon name={focused ? 'business' : 'business-outline'} color={color} focused={focused} />
             ),
           }}
         />
@@ -129,42 +130,8 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  offlineBanner: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    right: 20,
-    height: 40,
-    backgroundColor: '#00C853',
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 999,
-    gap: 10,
-    shadowColor: '#00C853',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
-  offlineText: {
-    color: '#000',
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  uploadBtn: {
-    width: 48,
-    height: 34,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginTop: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  uploadGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  offlineBanner: { position: 'absolute', top: 50, left: 20, right: 20, height: 40, backgroundColor: '#00C853', borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', zIndex: 999, gap: 10 },
+  offlineText: { color: '#000', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  uploadBtn: { width: 48, height: 34, borderRadius: 12, overflow: 'hidden', marginTop: 5, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  uploadGradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });

@@ -24,17 +24,20 @@ export const ExecutiveDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [analytics, setAnalytics] = useState<any>(null);
   const [wallet, setWallet] = useState<any>(null);
+  const [perfIndex, setPerfIndex] = useState<any>(null);
 
   const fetchData = async () => {
     if (!user) return;
     try {
-      const [analyticsRes, walletRes] = await Promise.all([
+      const [analyticsRes, walletRes, perfRes] = await Promise.all([
         supabase.rpc('get_advanced_business_analytics', { target_user_id: user.id }),
         supabase.from('wallets').select('*').eq('user_id', user.id).single(),
+        supabase.rpc('get_business_performance_index', { target_user_id: user.id }),
       ]);
 
       if (analyticsRes.data) setAnalytics(analyticsRes.data);
       if (walletRes.data) setWallet(walletRes.data);
+      if (perfRes.data) setPerfIndex(perfRes.data);
     } catch (e) {
       console.error('Dashboard data fetch error:', e);
     } finally {
@@ -111,26 +114,38 @@ export const ExecutiveDashboard = () => {
       <View style={styles.grid}>
         <MetricBox label="Reach" value={stats.total_views || 0} icon="eye-outline" delay={400} />
         <MetricBox
-          label="Engagement"
-          value={`${stats.engagement_rate || 0}%`}
-          icon="flash-outline"
+          label="Trust Score"
+          value={perfIndex?.index_score || 0}
+          icon="shield-checkmark-outline"
           delay={500}
-          color="#FFD700"
+          color={Colors.primary}
         />
         <MetricBox
-          label="Allies"
-          value={stats.total_reposts || 0}
-          icon="people-outline"
+          label="Reliability"
+          value={`${perfIndex?.reliability || 0}%`}
+          icon="ribbon-outline"
           delay={600}
-        />
-        <MetricBox
-          label="Conversion"
-          value={`${stats.conversion_rate || 0}%`}
-          icon="cart-outline"
-          delay={700}
           color="#00D1FF"
         />
+        <MetricBox
+          label="Partner Tier"
+          value={perfIndex?.status?.split(' ')[0] || 'VERIFIED'}
+          icon="diamond-outline"
+          delay={700}
+          color="#FFD700"
+        />
       </View>
+
+      {/* Strategic Recommendation */}
+      {perfIndex?.recommendation && (
+        <Animated.View entering={FadeInUp.delay(750)} style={styles.trustRecommendation}>
+          <View style={styles.recommendationHeader}>
+            <Ionicons name="shield-checkmark" size={18} color={Colors.primary} />
+            <Text style={styles.recommendationTitle}>TRUST OPTIMIZATION</Text>
+          </View>
+          <Text style={styles.recommendationText}>{perfIndex.recommendation}</Text>
+        </Animated.View>
+      )}
 
       {/* Insights Section */}
       <Text style={styles.sectionTitle}>Strategic Intelligence</Text>
@@ -237,6 +252,17 @@ const styles = StyleSheet.create({
   insightHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   insightTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
   insightText: { color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20 },
+  trustRecommendation: {
+    backgroundColor: 'rgba(0, 208, 132, 0.05)',
+    padding: 20,
+    borderRadius: 20,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 208, 132, 0.2)',
+  },
+  recommendationHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  recommendationTitle: { color: Colors.primary, fontSize: 12, fontWeight: '900', letterSpacing: 1 },
+  recommendationText: { color: '#fff', fontSize: 14, fontWeight: '500', lineHeight: 20 },
   errorText: {
     color: 'rgba(255,255,255,0.6)',
     fontSize: 16,

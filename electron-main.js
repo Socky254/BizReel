@@ -1,28 +1,39 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 
 function createWindow() {
+  // Remove default menu for a cleaner look
+  Menu.setApplicationMenu(null);
+
   const win = new BrowserWindow({
-    width: 1200,
+    width: 1280,
     height: 800,
-    title: "BizReel Desktop",
+    minWidth: 1000,
+    minHeight: 700,
+    title: "BizReel",
     icon: path.join(__dirname, 'assets/icon.png'),
+    autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      devTools: true, // Keep enabled for now to help the user if needed
     },
-    backgroundColor: '#050508',
+    backgroundColor: '#050508', // Match app background
+    show: false, // Don't show until ready-to-show
   });
 
-  // In production, we load the exported web build
   const indexPath = path.join(__dirname, 'dist/index.html');
-
-  // If running in dev mode, you could load the local metro server
-  // win.loadURL('http://localhost:8081');
 
   win.loadFile(indexPath).catch(() => {
     console.log("Dist folder not found. Please run 'npm run build:windows' first.");
   });
+
+  win.once('ready-to-show', () => {
+    win.show();
+  });
+
+  // Open DevTools automatically if we are debugging
+  // win.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);

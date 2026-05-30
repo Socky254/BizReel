@@ -1,6 +1,8 @@
+import * as Updates from 'expo-updates';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import { webStyles } from '../src/core/theme/webStyles';
 import { supabase } from '../src/lib/supabase';
 import { useAuthStore } from '../src/store/useAuthStore';
 import { useUserStore } from '../src/store/useUserStore';
@@ -8,7 +10,6 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../src/lib/queryClient';
 import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
-import { Platform } from 'react-native';
 import ErrorBoundary from 'react-native-error-boundary';
 import { VibrantBackground } from '../src/components/VibrantBackground';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
@@ -62,7 +63,10 @@ export default function RootLayout() {
   const { setProfile } = useUserStore();
   const segments = useSegments();
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const [isReady, setIsReady] = useState(false);
+
+  const isLargeWeb = Platform.OS === 'web' && width > 768;
 
   useEffect(() => {
     let mounted = true;
@@ -75,20 +79,57 @@ export default function RootLayout() {
           await NavigationBar.setButtonStyleAsync('light');
         }
 
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
+
         if (mounted) {
           setSession(session);
           if (session?.user) {
             setUser(session.user);
-            // Pre-fetch profile into store
-            const { data } = await supabase
+
+            // AUTO-UPDATE & MAINTENANCE CHECK
+            if (!__DEV__) {
+              Updates.checkForUpdateAsync().then(update => {
+                if (update.isAvailable) {
+                  Alert.alert(
+                    'Strategic Update Available',
+                    'A new version of BizReel is ready with critical optimizations. Update now?',
+                    [
+                      { text: 'Later', style: 'cancel' },
+                      {
+                        text: 'Update Now',
+                        onPress: async () => {
+                          try {
+                            await Updates.fetchUpdateAsync();
+                            await Updates.reloadAsync();
+                          } catch (e) {
+                            console.error('Update failed:', e);
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }
+              }).catch(() => {});
+            }
+
+            // NON-BLOCKING BACKGROUND TASKS
+            // Start profile fetch but don't await it for the UI to be ready
+            supabase
               .from('profiles')
               .select('*')
               .eq('id', session.user.id)
-              .single();
-            if (data) setProfile(data);
+              .single()
+              .then(({ data }) => {
+                if (data && mounted) setProfile(data);
+              })
+              .catch(err => console.error('Profile background fetch error:', err));
+
+            setTimeout(() => {
+                // @ts-ignore
+                NotificationService?.configure();
+                // @ts-ignore
+                NotificationService?.registerForPushNotifications(session.user.id);
+            }, 1000);
           }
         }
       } catch (e) {
@@ -149,23 +190,27 @@ export default function RootLayout() {
     // @ts-ignore
     <ErrorBoundary FallbackComponent={CustomFallback}>
       <ThemeProvider value={BizReelTheme}>
-        <VibrantBackground>
-          <View style={{ flex: 1, backgroundColor: 'transparent' }}>
-            <QueryClientProvider client={queryClient}>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: 'transparent' },
-                  animation: 'fade',
-                }}
-              >
-                <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
-                <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-                <Stack.Screen name="profile/follows" options={{ presentation: 'modal' }} />
-              </Stack>
-            </QueryClientProvider>
+        <View style={isLargeWeb ? webStyles.centerContainer : { flex: 1 }}>
+          <View style={isLargeWeb ? webStyles.responsiveWrapper : { flex: 1 }}>
+            <VibrantBackground>
+              <View style={{ flex: 1, backgroundColor: 'transparent' }}>
+                <QueryClientProvider client={queryClient}>
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: 'transparent' },
+                      animation: 'fade',
+                    }}
+                  >
+                    <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
+                    <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+                    <Stack.Screen name="profile/follows" options={{ presentation: 'modal' }} />
+                  </Stack>
+                </QueryClientProvider>
+              </View>
+            </VibrantBackground>
           </View>
-        </VibrantBackground>
+        </View>
       </ThemeProvider>
     </ErrorBoundary>
   );
