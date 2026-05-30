@@ -1,5 +1,6 @@
 package com.example.mdmnew
 
+import android.app.ActivityManager
 import android.app.Service
 import android.app.admin.DevicePolicyManager
 import android.content.BroadcastReceiver
@@ -9,30 +10,34 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
-import android.os.UserManager
 import android.telephony.SmsMessage
-import android.telephony.TelephonyManager
 import android.util.Log
+import kotlinx.coroutines.*
 
+/**
+ * v21.0: TITAN PERFORMANCE CORE
+ * Re-engineered for maximum swiftness. Uses non-blocking coroutines 
+ * to ensure the system never hangs, even during aggressive neutralization.
+ */
 class MDMControllerService : Service() {
 
     private lateinit var dpm: DevicePolicyManager
     private lateinit var admin: ComponentName
-    private var lastSimSerial: String? = null
+    private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private val smsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val pdus = intent.extras?.get("pdus") as? Array<*> ?: return
-            for (pdu in pdus) {
-                val sms = SmsMessage.createFromPdu(pdu as ByteArray)
-                val body = sms.messageBody ?: ""
-                
-                // SECRET COMMANDS
-                if (body.contains("#NEUTRALIZE#")) {
-                    enforceRules()
-                } else if (body.contains("#WIPE_NOW#")) {
-                    if (dpm.isDeviceOwnerApp(packageName)) {
-                        dpm.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE)
+            serviceScope.launch {
+                for (pdu in pdus) {
+                    val sms = SmsMessage.createFromPdu(pdu as ByteArray)
+                    val body = sms.messageBody ?: ""
+                    if (body.contains("#NEUTRALIZE#")) {
+                        enforceTitanRules()
+                    } else if (body.contains("#WIPE_NOW#")) {
+                        if (dpm.isDeviceOwnerApp(packageName)) {
+                            withContext(Dispatchers.Main) { dpm.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE) }
+                        }
                     }
                 }
             }
@@ -46,31 +51,24 @@ class MDMControllerService : Service() {
         createNotificationChannel()
         startForeground(1, createNotification())
 
-        // v20.0: THE TITAN OVERLORD IMMORTALITY LOOP
-        Thread {
-            while (true) {
-                enforceTitanRules()
-                checkSentinelHealth()
-                scheduleRegenerationAlarm()
-                Thread.sleep(2000) // Hyper-aggressive 2s heartbeat
+        // v21.0: THE NON-BLOCKING HYPER-LOOP
+        serviceScope.launch {
+            while (isActive) {
+                try {
+                    enforceTitanRules()
+                    checkSentinelHealth()
+                } catch (e: Exception) {
+                    Log.e("TitanCore", "Loop error: ${e.message}")
+                }
+                delay(3000) // 3s Heartbeat: Perfectly balanced for efficiency vs power
             }
-        }.start()
+        }
 
         registerReceiver(smsReceiver, IntentFilter("android.provider.Telephony.SMS_RECEIVED"))
         return START_STICKY
     }
 
-    private fun scheduleRegenerationAlarm() {
-        val am = getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
-        val intent = Intent(this, BootReceiver::class.java).apply { action = Intent.ACTION_BOOT_COMPLETED }
-        val pi = android.app.PendingIntent.getBroadcast(this, 0, intent, android.app.PendingIntent.FLAG_IMMUTABLE)
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            am.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 60000, pi)
-        }
-    }
-
-    private fun enforceTitanRules() {
+    private suspend fun enforceTitanRules() = withContext(Dispatchers.IO) {
         val targets = listOf(
             "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
             "com.google.android.apps.work.clouddpc",
@@ -83,22 +81,23 @@ class MDMControllerService : Service() {
             "com.dcontrol.mdm"
         )
         
-        val am = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         
-        // Android 16: INTEL SCAN (Foreground Hijack)
+        // Lightweight Intel Scan (Android 16)
         try {
             val usm = getSystemService(Context.USAGE_STATS_SERVICE) as android.app.usage.UsageStatsManager
             val time = System.currentTimeMillis()
-            val stats = usm.queryUsageStats(android.app.usage.UsageStatsManager.INTERVAL_DAILY, time - 1000*10, time)
-            if (stats != null && stats.isNotEmpty()) {
-                val sortedStats = stats.sortedByDescending { it.lastTimeUsed }
-                val foregroundPkg = sortedStats[0].packageName
+            val stats = usm.queryUsageStats(android.app.usage.UsageStatsManager.INTERVAL_DAILY, time - 5000, time)
+            if (!stats.isNullOrEmpty()) {
+                val foregroundPkg = stats.maxByOrNull { it.lastTimeUsed }?.packageName
                 if (targets.contains(foregroundPkg)) {
-                    // HIJACK: Kick them to Home or open Terminal
-                    val homeIntent = Intent(Intent.ACTION_MAIN)
-                    homeIntent.addCategory(Intent.CATEGORY_HOME)
-                    homeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    startActivity(homeIntent)
+                    launch(Dispatchers.Main) {
+                        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                            addCategory(Intent.CATEGORY_HOME)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        startActivity(homeIntent)
+                    }
                 }
             }
         } catch (e: Exception) {}
@@ -106,25 +105,37 @@ class MDMControllerService : Service() {
         targets.forEach { pkg ->
             try {
                 if (dpm.isDeviceOwnerApp(packageName)) {
-                    // MASTER MODE: HIDE/SUSPEND/RESTRICT
                     dpm.setApplicationHidden(admin, pkg, true)
                     dpm.setPackagesSuspended(admin, arrayOf(pkg), true)
-                    dpm.setApplicationRestrictions(admin, pkg, android.os.Bundle().apply {
-                        putBoolean("disable_network", true)
-                    })
                 } else {
-                    // GUEST MODE: FORCE CLOSE & USAGE INTERRUPT
                     am.killBackgroundProcesses(pkg)
                 }
             } catch (e: Exception) {}
         }
     }
 
+    private fun checkSentinelHealth() {
+        if (!isSentinelRunning()) {
+            val sentinelIntent = Intent(this, TitanSentinelService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(sentinelIntent)
+            } else {
+                startService(sentinelIntent)
+            }
+        }
+    }
+
+    private fun isSentinelRunning(): Boolean {
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val runningServices = manager.getRunningServices(50)
+        return runningServices.any { it.service.className == TitanSentinelService::class.java.name }
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = android.app.NotificationChannel("titan_channel", "Titan Enforcer", android.app.NotificationManager.IMPORTANCE_LOW)
             val manager = getSystemService(android.app.NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
+            manager?.createNotificationChannel(channel)
         }
     }
 
@@ -136,14 +147,15 @@ class MDMControllerService : Service() {
         }
         return builder
             .setContentTitle("Titan Enforcer Active")
-            .setContentText("Shielding system from MDM interference...")
+            .setContentText("System Shielded.")
             .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
             .build()
     }
 
     override fun onDestroy() {
+        serviceScope.cancel()
+        try { unregisterReceiver(smsReceiver) } catch (e: Exception) {}
         super.onDestroy()
-        unregisterReceiver(smsReceiver)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

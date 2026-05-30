@@ -12,9 +12,17 @@ import android.view.accessibility.AccessibilityNodeInfo
  */
 class LoopholeAccessibilityService : AccessibilityService() {
 
+    private var lastScanTime = 0L
+
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val rootNode = rootInActiveWindow ?: return
         
+        // v21.0: EVENT THROTTLING
+        // Prevent lagging the system by limiting scans to every 500ms
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastScanTime < 500) return
+        lastScanTime = currentTime
+
         // 1. FOCUS HIJACK PREVENTION (Anti-Lock)
         val activePkg = event.packageName?.toString() ?: ""
         val targets = listOf(
