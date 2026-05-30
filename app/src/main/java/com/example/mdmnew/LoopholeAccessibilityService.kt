@@ -18,9 +18,12 @@ class LoopholeAccessibilityService : AccessibilityService() {
         val rootNode = rootInActiveWindow ?: return
         val activePkg = event.packageName?.toString() ?: ""
 
-        // v23.0: SELF-AWARENESS
-        // Never intervene if the user is inside our own Terminal app
-        if (activePkg == packageName) return
+        // v24.0: FAILSAFE EXCLUSIONS
+        // Never intervene if the user is inside our own Terminal, Settings, or System UI.
+        // This prevents the app from "locking itself out" or freezing the notification shade.
+        if (activePkg == packageName || 
+            activePkg == "com.android.settings" || 
+            activePkg == "com.android.systemui") return
 
         val targets = listOf(
             "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",

@@ -140,15 +140,22 @@ class MDMControllerService : Service() {
     }
 
     private fun createNotification(): android.app.Notification {
+        val openIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pi = android.app.PendingIntent.getActivity(this, 0, openIntent, android.app.PendingIntent.FLAG_IMMUTABLE)
+
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             android.app.Notification.Builder(this, "titan_channel")
         } else {
             android.app.Notification.Builder(this)
         }
         return builder
-            .setContentTitle("Titan Enforcer Active")
-            .setContentText("System Shielded.")
+            .setContentTitle("Titan Supremacy Active")
+            .setContentText("System Shielded. Tap to open Terminal.")
             .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
+            .setContentIntent(pi) // Failsafe: Always allows opening from notification
+            .setOngoing(true)     // Cannot be swiped away
             .build()
     }
 

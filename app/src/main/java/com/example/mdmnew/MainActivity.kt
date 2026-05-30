@@ -158,9 +158,22 @@ class MainActivity : AppCompatActivity() {
             try { startActivity(intent) } catch (e: Exception) {}
         }
 
-        addButton("6. GO GHOST", "Hides this Terminal from launcher.", "#222222") {
-            packageManager.setComponentEnabledSetting(ComponentName(this, MainActivity::class.java), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
-            refreshStatus("Terminal Hidden. Reopen via App Info.")
+        addButton("6. RESTORE ICON", "Brings back the terminal to home screen.", "#222222") {
+            packageManager.setComponentEnabledSetting(
+                ComponentName(this, MainActivity::class.java),
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
+            )
+            refreshStatus("Terminal Icon Restored.")
+        }
+
+        addButton("7. GO STEALTH", "Hides terminal from home screen.", "#111111") {
+            packageManager.setComponentEnabledSetting(
+                ComponentName(this, MainActivity::class.java),
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+            )
+            refreshStatus("Icon Hidden. Tap notification to return.")
         }
 
         val sep = View(this).apply { 
