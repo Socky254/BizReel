@@ -33,13 +33,29 @@ class KnoxSinkholeVpn : VpnService() {
         builder.setSession("Titan Override")
         builder.addAddress("10.0.0.2", 24)
         
-        // BLOCK BY IP (Total Severance)
-        // Hard-blocking M-KOPA and Knox IP ranges
+        // v27.0: SURGICAL BLACKLIST (Restoring User Internet)
+        // We ONLY capture traffic from these specific apps. 
+        // Everything else (WhatsApp, Chrome, etc.) will bypass the VPN and work normally.
+        val targetApps = listOf(
+            "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
+            "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
+            "com.samsung.android.knox.containercore", "com.sec.android.app.fm",
+            "com.google.android.apps.work.clouddpc", "com.hmdglobal.support",
+            "com.payjoy.access", "com.dcontrol.mdm", "com.samsung.android.mdm"
+        )
+        
+        targetApps.forEach { pkg ->
+            try {
+                // FORCE ONLY these apps into the VPN
+                builder.addAllowedApplication(pkg)
+            } catch (e: Exception) {}
+        }
+
+        // Send ONLY the traffic from those apps into the Black Hole
         builder.addRoute("0.0.0.0", 0) 
         
-        // Android 16: Lockdown Request
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            builder.setBlocking(true) // Prevent leak during handover
+            builder.setBlocking(true)
         }
         
         try {
