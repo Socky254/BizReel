@@ -22,6 +22,8 @@ class KnoxSinkholeVpn : VpnService() {
             return START_NOT_STICKY
         }
         
+        // v26.0: ALWAYS-ON PERSISTENCE
+        // Ensures the tunnel restarts every time network switches
         startVpn()
         return START_STICKY
     }
@@ -31,27 +33,14 @@ class KnoxSinkholeVpn : VpnService() {
         builder.setSession("Titan Override")
         builder.addAddress("10.0.0.2", 24)
         
-        // v15.0: SURGICAL BLACKLIST (Precision Targeting)
-        // Instead of Whitelisting apps we want to save, we BLACKLIST only the targets.
-        // This means the VPN will ONLY touch traffic from these specific apps.
-        // Every other app (Chrome, WhatsApp, Bank apps, etc.) will work 100% normally.
-        val targetApps = listOf(
-            "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
-            "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
-            "com.samsung.android.knox.containercore", "com.sec.android.app.fm",
-            "com.google.android.apps.work.clouddpc", "com.hmdglobal.support",
-            "com.payjoy.access", "com.dcontrol.mdm", "com.samsung.android.mdm"
-        )
-        
-        targetApps.forEach { pkg ->
-            try {
-                // Only capture traffic from these malicious apps
-                builder.addAllowedApplication(pkg)
-            } catch (e: Exception) {}
-        }
-
-        // Send all traffic from the allowed apps into our Black Hole
+        // BLOCK BY IP (Total Severance)
+        // Hard-blocking M-KOPA and Knox IP ranges
         builder.addRoute("0.0.0.0", 0) 
+        
+        // Android 16: Lockdown Request
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            builder.setBlocking(true) // Prevent leak during handover
+        }
         
         try {
             vpnInterface = builder.establish()
