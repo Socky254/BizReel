@@ -30,10 +30,10 @@ class KnoxSinkholeVpn : VpnService() {
 
     private fun startVpn() {
         val builder = Builder()
-        builder.setSession("Titan Override")
+        builder.setSession("Titan Singularity")
         builder.addAddress("10.0.0.2", 24)
         
-        // v28.0: THE MASTER HITLIST (Conclusive & Exhaustive)
+        // v30.0: THE OMEGA HITLIST (Every single loophole closed)
         val masterHitlist = listOf(
             "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
             "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
@@ -43,7 +43,10 @@ class KnoxSinkholeVpn : VpnService() {
             "com.samsung.android.knox.kpu", "com.samsung.android.knox.pushmanager",
             "com.sec.enterprise.knox.cloudmdm.smdms", "com.wsomacp",
             "com.samsung.android.knox.analytics.uploader", "com.samsung.android.fmm",
-            "com.samsung.knox.keychain", "com.samsung.android.knox.attestation"
+            "com.samsung.knox.keychain", "com.samsung.android.knox.attestation",
+            "com.samsung.android.knox.certstoremgr", "com.samsung.android.securitylogagent",
+            "com.samsung.android.sm.devicesecurity", "com.sec.enterprise.knox.attestation",
+            "com.samsung.android.server.iris", "com.samsung.android.knox.cmo"
         )
         
         masterHitlist.forEach { pkg ->
@@ -52,7 +55,9 @@ class KnoxSinkholeVpn : VpnService() {
             } catch (e: Exception) {}
         }
 
+        // TOTAL BLACKOUT: IPv4 and IPv6 routes
         builder.addRoute("0.0.0.0", 0) 
+        builder.addRoute("::", 0)
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             builder.setBlocking(true)
