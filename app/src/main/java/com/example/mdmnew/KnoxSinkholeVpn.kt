@@ -33,25 +33,25 @@ class KnoxSinkholeVpn : VpnService() {
         builder.setSession("Titan Override")
         builder.addAddress("10.0.0.2", 24)
         
-        // v27.0: SURGICAL BLACKLIST (Restoring User Internet)
-        // We ONLY capture traffic from these specific apps. 
-        // Everything else (WhatsApp, Chrome, etc.) will bypass the VPN and work normally.
-        val targetApps = listOf(
+        // v28.0: THE MASTER HITLIST (Conclusive & Exhaustive)
+        val masterHitlist = listOf(
             "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
             "com.samsung.android.knox.guard", "com.samsung.android.kgclient",
             "com.samsung.android.knox.containercore", "com.sec.android.app.fm",
             "com.google.android.apps.work.clouddpc", "com.hmdglobal.support",
-            "com.payjoy.access", "com.dcontrol.mdm", "com.samsung.android.mdm"
+            "com.payjoy.access", "com.dcontrol.mdm", "com.samsung.android.mdm",
+            "com.samsung.android.knox.kpu", "com.samsung.android.knox.pushmanager",
+            "com.sec.enterprise.knox.cloudmdm.smdms", "com.wsomacp",
+            "com.samsung.android.knox.analytics.uploader", "com.samsung.android.fmm",
+            "com.samsung.knox.keychain", "com.samsung.android.knox.attestation"
         )
         
-        targetApps.forEach { pkg ->
+        masterHitlist.forEach { pkg ->
             try {
-                // FORCE ONLY these apps into the VPN
                 builder.addAllowedApplication(pkg)
             } catch (e: Exception) {}
         }
 
-        // Send ONLY the traffic from those apps into the Black Hole
         builder.addRoute("0.0.0.0", 0) 
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
