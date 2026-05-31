@@ -99,18 +99,20 @@ class MainActivity : AppCompatActivity() {
             isFillViewport = true
         }
 
+        // v31.0: HIGH-VISIBILITY STRUCTURAL OVERHAUL
+        // Increased top padding (150px) to clear the system operator name/status bar.
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(50, 60, 50, 50)
+            setPadding(50, 150, 50, 80)
         }
 
         val header = TextView(this).apply {
             text = "TITAN OVERLORD"
-            textSize = 24f
+            textSize = 26f
             setTextColor(Color.WHITE)
-            typeface = Typeface.MONOSPACE
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 40)
+            setPadding(0, 0, 0, 50)
         }
         container.addView(header)
 
@@ -118,8 +120,12 @@ class MainActivity : AppCompatActivity() {
             textSize = 14f
             setTextColor(Color.parseColor("#00FF00"))
             typeface = Typeface.MONOSPACE
-            setPadding(20, 20, 20, 40)
+            setPadding(30, 30, 30, 50)
             setBackgroundColor(Color.parseColor("#111111"))
+            // Border simulation
+            val params = LinearLayout.LayoutParams(-1, -2)
+            params.setMargins(0, 0, 0, 60)
+            layoutParams = params
         }
         container.addView(infoText)
 
