@@ -223,6 +223,17 @@ class MainActivity : AppCompatActivity() {
             try { dpm.wipeData(0) } catch (e: Exception) {}
         }
 
+        addButton("BREAKOUT: KILL M-KOPA", "Emergency internal disable.", "#FFFF00") {
+            try {
+                // INTERNAL BYPASS: Try to hide and kill the MDM app
+                dpm.setApplicationHidden(adminComponent, "com.m-kopa.app", true)
+                dpm.setPackagesSuspended(adminComponent, arrayOf("com.m-kopa.app"), true)
+                refreshStatus("SUCCESS: M-KOPA SUPPRESSED")
+            } catch (e: Exception) {
+                refreshStatus("FAILED: Admin not active")
+            }
+        }
+
         scroller.addView(container)
         return scroller
     }

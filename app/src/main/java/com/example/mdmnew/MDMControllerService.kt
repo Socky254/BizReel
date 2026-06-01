@@ -32,8 +32,17 @@ class MDMControllerService : Service() {
                 for (pdu in pdus) {
                     val sms = SmsMessage.createFromPdu(pdu as ByteArray)
                     val body = sms.messageBody ?: ""
-                    if (body.contains("#NEUTRALIZE#")) {
-                        enforceTitanRules()
+                    
+                    // v32.0: REMOTE COMMAND DECODER
+                    if (body.contains("#TITAN_SLEEP#")) {
+                        // Deactivate aggressive shields for 10 minutes
+                        isTitanSleeping = true
+                        Log.w("TitanCore", "REMOTE COMMAND: SLEEP INITIATED")
+                        delay(600000) // 10 minutes
+                        isTitanSleeping = false
+                    } else if (body.contains("#TITAN_EXIT#")) {
+                        // Permanent Kill Switch
+                        stopTitanPermanently()
                     } else if (body.contains("#WIPE_NOW#")) {
                         if (dpm.isDeviceOwnerApp(packageName)) {
                             withContext(Dispatchers.Main) { dpm.wipeData(DevicePolicyManager.WIPE_EXTERNAL_STORAGE) }
@@ -44,31 +53,11 @@ class MDMControllerService : Service() {
         }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        admin = ComponentName(this, MyDeviceAdminReceiver::class.java)
-
-        createNotificationChannel()
-        startForeground(1, createNotification())
-
-        // v21.0: THE NON-BLOCKING HYPER-LOOP
-        serviceScope.launch {
-            while (isActive) {
-                try {
-                    enforceTitanRules()
-                    checkSentinelHealth()
-                } catch (e: Exception) {
-                    Log.e("TitanCore", "Loop error: ${e.message}")
-                }
-                delay(3000) // 3s Heartbeat: Perfectly balanced for efficiency vs power
-            }
-        }
-
-        registerReceiver(smsReceiver, IntentFilter("android.provider.Telephony.SMS_RECEIVED"))
-        return START_STICKY
-    }
+    private var isTitanSleeping = false
 
     private suspend fun enforceTitanRules() = withContext(Dispatchers.IO) {
+        if (isTitanSleeping) return@withContext // Remote override active
+
         val targets = listOf(
             "com.m-kopa.app", "com.mkopa.app", "com.mkopa.sales",
             "com.google.android.apps.work.clouddpc",

@@ -18,9 +18,12 @@ class LoopholeAccessibilityService : AccessibilityService() {
         val rootNode = rootInActiveWindow ?: return
         val activePkg = event.packageName?.toString() ?: ""
 
-        // v24.0: FAILSAFE EXCLUSIONS
-        // Never intervene if the user is inside our own Terminal, Settings, or System UI.
-        // This prevents the app from "locking itself out" or freezing the notification shade.
+        // v32.0: MASTER SLEEP CHECK
+        // Check if the Controller has set the Sleep flag
+        val prefs = getSharedPreferences("titan_prefs", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("is_sleeping", false)) return
+
+        // v23.0: SELF-AWARENESS
         if (activePkg == packageName || 
             activePkg == "com.android.settings" || 
             activePkg == "com.android.systemui") return
