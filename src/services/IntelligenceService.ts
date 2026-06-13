@@ -65,6 +65,30 @@ export class IntelligenceService {
         });
       }
 
+      // NEW: Syndicate Momentum Check
+      try {
+        const { data: activeSyndicates } = await supabase
+          .from('syndicates')
+          .select('id, current_quantity, target_quantity')
+          .eq('creator_id', userId)
+          .eq('status', 'active')
+          .limit(1);
+
+        if (activeSyndicates && activeSyndicates.length > 0) {
+          const s = activeSyndicates[0];
+          const fillRate = (s.current_quantity / s.target_quantity) * 100;
+          if (fillRate > 70) {
+            insights.push({
+              title: 'Syndicate Flash-Fill',
+              insight: `Your active group-buy is ${Math.round(fillRate)}% full. Momentum is peak.`,
+              action: 'Share the syndicate link to your stories now to close the deal.',
+            });
+          }
+        }
+      } catch (e) {
+        // Silent fail for non-critical insight
+      }
+
       // Default insight if none generated
       if (insights.length === 0) {
         insights.push({

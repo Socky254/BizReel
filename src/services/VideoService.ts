@@ -19,10 +19,27 @@ export class VideoService {
   static async prefetchVideos(urls: string[]) {
     if (Platform.OS === 'web') return;
     await this.ensureCacheDir();
+    await this.clearOldCache();
 
     // Process top 3 URLs in parallel for speed
     const tasks = urls.slice(0, 3).map(url => this.prefetchVideo(url));
     await Promise.all(tasks);
+  }
+
+  /**
+   * Automatically manages storage by removing old cached videos if they exceed 300MB.
+   */
+  static async clearOldCache() {
+    try {
+      const dirInfo = await FileSystem.getInfoAsync(VIDEO_CACHE_DIR);
+      if (dirInfo.exists && dirInfo.size && dirInfo.size > 300 * 1024 * 1024) {
+        console.log('[Elite Sync] Storage limit reached, optimizing cache...');
+        await FileSystem.deleteAsync(VIDEO_CACHE_DIR);
+        await this.ensureCacheDir();
+      }
+    } catch (e) {
+      console.error('[VideoService] Cache cleanup failed:', e);
+    }
   }
 
   private static async prefetchVideo(url: string) {

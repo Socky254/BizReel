@@ -1,6 +1,6 @@
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
-import { Platform, Alert } from 'react-native';
+import { Platform, Alert, Share } from 'react-native';
 import { Post } from '../domain/models';
 
 export class MarketingService {
@@ -10,6 +10,31 @@ export class MarketingService {
    */
   static getShareLink(postId: string): string {
     return `https://dist-tau-five-42.vercel.app/posts/${postId}`;
+  }
+
+  /**
+   * Returns the official download link for the BizReel APK.
+   */
+  static getAppDownloadLink(): string {
+    return 'https://dist-tau-five-42.vercel.app/download';
+  }
+
+  /**
+   * Shares the entire BizReel app with partners.
+   */
+  static async shareApp() {
+    const downloadLink = this.getAppDownloadLink();
+    const message = `Join BizReel — The ultimate short-video platform for businesses! 🚀\n\nDownload the APK and start networking today:\n${downloadLink}`;
+
+    try {
+      await Share.share({
+        message,
+        url: downloadLink,
+        title: 'Share BizReel App',
+      });
+    } catch (e) {
+      console.error('[MarketingService] App share failed', e);
+    }
   }
 
   /**

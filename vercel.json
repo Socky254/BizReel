@@ -3,7 +3,11 @@
   "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/download",
+      "destination": "/download.html"
+    },
+    {
+      "source": "/((?!download|assets|_expo).*)",
       "destination": "/index.html"
     }
   ]

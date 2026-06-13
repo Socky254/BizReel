@@ -26,7 +26,7 @@ import { supabase } from '../../../lib/supabase';
 import { SyncService } from '../../../services/SyncService';
 import { deletePost } from '../../../services/postService';
 import { Watermark } from '../../../components/Watermark';
-import { IntelligenceHUD } from '../../../components/IntelligenceHUD';
+import { VideoService } from '../../../services/VideoService';
 import Animated, {
   useAnimatedStyle,
   withRepeat,
@@ -61,6 +61,8 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
   const [showHUD, setShowHUD] = useState(false);
   const [perfIndex, setPerfIndex] = useState<any>(null);
   const [isFetchingPerf, setIsFetchingPerf] = useState(false);
+  const [resolvedVideoUri, setResolvedVideoUri] = useState<string | null>(null);
+  const [cachedPerfIndexes, setCachedPerfIndexes] = useState<Record<string, any>>({});
 
   const lastTap = useRef<number>(0);
   const videoRef = useRef<Video>(null);
@@ -68,7 +70,19 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
 
   const pulse = useSharedValue(1);
   const heartScale = useSharedValue(0);
-  const videoSource = useMemo(() => ({ uri: item.video_url }), [item.video_url]);
+
+  // Resolve cached URI for instant playback
+  useEffect(() => {
+    let isMounted = true;
+    VideoService.getCachedVideoUri(item.video_url).then((uri) => {
+      if (isMounted) setResolvedVideoUri(uri);
+    });
+    return () => { isMounted = false; };
+  }, [item.video_url]);
+
+  const videoSource = useMemo(() =>
+    resolvedVideoUri ? { uri: resolvedVideoUri } : { uri: item.video_url },
+  [resolvedVideoUri, item.video_url]);
 
   // Lifecycle & Performance Optimization
   useEffect(() => {
@@ -165,14 +179,23 @@ export const ReelFeedItem = React.memo(({ item, isVisible, onOpenComments }: Pro
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     setShowHUD(true);
 
-    // Fetch real-time trust analytics if not already cached for this session/item
-    if (!perfIndex && !isFetchingPerf) {
+    // Fetch or Use Cached Trust Analytics
+    const businessId = item.user_id;
+    if (cachedPerfIndexes[businessId]) {
+      setPerfIndex(cachedPerfIndexes[businessId]);
+      return;
+    }
+
+    if (!isFetchingPerf) {
       try {
         setIsFetchingPerf(true);
         const { data } = await supabase.rpc('get_business_performance_index', {
-          target_user_id: item.user_id,
+          target_user_id: businessId,
         });
-        if (data) setPerfIndex(data);
+        if (data) {
+          setPerfIndex(data);
+          setCachedPerfIndexes(prev => ({ ...prev, [businessId]: data }));
+        }
       } catch (e) {
         console.error('Error fetching trust analytics:', e);
       } finally {

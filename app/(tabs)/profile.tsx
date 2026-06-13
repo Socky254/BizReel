@@ -24,6 +24,7 @@ import { container } from '../../src/di/Container';
 import { supabase } from '../../src/lib/supabase';
 import { ErrorHandler } from '../../src/core/error_handler/ErrorHandler';
 import { IntelligenceService, StrategyInsight } from '../../src/services/IntelligenceService';
+import { MarketingService } from '../../src/services/MarketingService';
 import { SkeletonLoader } from '../../src/components/SkeletonLoader';
 
 const ProfileSkeleton = () => (
@@ -388,7 +389,10 @@ export default function ProfileScreen() {
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.navBar}>
-        <TouchableOpacity style={styles.iconCircle} onPress={() => router.push('/profile/diagnostics')}>
+        <TouchableOpacity
+          style={styles.iconCircle}
+          onPress={() => router.push('/profile/diagnostics')}
+        >
           <Ionicons name="pulse" size={20} color={Colors.primary} />
         </TouchableOpacity>
         <View style={styles.navTitleContainer}>
@@ -397,12 +401,17 @@ export default function ProfileScreen() {
           </Text>
           <View style={styles.onlineBadge} />
         </View>
-        <TouchableOpacity
-          style={styles.iconCircle}
-          onPress={() => router.push('/profile/settings')}
-        >
-          <Ionicons name="reorder-four-outline" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <TouchableOpacity style={styles.iconCircle} onPress={() => MarketingService.shareApp()}>
+            <Ionicons name="share-social-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconCircle}
+            onPress={() => router.push('/profile/settings')}
+          >
+            <Ionicons name="reorder-four-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {strategyInsights.length > 0 && (

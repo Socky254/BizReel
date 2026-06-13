@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Switch, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeLinearGradient } from '../../src/components/SafeLinearGradient';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { supabase } from '../../src/lib/supabase';
 import { Colors } from '../../src/core/theme/colors';
+import { MarketingService } from '../../src/services/MarketingService';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -135,6 +136,20 @@ export default function SettingsScreen() {
           onPress={() => router.push('/profile/verify')}
         />
 
+        <Text style={styles.sectionTitle}>Marketing & Networking</Text>
+        <SettingItem
+          icon="share-social-outline"
+          title="Share BizReel App"
+          subtitle="Invite your partners to the ecosystem"
+          onPress={() => MarketingService.shareApp()}
+        />
+        <SettingItem
+          icon="cloud-download-outline"
+          title="Download Android APK"
+          subtitle="Get the latest build for offline use"
+          onPress={() => Linking.openURL(MarketingService.getAppDownloadLink())}
+        />
+
         <Text style={styles.sectionTitle}>Privacy</Text>
         <SettingItem
           icon="lock-closed-outline"
@@ -204,7 +219,7 @@ export default function SettingsScreen() {
           onPress={() =>
             Alert.alert(
               'About BizReel',
-              'Version 1.0.0\n\nThe ultimate B2B short-form video platform designed for professional networking and business growth.',
+              `Version 1.0.0\n\nThe ultimate B2B short-form video platform designed for professional networking and business growth.\n\nOffline Build available at:\n${MarketingService.getAppDownloadLink()}`,
             )
           }
         />

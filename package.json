@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
     "build:android": "npx expo prebuild --platform android && cd android && ./gradlew assembleRelease",
-    "build:windows": "npx expo export --platform web && node fix-paths.js && npx electron-builder"
+    "build:windows": "npx expo export --platform web && node fix-paths.js && npx electron-builder",
+    "ai:bridge": "node scripts/local-ai-bridge.js"
   },
   "build": {
     "appId": "com.bizreel.desktop",

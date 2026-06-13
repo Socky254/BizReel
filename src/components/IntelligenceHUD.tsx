@@ -23,10 +23,11 @@ interface Props {
   perfIndex?: {
     index_score: number;
     status: string;
-    reliability: number;
-    reputation: number;
-    verification_level: number;
-    trust_signals: number;
+    fulfillment_rate: number;
+    unique_business_partners: number;
+    total_closed_deals: number;
+    total_revenue_volume: number;
+    avg_user_rating: number;
   };
 }
 
@@ -87,8 +88,8 @@ export const IntelligenceHUD: React.FC<Props> = ({ isVisible, businessName, cate
               <Text style={styles.dataValue}>{businessName.toUpperCase()}</Text>
             </View>
             <View style={styles.dataRow}>
-              <Text style={styles.dataLabel}>SECTOR</Text>
-              <Text style={styles.dataValue}>{category.toUpperCase()}</Text>
+              <Text style={styles.dataLabel}>PARTNERS</Text>
+              <Text style={styles.dataValue}>{perfIndex?.unique_business_partners || '0'} BUSINESSES</Text>
             </View>
             <View style={styles.dataRow}>
               <Text style={styles.dataLabel}>STATUS</Text>
@@ -99,8 +100,12 @@ export const IntelligenceHUD: React.FC<Props> = ({ isVisible, businessName, cate
             <View style={styles.dataRow}>
               <Text style={styles.dataLabel}>RELIABILITY</Text>
               <Text style={styles.dataValue}>
-                {perfIndex?.reliability || 100}% FULFILLMENT
+                {perfIndex?.fulfillment_rate || 100}% FULFILLMENT
               </Text>
+            </View>
+            <View style={styles.dataRow}>
+              <Text style={styles.dataLabel}>RATING</Text>
+              <Text style={styles.dataValue}>{perfIndex?.avg_user_rating || '5.0'} / 5.0</Text>
             </View>
           </View>
 

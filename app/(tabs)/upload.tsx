@@ -17,6 +17,7 @@ import { Video, ResizeMode } from 'expo-av';
 import { useAuthStore } from '../../src/store/useAuthStore';
 import { Colors } from '../../src/core/theme/colors';
 import { UploadService } from '../../src/features/upload/services/UploadService';
+import { IntelligenceService } from '../../src/services/IntelligenceService';
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +31,7 @@ export default function UploadScreen() {
   const [caption, setCaption] = useState('');
   const [category, setCategory] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [isPolishing, setIsPolishing] = useState(false);
   const [liveTitle, setLiveTitle] = useState('');
 
   const pickVideo = async (useCamera: boolean = false, isStory: boolean = false) => {
@@ -118,6 +120,25 @@ export default function UploadScreen() {
       Alert.alert('Upload Failed', e.message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleAiPolish = async () => {
+    if (!caption.trim()) return;
+    try {
+      setIsPolishing(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const polished = await IntelligenceService.getAIMentorResponse(
+        `Polish this business reel caption for higher engagement: "${caption}"`
+      );
+      if (polished) {
+        setCaption(polished);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsPolishing(false);
     }
   };
 
@@ -282,7 +303,19 @@ export default function UploadScreen() {
             </View>
             {mode === 'POST_REEL' && (
               <View style={styles.inputArea}>
-                <Text style={styles.label}>Business Caption</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <Text style={[styles.label, { marginBottom: 0 }]}>Business Caption</Text>
+                  <TouchableOpacity onPress={handleAiPolish} disabled={isPolishing} style={styles.aiPolishBtn}>
+                    {isPolishing ? (
+                      <ActivityIndicator size="small" color={Colors.primary} />
+                    ) : (
+                      <>
+                        <Ionicons name="sparkles" size={14} color={Colors.primary} />
+                        <Text style={styles.aiPolishText}>AI POLISH</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
                 <TextInput
                   style={styles.captionInput}
                   placeholder="Tell your partners about this..."
@@ -477,6 +510,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     fontWeight: '600',
+  },
+  aiPolishBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 208, 132, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 208, 132, 0.2)',
+  },
+  aiPolishText: {
+    color: Colors.primary,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   liveForm: { padding: 40, alignItems: 'center' },
   liveIconBox: {
